@@ -9,8 +9,7 @@
 #include <sstream>
 #include <atlstr.h >
 #include <algorithm>
-#include "CVarBase.h"
-#include "CVar.h"
+#include "CVarContainer.h"
 #include "Stopwatch.h"
 
 // Basic console for OpenGL applications written in C++
@@ -22,7 +21,7 @@ private:
 		CLOSED, ROLLING_DOWN, INTERFACE_APPEARING, OPENED, INTERFACE_DISAPPEARING, ROLLING_UP
 	};
 
-	CVarBase cvars;								// Variables that are attached to normal variables, and vice versa modifiable from the console
+	CVarContainer cvars;						// Variables that are attached to normal variables, and vice versa modifiable from the console
 	State state;								// The state of the console (opened, closed, etc)
 	Stopwatch watch;							// To get elapsed time since last call (i.e. dt)
 
@@ -92,7 +91,7 @@ public:
 	void scroll_up();							// Scrolls up in the output text
 	void scroll_down();							// Scroll down in the output text
 	void print_help();							// Prints help
-	CVarBase& variables();						// Returns the data member, so one can use the console variables
+	CVarContainer& variables();						// Returns the data member, so one can use the console variables
 };
 
 std::ostringstream GLConsole::cout;				// Static variables need to be defined
@@ -105,7 +104,7 @@ void GLConsole::init() {
 	glWindowPos2i = (PFNGLWINDOWPOS2IPROC)glutGetProcAddress("glWindowPos2i");	// Loads the function
 	glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);		// Enables transparency
 
-	cvars = CVarBase();
+	cvars = CVarContainer();
 	state = CLOSED;
 	watch = Stopwatch();
 
@@ -265,7 +264,7 @@ void GLConsole::shift_released() {
 	pressed_shift = false;
 }
 
-CVarBase& GLConsole::variables() {
+CVarContainer& GLConsole::variables() {
 	return cvars;
 }
 
@@ -308,6 +307,7 @@ void GLConsole::print_help() {
 	GLConsole::cout << "Commands:\n";
 	GLConsole::cout << " Help: prints help\n";
 	GLConsole::cout << " List: lists all console variables\n";
+	GLConsole::cout << " Cls: clears the screen\n";
 	GLConsole::cout << " Reset: resets the console to the default state\n";
 	GLConsole::cout << " Exit: completly exits the application\n";
 	GLConsole::cout << "Other:\n";
@@ -682,6 +682,11 @@ void GLConsole::process_command() {
 
 	else if (command == "list") {													// Lists the modifiable variables with their associated value
 		cvars.print_tree(GLConsole::cout);
+	}
+
+	else if (command == "cls") {													// Completly clears the screen
+		buffer_output.clear();
+		GLConsole::cout.str("");
 	}
 
 	else if (command == "reset") {													// Resets the console to the default state

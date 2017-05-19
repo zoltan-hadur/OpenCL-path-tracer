@@ -1,20 +1,20 @@
 #pragma once
 
-#include <map>
 #include <sstream>
 
-template<typename T>
-class CVar : public CVarBase {
+// Stores any type of data, that can be printed to the console, and can be set from the console
+// Class is based on https://github.com/arpg/CVars
+template<typename T> class CVar : public CVarBase {
 private:
-	std::string name;
-	T* var;
-	std::string help;
+	std::string name;	// Name of the variable
+	T* var;				// Pointer to the variable, so they are attached (modifying the cvar also modifies tha variable and vice versa)
+	std::string help;	// Description of the variable
 public:
-	CVar<T>(std::string name, T& var, std::string help = "");
-	T& get_var();
-	void set_var_p(T* var);
-	void print(std::ostream& os, bool with_name = true) override;
-	void read(std::istream& is) override;
+	CVar<T>(std::string name, T& var, std::string help = "");								// Creates a CVar
+	T& get_var();																			// Get the variable of a CVar
+	void set_var_p(T* var);																	// Attach a variable to the CVar
+	void print(std::ostream& os, bool with_name = true) override;							// Prints any type of variable, just need to overload << for your own class
+	void read(std::istream& is) override;													// Reads any type of variable, just need to overload >> for your own class
 	template<typename T> friend std::ostream& operator<<(std::ostream& os, CVar<T>& cvar);
 	template<typename T> friend std::istream& operator>>(std::istream& is, CVar<T>& cvar);
 };
@@ -34,9 +34,9 @@ template<typename T> void CVar<T>::set_var_p(T* var) {
 }
 
 template<typename T> void CVar<T>::print(std::ostream& os, bool with_name) {
-	if (with_name) {
+	if (with_name) {	// Full print, i.e. name, value, help
 		os << this->name << " = " << *(this->var) << "   |" << this->help << "|";
-	} else {
+	} else {			// Only the value will be printed
 		os << *(this->var);
 	}
 }

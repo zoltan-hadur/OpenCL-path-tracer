@@ -105,6 +105,7 @@ xcopy /v /y "$(ProjectDir)glew64.dll" "$(OutDir)"</Command>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CVar.h" />
     <ClInclude Include="CVarBase.h" />
+    <ClInclude Include="CVarContainer.h" />
     <ClInclude Include="float3.h" />
     <ClInclude Include="GLConsole.h" />
     <ClInclude Include="OpenCL_Device.h" />
