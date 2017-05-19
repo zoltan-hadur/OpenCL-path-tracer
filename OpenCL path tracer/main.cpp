@@ -27,10 +27,10 @@ void onInitialization() {
 	glViewport(0, 0, screen_width, screen_height);
 
 	device.init(screen_width, screen_height);
-	console.init();
-	max_fps = 60; console.variables().attach_cvar<float>("app.max_fps", &max_fps, "Determines the maximum allowed frames per second. Interval: [30, infty).");
 	std::cout << device << std::endl;
-	GLConsole::cout << device << std::endl;
+	console.init();
+	console.print_help();
+	max_fps = 60; console.variables().attach_cvar<float>("app.max_fps", &max_fps, "Determines the maximum allowed frames per second. Interval: [30, infty).");
 
 
 	std::string path = "textures/earth_2k.bmp";
