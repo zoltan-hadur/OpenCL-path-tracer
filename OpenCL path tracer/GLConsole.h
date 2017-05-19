@@ -21,6 +21,8 @@ private:
 		CLOSED, ROLLING_DOWN, INTERFACE_APPEARING, OPENED, INTERFACE_DISAPPEARING, ROLLING_UP
 	};
 
+	typedef void(*func)(void);					// Function pointer type
+	std::map < std::string, func> funcs;		// Function pointers
 	CVarContainer cvars;						// Variables that are attached to normal variables, and vice versa modifiable from the console
 	State state;								// The state of the console (opened, closed, etc)
 	Stopwatch watch;							// To get elapsed time since last call (i.e. dt)
@@ -91,6 +93,8 @@ public:
 	void scroll_up();							// Scrolls up in the output text
 	void scroll_down();							// Scroll down in the output text
 	void print_help();							// Prints help
+	void add_function(std::string name, func f);// Store the function pointer
+	void remove_function(std::string name);		// Removes the function pointer
 	CVarContainer& variables();						// Returns the data member, so one can use the console variables
 };
 
@@ -304,6 +308,10 @@ void GLConsole::scroll_down() {
 
 void GLConsole::print_help() {
 	GLConsole::cout << "----------------------------------HELP----------------------------------\n";
+	GLConsole::cout << "Functions:\n";
+	for (auto f : funcs) {
+		GLConsole::cout << " " <<f.first << "\n";
+	}
 	GLConsole::cout << "Commands:\n";
 	GLConsole::cout << " Help: prints help\n";
 	GLConsole::cout << " List: lists all console variables\n";
@@ -317,6 +325,14 @@ void GLConsole::print_help() {
 	GLConsole::cout << " [command]: prints the variable's name, value and it's description\n";
 	GLConsole::cout << " [command] = [value]: sets the [command] variable's value to [value]\n";
 	GLConsole::cout << "----------------------------------HELP----------------------------------\n";
+}
+
+void GLConsole::add_function(std::string name, func f) {
+	funcs.insert({ name, f });
+}
+
+void GLConsole::remove_function(std::string name) {
+	funcs.erase(name);
 }
 
 
@@ -698,6 +714,15 @@ void GLConsole::process_command() {
 		glutLeaveFullScreen();
 		glutDestroyWindow(1);
 		exit(0);
+	}
+
+	else if (command.find("()") != std::string::npos) {								// Call the function
+		try {
+			funcs.at(command)();
+		}
+		catch (...) {
+			GLConsole::cout << "Function does not exist!\n";
+		}
 	}
 
 	else if (command.find(" = ") != std::string::npos) {							// Sets a console variable
