@@ -13,21 +13,21 @@
 
 class OpenCL_Device {
 private:
-	PFNGLTEXIMAGE3DPROC glTexImage3D;
-	PFNGLTEXSUBIMAGE3DPROC glTexSubImage3D;
+	PFNGLTEXIMAGE3DPROC glTexImage3D;			// Function that needs to be loaded dynamically
+	PFNGLTEXSUBIMAGE3DPROC glTexSubImage3D;		// Function that needs to be loaded dynamically
 
-	int screen_width, screen_height;
+	int screen_width, screen_height;			// Width and height of the rendering canvas
 	int uploaded_textures, max_textures;
 
 	cl::Platform platform;
 	cl::Device device;
 	cl::Context context;
 	cl::Program program;
-	cl::CommandQueue queue;
-	cl::ImageGL canvas;
-	cl::Buffer radiances;
-	cl::Buffer rays;
-	cl::Buffer randoms;
+	cl::CommandQueue queue;						// Command queue
+	cl::ImageGL canvas;							// The device renders to this canvas
+	cl::Buffer buffer_radiances;				// "colors"
+	cl::Buffer buffer_rays;
+	cl::Buffer buffer_randoms;
 
 	cl::Buffer buffer_spheres;
 	cl::Buffer buffer_triangles;
@@ -38,39 +38,38 @@ private:
 	cl::ImageGL buffer_textures;
 	cl::ImageGL buffer_bump_maps;
 public:
-	OpenCL_Device();
-	void init(int width, int height);
-	std::vector<cl_float> bgr_to_rgb(std::vector<cl_uchar>& image, int width, int height);			// Convert uchar BGR to float RGBA
-	std::vector<cl_float> rgb_to_grayscale(std::vector<cl_float>& image, int width, int height);	// Convert float RGBA to float grayscale
-	std::vector<cl_float> derivate_image(std::vector<cl_float>& image, int width, int height);		// Derivated float grayscale is float RGBA
-	std::vector<cl_float> expand_image(std::vector<cl_float>& image, int width, int height);		// Expands the image to 2048x1024
+	OpenCL_Device();																				// Does nothing
+	void init(int width, int height);																// Initializing the device. Should only get called once, should only have one instance and must be called after glutInit was called
+	std::vector<cl_float> bgr_to_rgb(std::vector<cl_uchar>& image, int width, int height);			// Convert uchar BGR image to float RGBA image
+	std::vector<cl_float> rgb_to_grayscale(std::vector<cl_float>& image, int width, int height);	// Convert float RGBA image to float grayscale image
+	std::vector<cl_float> derivate_image(std::vector<cl_float>& image, int width, int height);		// Derivate float grayscale image, returns float RGBA image
+	std::vector<cl_float> expand_image(std::vector<cl_float>& image, int width, int height);		// Expands the image to 2048x1024 like GL_REPEAT
 	friend std::ostream& operator<<(std::ostream& os, OpenCL_Device& device);
 	friend std::istream& operator>>(std::istream& is, OpenCL_Device& device);
 };
 
 OpenCL_Device::OpenCL_Device() {
-
+	// Does nothing
 }
 
 void OpenCL_Device::init(int width, int height) {
-	std::cout << "Initializing OpenCL device..." << std::endl;
-	glTexImage3D = (PFNGLTEXIMAGE3DPROC)wglGetProcAddress("glTexImage3D");								//Load function for allocate 3D texture
-	glTexSubImage3D = (PFNGLTEXSUBIMAGE3DPROC)wglGetProcAddress("glTexSubImage3D");						//Load function for upload 3D texture
+	//std::cout << "Initializing OpenCL device..." << std::endl;
+	glTexImage3D = (PFNGLTEXIMAGE3DPROC)wglGetProcAddress("glTexImage3D");								// Load function for allocate 3D texture
+	glTexSubImage3D = (PFNGLTEXSUBIMAGE3DPROC)wglGetProcAddress("glTexSubImage3D");						// Load function for upload 3D texture
 
 	screen_width = width;
 	screen_height = height;
 
-	if (cl::Platform::get(&platform) != CL_SUCCESS) {													//Get the first avaliable platform (driver)
+	if (cl::Platform::get(&platform) != CL_SUCCESS) {													// Try to get the first avaliable platform (driver)
 		std::cout << "Error finding OpenCL platform (driver)!" << std::endl;
 		exit(EXIT_FAILURE);
-	} else {
-		std::cout << "Using platform: " << platform.getInfo<CL_PLATFORM_NAME>() << std::endl;
 	}
+	std::cout << "Using platform: " << platform.getInfo<CL_PLATFORM_NAME>() << std::endl;
 
 	std::vector<cl::Device> devices;
-	if (platform.getDevices(CL_DEVICE_TYPE_GPU, &devices) != CL_SUCCESS) {								//Get the first avaliable OpenCL capable GPU
+	if (platform.getDevices(CL_DEVICE_TYPE_GPU, &devices) != CL_SUCCESS) {								// Try to get the first avaliable OpenCL capable GPU
 		std::cout << "Error finding OpenCL capable GPU!" << std::endl;
-		if (platform.getDevices(CL_DEVICE_TYPE_CPU, &devices) != CL_SUCCESS) {							//Get the first avaliable OpenCL capable CPU
+		if (platform.getDevices(CL_DEVICE_TYPE_CPU, &devices) != CL_SUCCESS) {							// Try to get the first avaliable OpenCL capable CPU if no GPU was found
 			std::cout << "Error finding OpenCL capable CPU!" << std::endl;
 			exit(EXIT_FAILURE);
 		}
@@ -80,43 +79,43 @@ void OpenCL_Device::init(int width, int height) {
 
 	cl_int error_code = CL_SUCCESS;
 	cl_context_properties properties[] = {
-		CL_GL_CONTEXT_KHR, (cl_context_properties)wglGetCurrentContext(),								//The current OpenGL context
-		CL_WGL_HDC_KHR, (cl_context_properties)wglGetCurrentDC(),										//The device context that is associated with the current OpenGL context
-		CL_CONTEXT_PLATFORM, (cl_context_properties)(platform)(),										//The id of the used platform
-		0																								//Terminating zero because we want OpenGL-OpenCL interoperability
+		CL_GL_CONTEXT_KHR, (cl_context_properties)wglGetCurrentContext(),								// The current OpenGL context
+		CL_WGL_HDC_KHR, (cl_context_properties)wglGetCurrentDC(),										// The device context that is associated with the current OpenGL context
+		CL_CONTEXT_PLATFORM, (cl_context_properties)(platform)(),										// The id of the used platform
+		0																								// Terminating zero because we want OpenGL-OpenCL interoperability
 	};
-	context = cl::Context(device, properties, NULL, NULL, &error_code);									//Creating OpenCL context with the above properties
+	context = cl::Context(device, properties, NULL, NULL, &error_code);									// Creating OpenCL context with the above properties
 	if (error_code != CL_SUCCESS) {
 		std::cout << "Error in creating OpenCL context" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
-	std::ifstream stream("kernel.cl");																	//Read the OpenCL kernel code
+	std::ifstream stream("kernel.cl");																	// Read the OpenCL kernel code
 	std::stringstream str_stream;
 	str_stream << stream.rdbuf();
 	std::string kernel_code = str_stream.str();
 	cl::Program::Sources sources;
 	sources.push_back({ kernel_code.c_str(), kernel_code.length() });
 
-	program = cl::Program(context, sources);															//Build the OpenCL program
+	program = cl::Program(context, sources);															// Build the OpenCL program
 	if (program.build({ device }) != CL_SUCCESS) {
 		std::cout << "Error while building kernel code: " << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device) << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
-	queue = cl::CommandQueue(context, device);															//The command queue to execute kernel functions on the OpenCL device
+	queue = cl::CommandQueue(context, device);															// The command queue to execute kernel functions on the OpenCL device
 
-	radiances = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(cl_float3) * width * height);
-	rays = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(Ray) * width * height);
-	randoms = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(cl_int) * width * height);
+	buffer_radiances = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(float3) * width * height);			// Allocate memory on device
+	buffer_rays = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(Ray) * width * height);
+	buffer_randoms = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(cl_int) * width * height);
 
-	cl_int* seeds = new cl_int[width * height];
-	for (int i = 0; i < width * height; ++i) {
+	std::vector<cl_int> seeds = std::vector<cl_int>(width * height);
+	for (int i = 0; i < seeds.size(); ++i) {
 		seeds[i] = i + 1;
 	}
-	queue.enqueueWriteBuffer(randoms, CL_TRUE, 0, sizeof(cl_int) * width * height, &seeds[0]);
-	delete[] seeds;
+	queue.enqueueWriteBuffer(buffer_randoms, CL_TRUE, 0, sizeof(cl_int) * width * height, seeds.data());// Upload seeds for random number generating to the device
 
+	// Create canvas wich will be using while rendering
 	glEnable(GL_TEXTURE_2D);
 	GLuint texture;
 	glGenTextures(1, &texture);
@@ -125,8 +124,8 @@ void OpenCL_Device::init(int width, int height) {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, screen_width, screen_height, 0, GL_RGBA, GL_FLOAT, NULL);
-	canvas = cl::ImageGL(context, CL_MEM_WRITE_ONLY, GL_TEXTURE_2D, 0, texture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, screen_width, screen_height, 0, GL_RGBA, GL_FLOAT, NULL);	// Allocate memory on device for canvas
+	canvas = cl::ImageGL(context, CL_MEM_WRITE_ONLY, GL_TEXTURE_2D, 0, texture);						// Create the OpenCL image from the OpenGL texture
 }
 
 std::vector<cl_float> OpenCL_Device::bgr_to_rgb(std::vector<cl_uchar>& image, int width, int height) {

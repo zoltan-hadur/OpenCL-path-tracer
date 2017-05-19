@@ -108,9 +108,13 @@ xcopy /v /y "$(ProjectDir)glew64.dll" "$(OutDir)"</Command>
     <ClInclude Include="CVarContainer.h" />
     <ClInclude Include="float3.h" />
     <ClInclude Include="GLConsole.h" />
+    <ClInclude Include="Material.h" />
     <ClInclude Include="OpenCL_Device.h" />
     <ClInclude Include="Ray.h" />
+    <ClInclude Include="Sphere.h" />
     <ClInclude Include="Stopwatch.h" />
+    <ClInclude Include="TextureInfo.h" />
+    <ClInclude Include="Triangle.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

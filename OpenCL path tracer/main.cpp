@@ -44,19 +44,20 @@ void capture_picture() {
 	file = fopen(file_name.c_str(), "w+");
 	fwrite(file_header, 1, 14, file);
 	fwrite(info_header, 1, 40, file);
-	for (int i = 0; i<screen_height; i++){
+	for (int i = 0; i < screen_height; i++) {
 		fwrite(data.data() + (screen_width*(screen_height - i - 1) * 3), 3, screen_width, file);
 		fwrite(pad, 1, (4 - (screen_width * 3) % 4) % 4, file);
 	}
 	fclose(file);
 	id++;
+	GLConsole::cout << file_name + " created\n";
 }
 
 void onInitialization() {
 	glViewport(0, 0, screen_width, screen_height);
 
 	device.init(screen_width, screen_height);
-	std::cout << device << std::endl;
+	//std::cout << device << std::endl;
 	console.init();
 	console.add_function("capture_picture()", capture_picture);
 	console.print_help();
@@ -136,26 +137,24 @@ void onKeyboard(unsigned char key, int x, int y) {
 	int modifier = glutGetModifiers();
 	if (modifier & GLUT_ACTIVE_SHIFT) {
 		console.shift_pressed();
-	}
-	else {
+	} else {
 		console.shift_released();
 	}
 	switch (key) {
-	case GLUT_KEY_ESC:
-		glutLeaveFullScreen();
-		glutDestroyWindow(1);
-		exit(0);
-		break;
-	default:
-		if (console.is_open()) {
-			console.on_keyboard(key);
-		}
-		else {
-			if (key == ' ')
-				glutFullScreenToggle();
-			keys_down[key] = true;
-		}
-		break;
+		case GLUT_KEY_ESC:
+			glutLeaveFullScreen();
+			glutDestroyWindow(1);
+			exit(0);
+			break;
+		default:
+			if (console.is_open()) {
+				console.on_keyboard(key);
+			} else {
+				if (key == ' ')
+					glutFullScreenToggle();
+				keys_down[key] = true;
+			}
+			break;
 	}
 }
 
@@ -167,19 +166,18 @@ void onSpecial(int key, int x, int y) {
 	int modifier = glutGetModifiers();
 	if (modifier & GLUT_ACTIVE_SHIFT) {
 		console.shift_pressed();
-	}
-	else {
+	} else {
 		console.shift_released();
 	}
 	switch (key) {
-	case GLUT_KEY_F1:
-		console.toggle_console();
-		break;
-	default:
-		if (console.is_open()) {
-			console.on_special(key);
-		}
-		break;
+		case GLUT_KEY_F1:
+			console.toggle_console();
+			break;
+		default:
+			if (console.is_open()) {
+				console.on_special(key);
+			}
+			break;
 	}
 }
 
@@ -187,8 +185,7 @@ void onSpecialUp(int key, int x, int y) {
 	int modifier = glutGetModifiers();
 	if (modifier & GLUT_ACTIVE_SHIFT) {
 		console.shift_pressed();
-	}
-	else {
+	} else {
 		console.shift_released();
 	}
 }
@@ -200,8 +197,7 @@ void onMouse(int button, int state, int x, int y) {
 		if (console.is_open()) {
 			(button == 3) ? console.scroll_up() : console.scroll_down();
 		}
-	}
-	else {	// Normal click event
+	} else {	// Normal click event
 		last_x = x; last_y = y;
 		if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
 			float X = (float)x;

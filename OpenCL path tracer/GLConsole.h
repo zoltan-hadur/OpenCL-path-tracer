@@ -310,7 +310,7 @@ void GLConsole::print_help() {
 	GLConsole::cout << "----------------------------------HELP----------------------------------\n";
 	GLConsole::cout << "Functions:\n";
 	for (auto f : funcs) {
-		GLConsole::cout << " " <<f.first << "\n";
+		GLConsole::cout << " " << f.first << "\n";
 	}
 	GLConsole::cout << "Commands:\n";
 	GLConsole::cout << " Help: prints help\n";
@@ -719,8 +719,7 @@ void GLConsole::process_command() {
 	else if (command.find("()") != std::string::npos) {								// Call the function
 		try {
 			funcs.at(command)();
-		}
-		catch (...) {
+		} catch (...) {
 			GLConsole::cout << "Function does not exist!\n";
 		}
 	}
