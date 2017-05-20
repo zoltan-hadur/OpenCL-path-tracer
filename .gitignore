@@ -184,6 +184,8 @@ _pkginfo.txt
 !*.[Cc]ache/
 
 # Others
+textures/
+rendered/
 ClientBin/
 ~$*
 *~

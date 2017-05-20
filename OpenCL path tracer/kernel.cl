@@ -51,7 +51,7 @@ void kernel derivate_image(global float* image_in, global float* image_out, int 
 	float vertical = image_in[yp * width + x] - image_in[ym * width + x];
 
 	image_out[id * 4 + 0] = tanh(2.0f * horizontal) / 2.0f + 0.5f;
-	image_out[id * 4 + 1] = tanh(2.0f * horizontal) / 2.0f + 0.5f;
+	image_out[id * 4 + 1] = tanh(2.0f * vertical) / 2.0f + 0.5f;
 	image_out[id * 4 + 2] = 1.0f;
 	image_out[id * 4 + 3] = 1.0f;
 }

@@ -102,6 +102,7 @@ xcopy /v /y "$(ProjectDir)glew64.dll" "$(OutDir)"</Command>
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BMP.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="CVar.h" />
     <ClInclude Include="CVarBase.h" />
@@ -109,8 +110,9 @@ xcopy /v /y "$(ProjectDir)glew64.dll" "$(OutDir)"</Command>
     <ClInclude Include="float3.h" />
     <ClInclude Include="GLConsole.h" />
     <ClInclude Include="Material.h" />
-    <ClInclude Include="OpenCL_Device.h" />
+    <ClInclude Include="CLDevice.h" />
     <ClInclude Include="Ray.h" />
+    <ClInclude Include="Scene.h" />
     <ClInclude Include="Sphere.h" />
     <ClInclude Include="Stopwatch.h" />
     <ClInclude Include="TextureInfo.h" />

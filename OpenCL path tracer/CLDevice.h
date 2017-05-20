@@ -11,7 +11,7 @@
 #include <sstream>
 #include "Ray.h"
 
-class OpenCL_Device {
+class CLDevice {
 private:
 	PFNGLTEXIMAGE3DPROC glTexImage3D;			// Function that needs to be loaded dynamically
 	PFNGLTEXSUBIMAGE3DPROC glTexSubImage3D;		// Function that needs to be loaded dynamically
@@ -38,21 +38,21 @@ private:
 	cl::ImageGL buffer_textures;
 	cl::ImageGL buffer_bump_maps;
 public:
-	OpenCL_Device();																				// Does nothing
+	CLDevice();																				// Does nothing
 	void init(int width, int height);																// Initializing the device. Should only get called once, should only have one instance and must be called after glutInit was called
 	std::vector<cl_float> bgr_to_rgb(std::vector<cl_uchar>& image, int width, int height);			// Convert uchar BGR image to float RGBA image
 	std::vector<cl_float> rgb_to_grayscale(std::vector<cl_float>& image, int width, int height);	// Convert float RGBA image to float grayscale image
 	std::vector<cl_float> derivate_image(std::vector<cl_float>& image, int width, int height);		// Derivate float grayscale image, returns float RGBA image
 	std::vector<cl_float> expand_image(std::vector<cl_float>& image, int width, int height);		// Expands the image to 2048x1024 like GL_REPEAT
-	friend std::ostream& operator<<(std::ostream& os, OpenCL_Device& device);
-	friend std::istream& operator>>(std::istream& is, OpenCL_Device& device);
+	friend std::ostream& operator<<(std::ostream& os, CLDevice& device);
+	friend std::istream& operator>>(std::istream& is, CLDevice& device);
 };
 
-OpenCL_Device::OpenCL_Device() {
+CLDevice::CLDevice() {
 	// Does nothing
 }
 
-void OpenCL_Device::init(int width, int height) {
+void CLDevice::init(int width, int height) {
 	//std::cout << "Initializing OpenCL device..." << std::endl;
 	glTexImage3D = (PFNGLTEXIMAGE3DPROC)wglGetProcAddress("glTexImage3D");								// Load function for allocate 3D texture
 	glTexSubImage3D = (PFNGLTEXSUBIMAGE3DPROC)wglGetProcAddress("glTexSubImage3D");						// Load function for upload 3D texture
@@ -128,7 +128,7 @@ void OpenCL_Device::init(int width, int height) {
 	canvas = cl::ImageGL(context, CL_MEM_WRITE_ONLY, GL_TEXTURE_2D, 0, texture);						// Create the OpenCL image from the OpenGL texture
 }
 
-std::vector<cl_float> OpenCL_Device::bgr_to_rgb(std::vector<cl_uchar>& image, int width, int height) {
+std::vector<cl_float> CLDevice::bgr_to_rgb(std::vector<cl_uchar>& image, int width, int height) {
 	cl::Buffer image_in = cl::Buffer(context, CL_MEM_READ_ONLY, sizeof(cl_uchar) * width * height * 3);
 	cl::Buffer image_out = cl::Buffer(context, CL_MEM_WRITE_ONLY, sizeof(cl_float) * width * height * 4);
 	queue.enqueueWriteBuffer(image_in, CL_TRUE, 0, width * height * 3, image.data());
@@ -146,7 +146,7 @@ std::vector<cl_float> OpenCL_Device::bgr_to_rgb(std::vector<cl_uchar>& image, in
 	return ret;
 }
 
-std::vector<cl_float> OpenCL_Device::rgb_to_grayscale(std::vector<cl_float>& image, int width, int height) {
+std::vector<cl_float> CLDevice::rgb_to_grayscale(std::vector<cl_float>& image, int width, int height) {
 	cl::Buffer image_in = cl::Buffer(context, CL_MEM_READ_ONLY, sizeof(cl_float) * width * height * 4);
 	cl::Buffer image_out = cl::Buffer(context, CL_MEM_WRITE_ONLY, sizeof(cl_float) * width * height * 1);
 	queue.enqueueWriteBuffer(image_in, CL_TRUE, 0, width * height * 4, image.data());
@@ -164,7 +164,7 @@ std::vector<cl_float> OpenCL_Device::rgb_to_grayscale(std::vector<cl_float>& ima
 	return ret;
 }
 
-std::vector<cl_float> OpenCL_Device::derivate_image(std::vector<cl_float>& image, int width, int height) {
+std::vector<cl_float> CLDevice::derivate_image(std::vector<cl_float>& image, int width, int height) {
 	cl::Buffer image_in = cl::Buffer(context, CL_MEM_READ_ONLY, sizeof(cl_float) * width * height * 1);
 	cl::Buffer image_out = cl::Buffer(context, CL_MEM_WRITE_ONLY, sizeof(cl_float) * width * height * 4);
 	queue.enqueueWriteBuffer(image_in, CL_TRUE, 0, width * height * 1, image.data());
@@ -184,7 +184,7 @@ std::vector<cl_float> OpenCL_Device::derivate_image(std::vector<cl_float>& image
 	return ret;
 }
 
-std::vector<cl_float> OpenCL_Device::expand_image(std::vector<cl_float>& image, int width, int height) {
+std::vector<cl_float> CLDevice::expand_image(std::vector<cl_float>& image, int width, int height) {
 	cl::Buffer image_in = cl::Buffer(context, CL_MEM_READ_ONLY, sizeof(cl_float) * width * height * 4);
 	cl::Buffer image_out = cl::Buffer(context, CL_MEM_WRITE_ONLY, sizeof(cl_float) * 2048 * 1024 * 4);
 	queue.enqueueWriteBuffer(image_in, CL_TRUE, 0, sizeof(cl_float)*width*height * 4, image.data());
@@ -204,7 +204,7 @@ std::vector<cl_float> OpenCL_Device::expand_image(std::vector<cl_float>& image, 
 	return ret;
 }
 
-std::ostream & operator<<(std::ostream& os, OpenCL_Device& device) {
+std::ostream & operator<<(std::ostream& os, CLDevice& device) {
 	os << "Information about the platform:\n";
 	os << "\tCL_PLATFORM_NAME: " << device.platform.getInfo<CL_PLATFORM_NAME>() << "\n";
 	os << "\tCL_PLATFORM_PROFILE: " << device.platform.getInfo<CL_PLATFORM_PROFILE>() << "\n";
@@ -226,6 +226,6 @@ std::ostream & operator<<(std::ostream& os, OpenCL_Device& device) {
 	return os;
 }
 
-std::istream & operator>>(std::istream& is, OpenCL_Device& device) {
+std::istream & operator>>(std::istream& is, CLDevice& device) {
 	return is;
 }

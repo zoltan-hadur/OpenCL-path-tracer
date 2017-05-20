@@ -106,7 +106,6 @@ GLConsole::GLConsole() {
 
 void GLConsole::init() {
 	glWindowPos2i = (PFNGLWINDOWPOS2IPROC)glutGetProcAddress("glWindowPos2i");	// Loads the function
-	glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);		// Enables transparency
 
 	cvars = CVarContainer();
 	state = CLOSED;
@@ -185,6 +184,7 @@ bool GLConsole::is_open() {
 }
 
 void GLConsole::render_console() {
+	glBindTexture(GL_TEXTURE_2D, 0);
 	float dt = watch.get_delta_time();		// Gets the elapsed time in seconds since the last call
 	this->handle_cout();					// Handle if something printed to the console
 	if (state == ROLLING_DOWN || state == ROLLING_UP) {
@@ -369,6 +369,7 @@ void GLConsole::draw_console(float dt) {
 
 	// Draw the background
 	glDisable(GL_LIGHTING);
+	glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);		// Enables transparency
 	glColor4f(color_background[0], color_background[1], color_background[2], color_background_transparency);	// Set background color
 	glBegin(GL_QUADS);
 	glVertex2f(-1, 1);
@@ -426,10 +427,10 @@ void GLConsole::draw_console(float dt) {
 	glMatrixMode(GL_PROJECTION); glPushMatrix(); glLoadIdentity();							// Save current projection matrix
 	glOrtho(0.0, glutGet(GLUT_WINDOW_WIDTH), 0.0, glutGet(GLUT_WINDOW_HEIGHT), -1.0, 1.0);	// Transform it to able to draw in pixel coordinates
 	glMatrixMode(GL_MODELVIEW); glPushMatrix(); glLoadIdentity();							// Save current modelview matrix
+	glColor4f(color_interface[0], color_interface[1], color_interface[2], acc_interface);
 	glBegin(GL_QUADS);
 	// Draw scrollbar region
 	int start_x = width - 5; int start_y = height * (1 - overlap) + input_overflow_shift + char_height + 2;
-	glColor4f(color_interface[0], color_interface[1], color_interface[2], acc_interface);
 	glVertex2f(start_x, start_y);							// Bottom left
 	glVertex2f(start_x, height);							// Top left
 	glVertex2f(start_x + 5, height);						// Top right

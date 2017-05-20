@@ -10,14 +10,15 @@
 #include <utility>
 #include <chrono>
 #include <thread>
-#include "OpenCL_Device.h"
+#include "CLDevice.h"
 #include "GLConsole.h"
+#include "BMP.h"
 #include "float3.h"
 #include "Ray.h"
 #include "Camera.h"
 
 GLConsole console;
-OpenCL_Device device;
+CLDevice device;
 const int screen_width = 192 * 5;
 const int screen_height = 108 * 5;
 int keys_down[256];
@@ -26,29 +27,17 @@ float max_fps;
 void capture_picture() {
 	static int id = 0;
 	std::string file_name = "image_" + std::to_string(id) + ".bmp";
-	FILE* file;
-	std::vector<cl_uchar> data = std::vector<cl_uchar>(3 * screen_width*screen_height);
-	int file_size = 54 + 3 * screen_width * screen_height;
+	int width, height;
+	std::vector<cl_uchar> image = std::vector<cl_uchar>(3 * screen_width*screen_height);
+	glBindTexture(GL_TEXTURE_2D, 2);
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
+	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
+	image.resize(width * height * 3);
+	glGetTexImage(GL_TEXTURE_2D, 0, GL_BGR, GL_UNSIGNED_BYTE, image.data());
 
-	glBindTexture(GL_TEXTURE_2D, 1);
-	glGetTexImage(GL_TEXTURE_2D, 0, GL_BGR, GL_UNSIGNED_BYTE, data.data());
+	CreateDirectoryA("rendered", NULL);
+	BMP::write("rendered/" + file_name, image, width, height);
 
-	unsigned char file_header[14] = { 'B', 'M', 0, 0, 0, 0, 0, 0, 0, 0, 54, 0, 0, 0 };
-	unsigned char info_header[40] = { 40, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 24, 0 };
-	unsigned char pad[3] = { 0, 0, 0 };
-
-	*(int*)&(file_header[2]) = file_size;
-	*(int*)&(info_header[4]) = screen_width;
-	*(int*)&(info_header[8]) = screen_height;
-
-	file = fopen(file_name.c_str(), "w+");
-	fwrite(file_header, 1, 14, file);
-	fwrite(info_header, 1, 40, file);
-	for (int i = 0; i < screen_height; i++) {
-		fwrite(data.data() + (screen_width*(screen_height - i - 1) * 3), 3, screen_width, file);
-		fwrite(pad, 1, (4 - (screen_width * 3) % 4) % 4, file);
-	}
-	fclose(file);
 	id++;
 	GLConsole::cout << file_name + " created\n";
 }
@@ -65,35 +54,9 @@ void onInitialization() {
 
 
 	std::string path = "textures/earth_2k.bmp";
-	unsigned char header[54]; unsigned int dataPos; unsigned int width, height; unsigned int imageSize; //unsigned char * data;
+	int width, height;
 	std::vector<cl_uchar> data;
-	FILE* file = fopen(path.c_str(), "rb");
-	if (!file) {
-		printf("Image could not be opened\n\r");
-		exit(1);
-	}
-	if (fread(header, 1, 54, file) != 54) {// If not 54 bytes read : problem
-		printf("Not a correct BMP file\n\r");
-		exit(2);
-	}
-	if (header[0] != 'B' || header[1] != 'M') {
-		printf("Not a correct BMP file\n\r");
-		exit(3);
-	}
-	dataPos = *(int*)&(header[0x0A]);
-	imageSize = *(int*)&(header[0x22]);
-	width = *(int*)&(header[0x12]);
-	height = *(int*)&(header[0x16]);
-	if (width > 2048 || height > 1024) {
-		printf("Texture resolution is too big\n\r");
-		exit(4);
-	}
-	if (imageSize == 0)    imageSize = width*height * 3; // 3 : one byte for each Red, Green and Blue component
-	if (dataPos == 0)      dataPos = 54; // The BMP header is done that way
-	//data = new unsigned char[imageSize];
-	data.resize(imageSize);
-	fread(data.data(), 1, imageSize, file);
-	fclose(file);
+	BMP::read(path, data, width, height);
 
 	std::vector<cl_float> rgb = device.bgr_to_rgb(data, width, height);
 	std::vector<cl_float> grayscale = device.rgb_to_grayscale(rgb, width, height);
