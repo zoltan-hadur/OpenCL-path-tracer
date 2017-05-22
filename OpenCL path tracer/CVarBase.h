@@ -1,7 +1,9 @@
 #pragma once
 
 #include <sstream>
-#include "CVar.h"
+#include <iostream>
+#include <ostream>
+#include <istream>
 
 // Base class for heterogeneous collection
 // Class is based on https://github.com/arpg/CVars

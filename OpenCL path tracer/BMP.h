@@ -1,6 +1,9 @@
 #pragma once
 
 #include <CL\cl.hpp>
+#include <string>
+#include <vector>
+#include <cstdio>
 
 class BMP {
 private:

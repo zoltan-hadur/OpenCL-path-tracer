@@ -6,18 +6,26 @@
 #include <GL\glext.h>
 #include <GL\freeglut.h>
 #include <CL\cl.hpp>
+#include <vector>
+#include <string>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include "Ray.h"
+#include "Camera.h"
+#include "Sphere.h"
+#include "Triangle.h"
+#include "Material.h"
+#include "TextureInfo.h"
 
 class CLDevice {
 private:
 	PFNGLTEXIMAGE3DPROC glTexImage3D;			// Function that needs to be loaded dynamically
 	PFNGLTEXSUBIMAGE3DPROC glTexSubImage3D;		// Function that needs to be loaded dynamically
 
-	int screen_width, screen_height;			// Width and height of the rendering canvas
-	int uploaded_textures, max_textures;
+	int width, height;							// Width and height of the rendering canvas
+	int max_textures;
+	GLuint canvas_id;
 
 	cl::Platform platform;
 	cl::Device device;
@@ -30,20 +38,30 @@ private:
 	cl::Buffer buffer_randoms;
 
 	cl::Buffer buffer_spheres;
+	cl_int size_spheres;
 	cl::Buffer buffer_triangles;
-	cl::Buffer buffer_toruses;
+	cl_int size_triangles;
 	cl::Buffer buffer_materials;
 
-	cl::Buffer buffer_texture_nfos;
+	cl::Buffer buffer_texture_infos;
 	cl::ImageGL buffer_textures;
 	cl::ImageGL buffer_bump_maps;
 public:
-	CLDevice();																				// Does nothing
+	CLDevice();																						// Does nothing
 	void init(int width, int height);																// Initializing the device. Should only get called once, should only have one instance and must be called after glutInit was called
+	void commit(std::vector<Sphere> spheres, std::vector<Triangle> triangles, std::vector<Material> materials, std::vector<TextureInfo> texture_infos);
+
+	void generate_primary_rays(Camera camera);
+	void trace_rays(cl_int sample_id, cl_int max_depth, cl_int mode);
+	void draw_screen(cl_int tone_map);
+
 	std::vector<cl_float> bgr_to_rgb(std::vector<cl_uchar>& image, int width, int height);			// Convert uchar BGR image to float RGBA image
 	std::vector<cl_float> rgb_to_grayscale(std::vector<cl_float>& image, int width, int height);	// Convert float RGBA image to float grayscale image
 	std::vector<cl_float> derivate_image(std::vector<cl_float>& image, int width, int height);		// Derivate float grayscale image, returns float RGBA image
 	std::vector<cl_float> expand_image(std::vector<cl_float>& image, int width, int height);		// Expands the image to 2048x1024 like GL_REPEAT
+
+	int get_max_textures();																			// Returns the max number of textures
+	GLuint get_canvas_id();																			// Return the canvas texture's id
 	friend std::ostream& operator<<(std::ostream& os, CLDevice& device);
 	friend std::istream& operator>>(std::istream& is, CLDevice& device);
 };
@@ -57,8 +75,8 @@ void CLDevice::init(int width, int height) {
 	glTexImage3D = (PFNGLTEXIMAGE3DPROC)wglGetProcAddress("glTexImage3D");								// Load function for allocate 3D texture
 	glTexSubImage3D = (PFNGLTEXSUBIMAGE3DPROC)wglGetProcAddress("glTexSubImage3D");						// Load function for upload 3D texture
 
-	screen_width = width;
-	screen_height = height;
+	this->width = width;
+	this->height = height;
 
 	if (cl::Platform::get(&platform) != CL_SUCCESS) {													// Try to get the first avaliable platform (driver)
 		std::cout << "Error finding OpenCL platform (driver)!" << std::endl;
@@ -119,14 +137,101 @@ void CLDevice::init(int width, int height) {
 	glEnable(GL_TEXTURE_2D);
 	GLuint texture;
 	glGenTextures(1, &texture);
+	canvas_id = texture;
 	glBindTexture(GL_TEXTURE_2D, texture);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, screen_width, screen_height, 0, GL_RGBA, GL_FLOAT, NULL);	// Allocate memory on device for canvas
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, NULL);	// Allocate memory on device for canvas
 	canvas = cl::ImageGL(context, CL_MEM_WRITE_ONLY, GL_TEXTURE_2D, 0, texture);						// Create the OpenCL image from the OpenGL texture
+
+
+	max_textures = device.getInfo<CL_DEVICE_MAX_MEM_ALLOC_SIZE>()/1024/1024/2/20;
+	// Textures
+	glEnable(GL_TEXTURE_3D);
+	glEnable(GL_TEXTURE_2D_ARRAY);
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, 2048, 1024, max_textures, 0, GL_RGBA, GL_FLOAT, NULL);
+
+	// Bump maps
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, 2048, 1024, max_textures, 0, GL_RGBA, GL_FLOAT, NULL);
 }
+
+void CLDevice::commit(std::vector<Sphere> spheres, std::vector<Triangle> triangles, std::vector<Material> materials, std::vector<TextureInfo> texture_infos) {
+	size_spheres = spheres.size();
+	size_triangles = spheres.size();
+
+	buffer_spheres = cl::Buffer(context, CL_MEM_READ_ONLY, sizeof(Sphere)*spheres.size());
+	queue.enqueueWriteBuffer(buffer_spheres, CL_TRUE, 0, sizeof(Sphere)*spheres.size(), spheres.data());
+
+	buffer_triangles = cl::Buffer(context, CL_MEM_READ_ONLY, sizeof(Triangle)*triangles.size());
+	queue.enqueueWriteBuffer(buffer_triangles, CL_TRUE, 0, sizeof(Triangle)*triangles.size(), triangles.data());
+
+	buffer_materials = cl::Buffer(context, CL_MEM_READ_ONLY, sizeof(Material)*materials.size());
+	queue.enqueueWriteBuffer(buffer_materials, CL_TRUE, 0, sizeof(Material)*materials.size(), materials.data());
+
+	buffer_texture_infos = cl::Buffer(context, CL_MEM_READ_ONLY, sizeof(TextureInfo)*texture_infos.size());
+	queue.enqueueWriteBuffer(buffer_texture_infos, CL_TRUE, 0, sizeof(TextureInfo)*texture_infos.size(), texture_infos.data());
+
+	buffer_textures = cl::ImageGL(context, CL_MEM_READ_ONLY, GL_TEXTURE_2D_ARRAY, 0, canvas_id + 1);
+	buffer_bump_maps = cl::ImageGL(context, CL_MEM_READ_ONLY, GL_TEXTURE_2D_ARRAY, 0, canvas_id + 2);
+}
+
+
+
+void CLDevice::generate_primary_rays(Camera camera) {
+	cl::Kernel kernel_generate_primary_rays = cl::Kernel(program, "generate_primary_rays");
+	kernel_generate_primary_rays.setArg(0, buffer_rays);
+	kernel_generate_primary_rays.setArg(1, buffer_randoms);
+	kernel_generate_primary_rays.setArg(2, camera);
+
+	queue.enqueueNDRangeKernel(kernel_generate_primary_rays, cl::NullRange, cl::NDRange(width, height), cl::NullRange);
+	queue.finish();
+}
+
+void CLDevice::trace_rays(cl_int sample_id, cl_int max_depth, cl_int mode) {
+	cl::Kernel kernel_trace_rays = cl::Kernel(program, "trace_rays");
+	kernel_trace_rays.setArg(0, buffer_textures);
+	kernel_trace_rays.setArg(1, buffer_bump_maps);
+	kernel_trace_rays.setArg(2, buffer_texture_infos);
+	kernel_trace_rays.setArg(3, buffer_spheres);
+	kernel_trace_rays.setArg(4, size_spheres);
+	kernel_trace_rays.setArg(5, buffer_triangles);
+	kernel_trace_rays.setArg(6, size_triangles);
+	kernel_trace_rays.setArg(9, buffer_materials);
+	kernel_trace_rays.setArg(10, buffer_rays);
+	kernel_trace_rays.setArg(11, buffer_randoms);
+	kernel_trace_rays.setArg(12, buffer_radiances);
+	kernel_trace_rays.setArg(13, sample_id);
+	kernel_trace_rays.setArg(14, max_depth);
+	kernel_trace_rays.setArg(15, mode);
+
+	queue.enqueueNDRangeKernel(kernel_trace_rays, cl::NullRange, cl::NDRange(width, height), cl::NullRange);
+}
+
+void CLDevice::draw_screen(cl_int tone_map) {
+	cl::Kernel kernel_draw_screen = cl::Kernel(program, "draw_screen");
+	kernel_draw_screen.setArg(0, canvas);
+	kernel_draw_screen.setArg(1, buffer_radiances);
+	kernel_draw_screen.setArg(2, tone_map);
+
+	queue.enqueueNDRangeKernel(kernel_draw_screen, cl::NullRange, cl::NDRange(width, height), cl::NullRange);
+	queue.finish();
+}
+
+
 
 std::vector<cl_float> CLDevice::bgr_to_rgb(std::vector<cl_uchar>& image, int width, int height) {
 	cl::Buffer image_in = cl::Buffer(context, CL_MEM_READ_ONLY, sizeof(cl_uchar) * width * height * 3);
@@ -204,6 +309,14 @@ std::vector<cl_float> CLDevice::expand_image(std::vector<cl_float>& image, int w
 	return ret;
 }
 
+int CLDevice::get_max_textures() {
+	return max_textures;
+}
+
+GLuint CLDevice::get_canvas_id() {
+	return canvas_id;
+}
+
 std::ostream & operator<<(std::ostream& os, CLDevice& device) {
 	os << "Information about the platform:\n";
 	os << "\tCL_PLATFORM_NAME: " << device.platform.getInfo<CL_PLATFORM_NAME>() << "\n";
@@ -222,7 +335,7 @@ std::ostream & operator<<(std::ostream& os, CLDevice& device) {
 	os << "\tCL_DEVICE_MAX_COMPUTE_UNITS: " << device.device.getInfo<CL_DEVICE_MAX_COMPUTE_UNITS>() << "\n";
 	os << "\tCL_DEVICE_EXTENSIONS: " << device.device.getInfo<CL_DEVICE_EXTENSIONS>() << "\n";
 
-	os << "Resolution: " << device.screen_width << "x" << device.screen_height;
+	os << "Resolution: " << device.width << "x" << device.height;
 	return os;
 }
 

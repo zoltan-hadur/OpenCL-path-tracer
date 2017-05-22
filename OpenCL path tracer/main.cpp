@@ -10,88 +10,86 @@
 #include <utility>
 #include <chrono>
 #include <thread>
-#include "CLDevice.h"
+#include "Scene.h"
 #include "GLConsole.h"
-#include "BMP.h"
-#include "float3.h"
-#include "Ray.h"
-#include "Camera.h"
 
 GLConsole console;
-CLDevice device;
+Scene scene;
+//CLDevice device;
 const int screen_width = 192 * 5;
 const int screen_height = 108 * 5;
 int keys_down[256];
 float max_fps;
 
-void capture_picture() {
-	static int id = 0;
-	std::string file_name = "image_" + std::to_string(id) + ".bmp";
-	int width, height;
-	std::vector<cl_uchar> image = std::vector<cl_uchar>(3 * screen_width*screen_height);
-	glBindTexture(GL_TEXTURE_2D, 2);
-	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
-	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
-	image.resize(width * height * 3);
-	glGetTexImage(GL_TEXTURE_2D, 0, GL_BGR, GL_UNSIGNED_BYTE, image.data());
-
-	CreateDirectoryA("rendered", NULL);
-	BMP::write("rendered/" + file_name, image, width, height);
-
-	id++;
-	GLConsole::cout << file_name + " created\n";
-}
+//void capture_picture() {
+//	static int id = 0;
+//	std::string file_name = "image_" + std::to_string(id) + ".bmp";
+//	int width, height;
+//	std::vector<cl_uchar> image = std::vector<cl_uchar>(3 * screen_width*screen_height);
+//	glBindTexture(GL_TEXTURE_2D, 2);
+//	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
+//	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
+//	image.resize(width * height * 3);
+//	glGetTexImage(GL_TEXTURE_2D, 0, GL_BGR, GL_UNSIGNED_BYTE, image.data());
+//
+//	CreateDirectoryA("rendered", NULL);
+//	BMP::write("rendered/" + file_name, image, width, height);
+//
+//	id++;
+//	GLConsole::cout << file_name + " created\n";
+//}
 
 void onInitialization() {
 	glViewport(0, 0, screen_width, screen_height);
-
-	device.init(screen_width, screen_height);
+	scene.init(screen_width, screen_height);
+	//device.init(screen_width, screen_height);
 	//std::cout << device << std::endl;
 	console.init();
-	console.add_function("capture_picture()", capture_picture);
+	//GLConsole::add_function("capture_picture()", capture_picture);
 	console.print_help();
-	max_fps = 60; console.variables().attach_cvar<float>("app.max_fps", &max_fps, "Determines the maximum allowed frames per second. Interval: [30, infty).");
+	max_fps = 60; GLConsole::cvars.attach_cvar<float>("app.max_fps", &max_fps, "Determines the maximum allowed frames per second. Interval: [30, infty).");
 
 
-	std::string path = "textures/earth_2k.bmp";
-	int width, height;
-	std::vector<cl_uchar> data;
-	BMP::read(path, data, width, height);
+	//std::string path = "textures/earth_2k.bmp";
+	//int width, height;
+	//std::vector<cl_uchar> data;
+	//BMP::read(path, data, width, height);
 
-	std::vector<cl_float> rgb = device.bgr_to_rgb(data, width, height);
-	std::vector<cl_float> grayscale = device.rgb_to_grayscale(rgb, width, height);
-	std::vector<cl_float> bump_map = device.derivate_image(grayscale, width, height);
-	std::vector<cl_float> expanded = device.expand_image(rgb, width, height);
+	//std::vector<cl_float> rgb = device.bgr_to_rgb(data, width, height);
+	//std::vector<cl_float> grayscale = device.rgb_to_grayscale(rgb, width, height);
+	//std::vector<cl_float> bump_map = device.derivate_image(grayscale, width, height);
+	//std::vector<cl_float> expanded = device.expand_image(rgb, width, height);
 
-	glEnable(GL_TEXTURE_2D);
-	GLuint texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//glEnable(GL_TEXTURE_2D);
+	//GLuint texture;
+	//glGenTextures(1, &texture);
+	//glBindTexture(GL_TEXTURE_2D, texture);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, rgb.data());
 	//glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, width, height, 0, GL_LUMINANCE, GL_FLOAT, grayscale.data());
 	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, bump_map.data());
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 2048, 1024, 0, GL_RGBA, GL_FLOAT, expanded.data());
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 2048, 1024, 0, GL_RGBA, GL_FLOAT, expanded.data());
 }
 
 void onDisplay() {
 	glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glBindTexture(GL_TEXTURE_2D, 2);
-	glColor4f(1, 1, 1, 1);
-	glBegin(GL_QUADS);
-	glTexCoord2i(0, 1); glVertex2f(-1.0f, 1.0f);
-	glTexCoord2i(1, 1); glVertex2f(1.0f, 1.0f);
-	glTexCoord2i(1, 0); glVertex2f(1.0f, -1.0f);
-	glTexCoord2i(0, 0); glVertex2f(-1.0f, -1.0f);
-	glEnd();
+	//glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glBindTexture(GL_TEXTURE_2D, 4);
+	//glColor4f(1, 1, 1, 1);
+	//glBegin(GL_QUADS);
+	//glTexCoord2i(0, 1); glVertex2f(-1.0f, 1.0f);
+	//glTexCoord2i(1, 1); glVertex2f(1.0f, 1.0f);
+	//glTexCoord2i(1, 0); glVertex2f(1.0f, -1.0f);
+	//glTexCoord2i(0, 0); glVertex2f(-1.0f, -1.0f);
+	//glEnd();
 
-	console.render_console();
+	scene.draw();
+	console.draw();
 
 	glutSwapBuffers();
 }
@@ -134,7 +132,7 @@ void onSpecial(int key, int x, int y) {
 	}
 	switch (key) {
 		case GLUT_KEY_F1:
-			console.toggle_console();
+			console.toggle();
 			break;
 		default:
 			if (console.is_open()) {
@@ -191,12 +189,15 @@ void onIdle() {
 	last_time = time;
 	time_elapsed = time_elapsed + dt;
 
+
+	scene.render();
+
+
 	if (frames >= 1) {
 		wait_time = std::max((1.0f - (time_elapsed * max_fps / 1 - max_fps * wait_time)) / max_fps, 0.0f);
 		frames = 0;
 		time_elapsed = 0;
 	}
-
 	acc = acc + dt;
 	if (acc > wait_time) {
 		glutPostRedisplay();

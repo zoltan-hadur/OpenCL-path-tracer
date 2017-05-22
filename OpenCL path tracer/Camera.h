@@ -7,7 +7,7 @@ class Camera {
 private:
 	float3 pos, right, up, forward;
 	float focus_distance, fov;
-	int screen_width, screen_height;
+	int width, height;
 public:
 	Camera(int width, int height);				// Initializes the camera.
 	void rotate(float dpitch, float dyaw);		// Rotates the camera by the two angle in degrees.
@@ -25,8 +25,8 @@ public:
 Camera::Camera(int width = 600, int height = 600) {
 	focus_distance = 1000.0f;
 	fov = 90.0f;
-	screen_width = width;
-	screen_height = height;
+	this->width = width;
+	this->height = height;
 
 	float right_length = width / 2.0f;
 	float up_length = height / 2.0f;
@@ -91,8 +91,8 @@ void Camera::set_focus_distance(float d) {
 }
 
 Ray Camera::get_ray(int x, int y) {
-	float3 right = this->right * (2.0f * x / screen_width - 1);
-	float3 up = this->up * (2.0f * y / screen_height - 1);
+	float3 right = this->right * (2.0f * x / width - 1);
+	float3 up = this->up * (2.0f * y / height - 1);
 
 	float3 pos_on_screen = pos + forward + right + up;
 	float3 dir = (pos_on_screen - pos).normalize();

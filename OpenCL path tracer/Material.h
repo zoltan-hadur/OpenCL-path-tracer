@@ -5,14 +5,14 @@
 
 class Material {
 private:
-	float3 kd, ks, emission, R0, n;		// Diffuse, specular, emission, Fresnel (Schlick's approximation), refractive index
-	cl_float shininess;					// shininess
+	float3 kd, ks, emission;				// Diffuse, specular, emission
+	cl_float R0, n, shininess, glossiness;	// Fresnel (Schlick's approximation), refractive index, shininess
 	cl_char refractive;
 public:
-	Material(float3 kd, float3 ks, float3 emission, float3 n, cl_float shininess, cl_char refractive);
+	Material(float3 kd, float3 ks, float3 emission, cl_float n, cl_float shininess, cl_char refractive);
 };
 
-Material::Material(float3 kd, float3 ks, float3 emission, float3 n, cl_float shininess, cl_char refractive) {
+Material::Material(float3 kd, float3 ks, float3 emission, cl_float n, cl_float shininess, cl_char refractive) {
 	this->kd = kd;
 	this->ks = ks;
 	this->emission = emission;

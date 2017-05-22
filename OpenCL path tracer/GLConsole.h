@@ -3,29 +3,32 @@
 #include <GL\glew.h>
 #include <GL\glext.h>
 #include <GL\freeglut.h>
+#include <functional>
 #include <vector>
 #include <deque>
 #include <map>
+#include <string>
+#include <ostream>
 #include <sstream>
-#include <atlstr.h >
 #include <algorithm>
-#include "CVarContainer.h"
 #include "Stopwatch.h"
+#include "CVarContainer.h"
+#include "float3.h"
+
+
 
 // Basic console for OpenGL applications written in C++
 // Class is based on https://github.com/arpg/CVars
 class GLConsole {
 private:
 	PFNGLWINDOWPOS2IPROC glWindowPos2i;			// Function that needs to be loaded dynamically. It's sets the raster position
-	enum State {								// States for rendering the console window
+	enum State {								// States for drawing the console window
 		CLOSED, ROLLING_DOWN, INTERFACE_APPEARING, OPENED, INTERFACE_DISAPPEARING, ROLLING_UP
 	};
-
-	typedef void(*func)(void);					// Function pointer type
-	std::map < std::string, func> funcs;		// Function pointers
-	CVarContainer cvars;						// Variables that are attached to normal variables, and vice versa modifiable from the console
 	State state;								// The state of the console (opened, closed, etc)
 	Stopwatch watch;							// To get elapsed time since last call (i.e. dt)
+
+	static std::map < std::string, std::function<void(void)>> funcs;	// Function pointers
 
 	float animl_rolling;						// Time needed to roll down/up the console window in seconds
 	float animl_interface;						// Time needed for the console interface to appear/disappear in seconds
@@ -54,9 +57,10 @@ private:
 	std::deque<unsigned char> buffer_input;		// Stores the characters that the user writes to the console. Also can be manipulated like in nearly every text editor
 
 
-
-	void roll_console(float dt);				// Renders the console window when it is opening (rolling down) or closing (rolling up)
-	void draw_console(float dt);				// Renders the console window, interface and the text
+	void animl_rolling_changed();				// Handle when animl_rolling changes
+	void animl_interface_changed();				// Handle when animl_interface changes
+	void roll_console(float dt);				// Draws the console window when it is opening (rolling down) or closing (rolling up)
+	void draw_console(float dt);				// Draws the console window, interface and the text
 	void draw_selection(int x, int y);			// Draws quads upon selected text in the buffer_input
 	std::deque<std::string> handle_overflow(std::deque<std::string>& lines_original, int max_lines);	// Returns with a list of lines (strings) that fits into the console window
 	std::deque<std::string> handle_overflow(std::deque<unsigned char>& line_original, int max_lines);	// Returns with a list of lines (strings) that fits into the console window
@@ -76,16 +80,17 @@ private:
 	void complete_command();					// Completes the partially writed command in the input buffer (like pressing tab in Command Prompt)
 	void process_command();						// Processes the command in the input buffer
 public:
+	static CVarContainer cvars;					// Variables that are attached to normal variables, and vice versa modifiable from the console
 	static std::ostringstream cout;				// Console out, works like std::cout
 
-	GLConsole();								// Do nothing. Must call init to work properly
+	GLConsole();								// Does nothing. Must call init to work properly
 	void init();								// Initializing the console. Should only get called once, should only have one GLConsole instance and must be called after glutInit was called
 	void reset();								// Resets the console to the default state
-	void open_console();						// Opens the console window
-	void close_console();						// Closes the console window
-	void toggle_console();						// Opens the console window if it was closed, and vice versa
+	void open();								// Opens the console window
+	void close();								// Closes the console window
+	void toggle();								// Opens the console window if it was closed, and vice versa
 	bool is_open();								// Returns true if console is open and usable
-	void render_console();						// Renders the whole console (animations, window, interface, text, everything), also handles the cout
+	void draw();								// Draws the whole console (animations, window, interface, text, everything), also handles the cout
 	void on_keyboard(unsigned char key);		// Keyboard event handler
 	void on_special(int key);					// Keyboard event handler for special keys (arrow, f1,2,3..., etc)
 	void shift_pressed();						// Sets pressed_shift to true
@@ -93,11 +98,12 @@ public:
 	void scroll_up();							// Scrolls up in the output text
 	void scroll_down();							// Scroll down in the output text
 	void print_help();							// Prints help
-	void add_function(std::string name, func f);// Store the function pointer
-	void remove_function(std::string name);		// Removes the function pointer
-	CVarContainer& variables();						// Returns the data member, so one can use the console variables
+	static void add_function(std::string name, std::function<void(void)> f);	// Store the function pointer
+	static void remove_function(std::string name);								// Removes the function pointer
 };
 
+std::map<std::string, std::function<void(void)>> GLConsole::funcs;	// Static variables need to be defined
+CVarContainer GLConsole::cvars;					// Static variables need to be defined
 std::ostringstream GLConsole::cout;				// Static variables need to be defined
 
 GLConsole::GLConsole() {
@@ -111,8 +117,8 @@ void GLConsole::init() {
 	state = CLOSED;
 	watch = Stopwatch();
 
-	animl_rolling = 0.33f;						cvars.attach_cvar<float>("console.animations.rolling", &animl_rolling, "Time needed to roll down/up the console window in seconds. Interval: [0, infty).");
-	animl_interface = 0.25f;					cvars.attach_cvar<float>("console.animations.interface", &animl_interface, "Time needed for the console interface to appear/disappear in seconds. Interval: (0, infty).");
+	animl_rolling = 0.33f;						cvars.attach_cvar<float>("console.animations.rolling", &animl_rolling, "Time needed to roll down/up the console window in seconds. Interval: [0, infty).", std::bind(&GLConsole::animl_rolling_changed, this));
+	animl_interface = 0.25f;					cvars.attach_cvar<float>("console.animations.interface", &animl_interface, "Time needed for the console interface to appear/disappear in seconds. Interval: (0, infty).", std::bind(&GLConsole::animl_interface_changed, this));
 	animl_cursor = 1.0f;						cvars.attach_cvar<float>("console.animations.cursor", &animl_cursor, "Frequency of the cursor's blinking in Hz. Interval: [0.1, infty).");
 	acc_rolling = 0.0f;
 	acc_interface = 0.0f;
@@ -159,23 +165,23 @@ void GLConsole::reset() {
 	buffer_input.clear();
 }
 
-void GLConsole::open_console() {
+void GLConsole::open() {
 	if (state == CLOSED) {					// If the console is closed,
 		state = ROLLING_DOWN;				// starts a ROLLING_DOWN->INTERFACE_APPEARING->OPENED process
 	}
 }
 
-void GLConsole::close_console() {
+void GLConsole::close() {
 	if (state == OPENED) {					// If the console is opened,
 		state = INTERFACE_DISAPPEARING;		// starts an INTERFACE_DISAPPEARING->ROLLING_UP->CLOSED process
 	}
 }
 
-void GLConsole::toggle_console() {
+void GLConsole::toggle() {
 	if (state == OPENED) {					// If the console is opened,
-		this->close_console();				// closes it
+		this->close();						// closes it
 	} else if (state == CLOSED) {			// Else if the console is closed,
-		this->open_console();				// opens it
+		this->open();						// opens it
 	}
 }
 
@@ -183,7 +189,8 @@ bool GLConsole::is_open() {
 	return state == OPENED;					// Returns true if the console is opened
 }
 
-void GLConsole::render_console() {
+void GLConsole::draw() {
+	glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	float dt = watch.get_delta_time();		// Gets the elapsed time in seconds since the last call
 	this->handle_cout();					// Handle if something printed to the console
@@ -268,10 +275,6 @@ void GLConsole::shift_released() {
 	pressed_shift = false;
 }
 
-CVarContainer& GLConsole::variables() {
-	return cvars;
-}
-
 void GLConsole::scroll_up() {
 	int width = glutGet(GLUT_WINDOW_WIDTH); int height = glutGet(GLUT_WINDOW_HEIGHT);	// Current size of window for handle too long lines
 	int char_width = 8; int char_height = 14;											// Used font's size
@@ -307,27 +310,27 @@ void GLConsole::scroll_down() {
 }
 
 void GLConsole::print_help() {
-	GLConsole::cout << "----------------------------------HELP----------------------------------\n";
-	GLConsole::cout << "Functions:\n";
+	cout << "----------------------------------HELP----------------------------------\n";
+	cout << "Functions:\n";
 	for (auto f : funcs) {
-		GLConsole::cout << " " << f.first << "\n";
+		cout << " " << f.first << "\n";
 	}
-	GLConsole::cout << "Commands:\n";
-	GLConsole::cout << " Help: prints help\n";
-	GLConsole::cout << " List: lists all console variables\n";
-	GLConsole::cout << " Cls: clears the screen\n";
-	GLConsole::cout << " Reset: resets the console to the default state\n";
-	GLConsole::cout << " Exit: completly exits the application\n";
-	GLConsole::cout << "Other:\n";
-	GLConsole::cout << " Up arrow: previous command\n";
-	GLConsole::cout << " Down arrow: next command\n";
-	GLConsole::cout << " Tab: auto completes command\n";
-	GLConsole::cout << " [command]: prints the variable's name, value and it's description\n";
-	GLConsole::cout << " [command] = [value]: sets the [command] variable's value to [value]\n";
-	GLConsole::cout << "----------------------------------HELP----------------------------------\n";
+	cout << "Commands:\n";
+	cout << " Help: prints help\n";
+	cout << " List: lists all console variables\n";
+	cout << " Cls: clears the screen\n";
+	cout << " Reset: resets the console to the default state\n";
+	cout << " Exit: completly exits the application\n";
+	cout << "Other:\n";
+	cout << " Up arrow: previous command\n";
+	cout << " Down arrow: next command\n";
+	cout << " Tab: auto completes command\n";
+	cout << " [command]: prints the variable's name, value and it's description\n";
+	cout << " [command] = [value]: sets the [command] variable's value to [value]\n";
+	cout << "----------------------------------HELP----------------------------------\n";
 }
 
-void GLConsole::add_function(std::string name, func f) {
+void GLConsole::add_function(std::string name, std::function<void(void)> f) {
 	funcs.insert({ name, f });
 }
 
@@ -336,6 +339,13 @@ void GLConsole::remove_function(std::string name) {
 }
 
 
+void GLConsole::animl_rolling_changed() {
+	acc_rolling = animl_rolling;
+}
+
+void GLConsole::animl_interface_changed() {
+	acc_interface = animl_interface;
+}
 
 void GLConsole::roll_console(float dt) {
 	if (state == ROLLING_DOWN) {									// If the console window is rolling down
@@ -349,6 +359,7 @@ void GLConsole::roll_console(float dt) {
 			state = CLOSED;											// Move to the next state
 		}
 	}
+	acc_rolling = tanh(acc_rolling/animl_rolling * 2) / tanh(2) * animl_rolling;		// Non linear scale for better animation effect
 	// Draw the console's window according to the elapsed time since the start of the animation
 	glColor4f(color_background[0], color_background[1], color_background[2], color_background_transparency);
 	glBegin(GL_QUADS);
@@ -357,6 +368,7 @@ void GLConsole::roll_console(float dt) {
 	glVertex2f(1, 1 - 2 * (overlap * acc_rolling / animl_rolling));	// acc_rolling == 0 -> the console window is not visible
 	glVertex2f(-1, 1 - 2 * (overlap * acc_rolling / animl_rolling));// acc_rolling == animl_rolling -> the console window is fully visible
 	glEnd();
+	acc_rolling = atanh(acc_rolling / animl_rolling * tanh(2)) / 2 * animl_rolling;		// Scaling back to linear
 }
 
 void GLConsole::draw_console(float dt) {
@@ -368,8 +380,6 @@ void GLConsole::draw_console(float dt) {
 	int max_output_lines = overlap * height / char_height - 1;							// Maximum number of lines that fits in to the console
 
 	// Draw the background
-	glDisable(GL_LIGHTING);
-	glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);		// Enables transparency
 	glColor4f(color_background[0], color_background[1], color_background[2], color_background_transparency);	// Set background color
 	glBegin(GL_QUADS);
 	glVertex2f(-1, 1);
@@ -427,10 +437,10 @@ void GLConsole::draw_console(float dt) {
 	glMatrixMode(GL_PROJECTION); glPushMatrix(); glLoadIdentity();							// Save current projection matrix
 	glOrtho(0.0, glutGet(GLUT_WINDOW_WIDTH), 0.0, glutGet(GLUT_WINDOW_HEIGHT), -1.0, 1.0);	// Transform it to able to draw in pixel coordinates
 	glMatrixMode(GL_MODELVIEW); glPushMatrix(); glLoadIdentity();							// Save current modelview matrix
-	glColor4f(color_interface[0], color_interface[1], color_interface[2], acc_interface);
 	glBegin(GL_QUADS);
 	// Draw scrollbar region
 	int start_x = width - 5; int start_y = height * (1 - overlap) + input_overflow_shift + char_height + 2;
+	glColor4f(color_interface[0], color_interface[1], color_interface[2], acc_interface);
 	glVertex2f(start_x, start_y);							// Bottom left
 	glVertex2f(start_x, height);							// Top left
 	glVertex2f(start_x + 5, height);						// Top right
@@ -577,7 +587,7 @@ void GLConsole::set_clipboard_text(std::string copy) {
 }
 
 void GLConsole::handle_cout() {
-	if (!GLConsole::cout.str().empty()) {					// Copy printed text to output buffer if have any avaliable data
+	if (!cout.str().empty()) {					// Copy printed text to output buffer if have any avaliable data
 		while (pos_scroll > 0) {							// Scroll down completly to see the newly printed text
 			this->scroll_down();
 		}
@@ -596,7 +606,7 @@ void GLConsole::handle_cout() {
 					line = line + c;						// Else just concat the char
 			}
 		}
-		GLConsole::cout.str("");							// Clear the stream
+		cout.str("");							// Clear the stream
 		if (buffer_output.size() > size_buffer_output) {	// The buffer has a maximum length
 			buffer_output.resize(size_buffer_output);		// If reached, resize it
 		}
@@ -687,7 +697,7 @@ void GLConsole::process_command() {
 	}
 	pos_buffer_command = -1;														// No command selected in the command buffer
 
-	GLConsole::cout << ">" << command << '\n';										// Write the command to the output
+	cout << ">" << command << '\n';										// Write the command to the output
 	buffer_input.clear();															// Clear input buffer
 	this->cursor_jump_left();														// And set the cursor to the top left
 
@@ -698,17 +708,17 @@ void GLConsole::process_command() {
 	}
 
 	else if (command == "list") {													// Lists the modifiable variables with their associated value
-		cvars.print_tree(GLConsole::cout);
+		cvars.print_tree(cout);
 	}
 
 	else if (command == "cls") {													// Completly clears the screen
 		buffer_output.clear();
-		GLConsole::cout.str("");
+		cout.str("");
 	}
 
 	else if (command == "reset") {													// Resets the console to the default state
 		this->reset();
-		GLConsole::cout << "The console has been reseted!\n";
+		cout << "The console has been reseted!\n";
 	}
 
 	else if (command == "exit") {													// Exits the application
@@ -721,7 +731,7 @@ void GLConsole::process_command() {
 		try {
 			funcs.at(command)();
 		} catch (...) {
-			GLConsole::cout << "Function does not exist!\n";
+			cout << "Function does not exist!\n";
 		}
 	}
 
@@ -731,14 +741,14 @@ void GLConsole::process_command() {
 		try {
 			cvars.set_cvar(name, value);											// Possibility of not existing cvar
 		} catch (char const* str) {
-			GLConsole::cout << str << "\n";
+			cout << str << "\n";
 		}
 	}
 
 	else try {																		// Gets the value of a variable
 		CVarBase* node = cvars.find(command);
-		GLConsole::cout << *node << std::endl;
+		cout << *node << std::endl;
 	} catch (char const* str) {
-		GLConsole::cout << str << "\n";
+		cout << str << "\n";
 	}
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <CL\cl.hpp>
 #include <ostream>
 
 class float3 {
