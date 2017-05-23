@@ -15,78 +15,36 @@
 
 GLConsole console;
 Scene scene;
-//CLDevice device;
 const int screen_width = 192 * 5;
 const int screen_height = 108 * 5;
 int keys_down[256];
 float max_fps;
 
-//void capture_picture() {
-//	static int id = 0;
-//	std::string file_name = "image_" + std::to_string(id) + ".bmp";
-//	int width, height;
-//	std::vector<cl_uchar> image = std::vector<cl_uchar>(3 * screen_width*screen_height);
-//	glBindTexture(GL_TEXTURE_2D, 2);
-//	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
-//	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
-//	image.resize(width * height * 3);
-//	glGetTexImage(GL_TEXTURE_2D, 0, GL_BGR, GL_UNSIGNED_BYTE, image.data());
-//
-//	CreateDirectoryA("rendered", NULL);
-//	BMP::write("rendered/" + file_name, image, width, height);
-//
-//	id++;
-//	GLConsole::cout << file_name + " created\n";
-//}
-
 void onInitialization() {
 	glViewport(0, 0, screen_width, screen_height);
 	scene.init(screen_width, screen_height);
-	//device.init(screen_width, screen_height);
-	//std::cout << device << std::endl;
 	console.init();
-	//GLConsole::add_function("capture_picture()", capture_picture);
 	console.print_help();
 	max_fps = 60; GLConsole::cvars.attach_cvar<float>("app.max_fps", &max_fps, "Determines the maximum allowed frames per second. Interval: [30, infty).");
 
+	//const int LAMP = scene.add_material(Material(float3(0, 0, 0), float3(0, 0, 0), float3(1, 1, 1), 0, 0, false));
+	//const int RED = scene.add_material(Material(float3(1, 0, 0), float3(1, 1, 1), float3(0, 0, 0), 0, 50, false));
 
-	//std::string path = "textures/earth_2k.bmp";
-	//int width, height;
-	//std::vector<cl_uchar> data;
-	//BMP::read(path, data, width, height);
+	//scene.add_sphere(Sphere(float3(800, 1000, 800), float3(0, 0, 0), 100, LAMP));
+	//scene.add_sphere(Sphere(float3(800, 500, 800), float3(0, 0, 0), 100, RED));
 
-	//std::vector<cl_float> rgb = device.bgr_to_rgb(data, width, height);
-	//std::vector<cl_float> grayscale = device.rgb_to_grayscale(rgb, width, height);
-	//std::vector<cl_float> bump_map = device.derivate_image(grayscale, width, height);
-	//std::vector<cl_float> expanded = device.expand_image(rgb, width, height);
+	scene.add_sphere(Sphere(float3(800, 500, 500), float3(0, 0, 0), 200, 0));
+	scene.add_sphere(Sphere(float3(800, 1000, 500), float3(0, 0, 0), 200, 1));
+	scene.add_sphere(Sphere(float3(0, 1, 2), float3(3, 4, 5), 6, 7, 8));
 
-	//glEnable(GL_TEXTURE_2D);
-	//GLuint texture;
-	//glGenTextures(1, &texture);
-	//glBindTexture(GL_TEXTURE_2D, texture);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, rgb.data());
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, width, height, 0, GL_LUMINANCE, GL_FLOAT, grayscale.data());
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, bump_map.data());
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 2048, 1024, 0, GL_RGBA, GL_FLOAT, expanded.data());
+	printf("%d\n", sizeof(Camera));
+
+	scene.commit();
 }
 
 void onDisplay() {
 	glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	//glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//glBindTexture(GL_TEXTURE_2D, 4);
-	//glColor4f(1, 1, 1, 1);
-	//glBegin(GL_QUADS);
-	//glTexCoord2i(0, 1); glVertex2f(-1.0f, 1.0f);
-	//glTexCoord2i(1, 1); glVertex2f(1.0f, 1.0f);
-	//glTexCoord2i(1, 0); glVertex2f(1.0f, -1.0f);
-	//glTexCoord2i(0, 0); glVertex2f(-1.0f, -1.0f);
-	//glEnd();
 
 	scene.draw();
 	console.draw();
@@ -101,21 +59,23 @@ void onKeyboard(unsigned char key, int x, int y) {
 	} else {
 		console.shift_released();
 	}
-	switch (key) {
-		case GLUT_KEY_ESC:
-			glutLeaveFullScreen();
-			glutDestroyWindow(1);
-			exit(0);
-			break;
-		default:
-			if (console.is_open()) {
-				console.on_keyboard(key);
-			} else {
-				if (key == ' ')
+	if (key == GLUT_KEY_ESC) {
+		glutLeaveFullScreen();
+		glutDestroyWindow(1);
+		exit(EXIT_SUCCESS);
+	} else {
+		if (console.is_open()) {
+			console.on_keyboard(key);
+		} else {
+			switch (key) {
+				case ' ':
 					glutFullScreenToggle();
-				keys_down[key] = true;
+					break;
+				default:
+					keys_down[key] = true;
+					break;
 			}
-			break;
+		}
 	}
 }
 
@@ -130,15 +90,17 @@ void onSpecial(int key, int x, int y) {
 	} else {
 		console.shift_released();
 	}
-	switch (key) {
-		case GLUT_KEY_F1:
-			console.toggle();
-			break;
-		default:
-			if (console.is_open()) {
-				console.on_special(key);
+
+	if (key == GLUT_KEY_F1) {
+		console.toggle();
+	} else {
+		if (console.is_open()) {
+			console.on_special(key);
+		} else {
+			switch (key) {
+
 			}
-			break;
+		}
 	}
 }
 
@@ -178,17 +140,15 @@ void onMouseMotion(int x, int y) {
 	last_y = y;
 }
 
-float last_time = 0;
+Stopwatch watch;
 float time_elapsed = 0;
 int frames = 0;
 float wait_time = 0;
 float acc = 0;
 void onIdle() {
-	float time = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
-	float dt = time - last_time;
-	last_time = time;
+	float dt = watch.get_delta_time();
 	time_elapsed = time_elapsed + dt;
-
+	acc = acc + dt;
 
 	scene.render();
 
@@ -198,7 +158,6 @@ void onIdle() {
 		frames = 0;
 		time_elapsed = 0;
 	}
-	acc = acc + dt;
 	if (acc > wait_time) {
 		glutPostRedisplay();
 		frames++;

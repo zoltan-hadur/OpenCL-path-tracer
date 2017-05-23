@@ -49,11 +49,11 @@ private:
 public:
 	CLDevice();																						// Does nothing
 	void init(int width, int height);																// Initializing the device. Should only get called once, should only have one instance and must be called after glutInit was called
-	void commit(std::vector<Sphere> spheres, std::vector<Triangle> triangles, std::vector<Material> materials, std::vector<TextureInfo> texture_infos);
+	void commit(std::vector<Sphere>& spheres, std::vector<Triangle>& triangles, std::vector<Material>& materials, std::vector<TextureInfo>& texture_infos);
 
 	void generate_primary_rays(Camera camera);
-	void trace_rays(cl_int sample_id, cl_int max_depth, cl_int mode);
-	void draw_screen(cl_int tone_map);
+	void trace_rays(cl_uint sample_id, cl_uint max_depth, cl_uint mode);
+	void draw_screen(cl_uint tone_map);
 
 	std::vector<cl_float> bgr_to_rgb(std::vector<cl_uchar>& image, int width, int height);			// Convert uchar BGR image to float RGBA image
 	std::vector<cl_float> rgb_to_grayscale(std::vector<cl_float>& image, int width, int height);	// Convert float RGBA image to float grayscale image
@@ -125,13 +125,13 @@ void CLDevice::init(int width, int height) {
 
 	buffer_radiances = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(float3) * width * height);			// Allocate memory on device
 	buffer_rays = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(Ray) * width * height);
-	buffer_randoms = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(cl_int) * width * height);
+	buffer_randoms = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(cl_uint) * width * height);
 
-	std::vector<cl_int> seeds = std::vector<cl_int>(width * height);
-	for (int i = 0; i < seeds.size(); ++i) {
+	std::vector<cl_uint> seeds = std::vector<cl_uint>(width * height);
+	for (cl_uint i = 0; i < seeds.size(); ++i) {
 		seeds[i] = i + 1;
 	}
-	queue.enqueueWriteBuffer(buffer_randoms, CL_TRUE, 0, sizeof(cl_int) * width * height, seeds.data());// Upload seeds for random number generating to the device
+	queue.enqueueWriteBuffer(buffer_randoms, CL_TRUE, 0, sizeof(cl_uint) * width * height, seeds.data());// Upload seeds for random number generating to the device
 
 	// Create canvas wich will be using while rendering
 	glEnable(GL_TEXTURE_2D);
@@ -169,9 +169,9 @@ void CLDevice::init(int width, int height) {
 	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, 2048, 1024, max_textures, 0, GL_RGBA, GL_FLOAT, NULL);
 }
 
-void CLDevice::commit(std::vector<Sphere> spheres, std::vector<Triangle> triangles, std::vector<Material> materials, std::vector<TextureInfo> texture_infos) {
+void CLDevice::commit(std::vector<Sphere>& spheres, std::vector<Triangle>& triangles, std::vector<Material>& materials, std::vector<TextureInfo>& texture_infos) {
 	size_spheres = spheres.size();
-	size_triangles = spheres.size();
+	size_triangles = triangles.size();
 
 	buffer_spheres = cl::Buffer(context, CL_MEM_READ_ONLY, sizeof(Sphere)*spheres.size());
 	queue.enqueueWriteBuffer(buffer_spheres, CL_TRUE, 0, sizeof(Sphere)*spheres.size(), spheres.data());
@@ -198,10 +198,9 @@ void CLDevice::generate_primary_rays(Camera camera) {
 	kernel_generate_primary_rays.setArg(2, camera);
 
 	queue.enqueueNDRangeKernel(kernel_generate_primary_rays, cl::NullRange, cl::NDRange(width, height), cl::NullRange);
-	queue.finish();
 }
 
-void CLDevice::trace_rays(cl_int sample_id, cl_int max_depth, cl_int mode) {
+void CLDevice::trace_rays(cl_uint sample_id, cl_uint max_depth, cl_uint mode) {
 	cl::Kernel kernel_trace_rays = cl::Kernel(program, "trace_rays");
 	kernel_trace_rays.setArg(0, buffer_textures);
 	kernel_trace_rays.setArg(1, buffer_bump_maps);
@@ -210,18 +209,18 @@ void CLDevice::trace_rays(cl_int sample_id, cl_int max_depth, cl_int mode) {
 	kernel_trace_rays.setArg(4, size_spheres);
 	kernel_trace_rays.setArg(5, buffer_triangles);
 	kernel_trace_rays.setArg(6, size_triangles);
-	kernel_trace_rays.setArg(9, buffer_materials);
-	kernel_trace_rays.setArg(10, buffer_rays);
-	kernel_trace_rays.setArg(11, buffer_randoms);
-	kernel_trace_rays.setArg(12, buffer_radiances);
-	kernel_trace_rays.setArg(13, sample_id);
-	kernel_trace_rays.setArg(14, max_depth);
-	kernel_trace_rays.setArg(15, mode);
+	kernel_trace_rays.setArg(7, buffer_materials);
+	kernel_trace_rays.setArg(8, buffer_rays);
+	kernel_trace_rays.setArg(9, buffer_randoms);
+	kernel_trace_rays.setArg(10, buffer_radiances);
+	kernel_trace_rays.setArg(11, sample_id);
+	kernel_trace_rays.setArg(12, max_depth);
+	kernel_trace_rays.setArg(13, mode);
 
 	queue.enqueueNDRangeKernel(kernel_trace_rays, cl::NullRange, cl::NDRange(width, height), cl::NullRange);
 }
 
-void CLDevice::draw_screen(cl_int tone_map) {
+void CLDevice::draw_screen(cl_uint tone_map) {
 	cl::Kernel kernel_draw_screen = cl::Kernel(program, "draw_screen");
 	kernel_draw_screen.setArg(0, canvas);
 	kernel_draw_screen.setArg(1, buffer_radiances);

@@ -32,10 +32,10 @@ private:
 	std::vector<std::pair<cl_float, cl_float>> texture_resolutions;
 	std::vector<TextureInfo> texture_infos;
 
-	cl_int sample_id;
-	cl_int max_depth;
-	cl_int tone_map;
-	cl_int mode;
+	cl_uint sample_id;
+	cl_uint max_depth;
+	cl_uint tone_map;
+	cl_uint mode;
 public:
 	Scene();
 	void init(int width, int height);
@@ -43,7 +43,7 @@ public:
 	void add_triangle(Triangle obj);
 	int add_material(Material mat);
 	int add_texture(std::string file_path);
-	int add_texture_info(cl_short index, cl_char flag);
+	int add_texture_info(cl_uint index, cl_uint flag);
 	void commit();
 	void next_tone_map();
 	void next_mode();
@@ -57,6 +57,11 @@ Scene::Scene() {
 }
 
 void Scene::init(int width, int height) {
+	sample_id = 0;
+	max_depth = 10;
+	tone_map = RAW;
+	mode = RAY_TRACING;
+
 	GLConsole::add_function("commit()", std::bind(&Scene::commit, this));
 	GLConsole::add_function("capture_picture()", std::bind(&Scene::capture_picture, this));
 
@@ -65,11 +70,6 @@ void Scene::init(int width, int height) {
 	camera = Camera(width, height);
 
 	texture_infos.push_back(TextureInfo(0, 0, 0, 0));
-
-	sample_id = 0;
-	max_depth = 10;
-	tone_map = RAW;
-	mode = RAY_TRACING;
 }
 
 void Scene::add_sphere(Sphere obj) {
@@ -111,7 +111,7 @@ int Scene::add_texture(std::string file_path) {
 	}
 }
 
-int Scene::add_texture_info(cl_short index, cl_char flag) {
+int Scene::add_texture_info(cl_uint index, cl_uint flag) {
 	texture_infos.push_back(TextureInfo(texture_resolutions[index].first, texture_resolutions[index].second, index, flag));
 	return texture_infos.size() - 1;
 }
@@ -132,6 +132,7 @@ void Scene::render() {
 	device.generate_primary_rays(camera);
 	device.trace_rays(sample_id, max_depth, mode);
 	device.draw_screen(tone_map);
+	sample_id++;
 }
 
 void Scene::draw() {

@@ -5,11 +5,16 @@
 
 class Camera {
 private:
-	float3 pos, right, up, forward;
-	float focus_distance, fov;
-	int width, height;
+	float3 pos;									// Position of the eye
+	float3 right;								// X axis of the camera's coordinate system
+	float3 up;									// Y axis of the camera's coordinate system
+	float3 forward;								// Z axis of the camera's coordinate system
+	cl_float focus_distance;					// Focus distance
+	cl_float fov;								// Horizontal field of vision in °
+	cl_uint width;								// Width of the canvas
+	cl_uint height;								// Height of the canvas
 public:
-	Camera(int width, int height);				// Initializes the camera.
+	Camera(cl_uint width, cl_uint height);		// Initializes the camera.
 	void rotate(float dpitch, float dyaw);		// Rotates the camera by the two angle in degrees.
 	void translate_right(float v);				// Moves the camera along it's x axis.
 	void translate_up(float v);					// Moves the camera along it's y axis.
@@ -22,7 +27,7 @@ public:
 	Ray get_ray(int x, int y);					// Generates a ray that originates from the camera and points toward to a point on the screen defined by x y.
 };
 
-Camera::Camera(int width = 600, int height = 600) {
+Camera::Camera(cl_uint width = 600, cl_uint height = 600) {
 	focus_distance = 1000.0f;
 	fov = 90.0f;
 	this->width = width;
