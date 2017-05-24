@@ -6,6 +6,7 @@
 #include <GL\glext.h>
 #include <GL\freeglut.h>
 #include <CL\cl.hpp>
+#include <random>
 #include <vector>
 #include <string>
 #include <iostream>
@@ -49,11 +50,12 @@ private:
 public:
 	CLDevice();																						// Does nothing
 	void init(int width, int height);																// Initializing the device. Should only get called once, should only have one instance and must be called after glutInit was called
+	void upload_texture(std::vector<float>& image, int id, int index);
 	void commit(std::vector<Sphere>& spheres, std::vector<Triangle>& triangles, std::vector<Material>& materials, std::vector<TextureInfo>& texture_infos);
 
 	void generate_primary_rays(Camera camera);
 	void trace_rays(cl_uint sample_id, cl_uint max_depth, cl_uint mode);
-	void draw_screen(cl_uint tone_map);
+	void draw_screen(cl_uint tone_map, cl_uint filter);
 
 	std::vector<cl_float> bgr_to_rgb(std::vector<cl_uchar>& image, int width, int height);			// Convert uchar BGR image to float RGBA image
 	std::vector<cl_float> rgb_to_grayscale(std::vector<cl_float>& image, int width, int height);	// Convert float RGBA image to float grayscale image
@@ -127,9 +129,15 @@ void CLDevice::init(int width, int height) {
 	buffer_rays = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(Ray) * width * height);
 	buffer_randoms = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(cl_uint) * width * height);
 
+	std::random_device rd;     // only used once to initialise (seed) engine
+	std::mt19937 rng(rd());    // random-number engine used (Mersenne-Twister in this case)
+	//std::minstd_rand rng(rd());
+	std::uniform_int_distribution<int> uni(std::minstd_rand::min(), std::minstd_rand::max()); // guaranteed unbiased
 	std::vector<cl_uint> seeds = std::vector<cl_uint>(width * height);
 	for (cl_uint i = 0; i < seeds.size(); ++i) {
-		seeds[i] = i + 1;
+		//seeds[i] = i + 1;
+		seeds[i] = uni(rng);
+		//seeds[i] = 1;
 	}
 	queue.enqueueWriteBuffer(buffer_randoms, CL_TRUE, 0, sizeof(cl_uint) * width * height, seeds.data());// Upload seeds for random number generating to the device
 
@@ -167,6 +175,11 @@ void CLDevice::init(int width, int height) {
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, 2048, 1024, max_textures, 0, GL_RGBA, GL_FLOAT, NULL);
+}
+
+void CLDevice::upload_texture(std::vector<float>& image, int id, int index) {
+	glBindTexture(GL_TEXTURE_2D_ARRAY, id);
+	glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, index, 2048, 1024, 1, GL_RGBA, GL_FLOAT, image.data());
 }
 
 void CLDevice::commit(std::vector<Sphere>& spheres, std::vector<Triangle>& triangles, std::vector<Material>& materials, std::vector<TextureInfo>& texture_infos) {
@@ -220,11 +233,12 @@ void CLDevice::trace_rays(cl_uint sample_id, cl_uint max_depth, cl_uint mode) {
 	queue.enqueueNDRangeKernel(kernel_trace_rays, cl::NullRange, cl::NDRange(width, height), cl::NullRange);
 }
 
-void CLDevice::draw_screen(cl_uint tone_map) {
+void CLDevice::draw_screen(cl_uint tone_map, cl_uint filter) {
 	cl::Kernel kernel_draw_screen = cl::Kernel(program, "draw_screen");
 	kernel_draw_screen.setArg(0, canvas);
 	kernel_draw_screen.setArg(1, buffer_radiances);
 	kernel_draw_screen.setArg(2, tone_map);
+	kernel_draw_screen.setArg(3, filter);
 
 	queue.enqueueNDRangeKernel(kernel_draw_screen, cl::NullRange, cl::NDRange(width, height), cl::NullRange);
 	queue.finish();

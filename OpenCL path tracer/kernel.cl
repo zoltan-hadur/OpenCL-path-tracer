@@ -1,13 +1,35 @@
+//enum ToneMap {
+//	RAW, SRGB, REINHARD, FILMIC, ToneMap_COUNT
+//};
+//enum Mode {
+//	RAY_TRACING, PATH_TRACING, EXPLICIT_LIGHT_SAMPLING, Mode_COUNT
+//};
+//enum Texture {
+//	NOTHING, HAS_TEXTURE, HAS_BUMP_MAP
+//};
+
+#define RAW 0
+#define SRGB 1
+#define REINHARD 2
+#define FILMIC 3
+
+#define RAY_TRACING 0
+#define PATH_TRACING 1
+#define EXPLICIT_LIGHT_SAMPLING 2
+
+#define NOTHING 0
+#define HAS_TEXTURE 1
+#define HAS_BUMP_MAP 2
+
 typedef struct {
 	float3 kd;			// Diffuse color
 	float3 ks;			// Specular color
 	float3 emission;	// Emission
-	float R0;			// Reflectance at 0°
+	//float R0;			// Reflectance at 0°
 	float n;			// Refractive index
-	float shininess;	// Shininess
 	float glossiness;	// Glossiness
-	uint refractive;	// True if refractive
-	uint reserved[3];
+	uint type;			// 0-emitter, 1-diffuse or specular, 2-refractive
+	uint reserved;
 }Material;
 
 typedef struct {
@@ -88,9 +110,41 @@ float3 rodrigues(float3 v, float3 k, float theta) {
 	return v*cost + cross(k, v)*sint + k*dot(k, v)*(1 - cost);
 }
 
-float3 Fresnel(float3 norm, Material mat, Ray ray) {
+void ons(float3* w, float3* u, float3* v) {
+	float3 X = (float3)(1, 0, 0);
+	float3 Y = (float3)(0, 1, 0);
+	float3 Z = (float3)(0, 0, 1);
+
+	//float3 perp = normalize(cross(Y, *w));
+	//float cosa = dot(Y, *w);
+	//float deg = acos(cosa) / M_PI * 180.0f;
+	//X = rodrigues(X, perp, deg);
+	//Z = rodrigues(Z, perp, deg);
+	//*u = X;
+	//*v = Z;
+
+	if ((*w).y >= 0.99) {
+		*u = X;
+		*v = Z;
+	} else if ((*w).y <= -0.99) {
+		*w = -Y;
+		*u = -X;
+		*v = -Z;
+	} else {
+		float3 perp = normalize(cross(Y, *w));
+		float cosa = dot(Y, *w);
+		float deg = acos(cosa) / M_PI * 180.0f;
+		X = rodrigues(X, perp, deg);
+		Z = rodrigues(Z, perp, deg);
+		*u = X;
+		*v = Z;
+	}
+}
+
+float fresnel(float3 norm, float n, Ray ray) {
+	float R0 = ((1 - n) / (1 + n)) * ((1 - n) / (1 + n));
 	float cosa = fabs(dot(norm, ray.dir));
-	return mat.R0 + (1 - mat.R0)*pow(1 - cosa, 5);
+	return R0 + (1 - R0)*pow(1 - cosa, 5);
 }
 
 bool intersect_sphere(Sphere sphere, Ray ray, Hit* hit) {
@@ -249,9 +303,9 @@ float3 sRGB(float3 c) {
 	return (float3)(a[0], a[1], a[2]);
 }
 float4 reinhard_tone_map(float3 c) {
-	float L = 0.2126f*c.x + 0.7152f*c.y + 0.0722f*c.z;
-	float L2 = L / (1 + L);
-	c = c*L2 / L;
+	float Y = 0.2126f*c.x + 0.7152f*c.y + 0.0722f*c.z;
+	float L = Y / (1 + Y);
+	c = c * L / Y;
 	return (float4)(sRGB(c), 1.0f);
 }
 float4 filmic_tone_map(float3 c) {
@@ -279,7 +333,7 @@ void kernel generate_primary_rays(global Ray* rays,
 
 	float a = 2.0f * M_PI * rand(&randoms[id]);
 	float r = sqrt(rand(&randoms[id]));
-	float radius = 5;
+	float radius = 0;
 	x = radius*r*cos(a);
 	y = radius*r*sin(a);
 
@@ -308,68 +362,248 @@ void kernel trace_rays(read_only image2d_array_t textures,
 	const sampler_t samplerA = CLK_NORMALIZED_COORDS_TRUE | CLK_ADDRESS_REPEAT | CLK_FILTER_LINEAR;
 	uint id = get_global_id(1)*get_global_size(0) + get_global_id(0);
 	float3 factor = (float3)(1, 1, 1);
-	float3 radiance = (float3)(0, 1, 0);
+	float3 radiance = (float3)(0, 0, 0);
+	bool in = false;
+	bool sampled = false;
 
 	uint size = max(size_spheres, size_triangles);
 
-	printf("%d\n", sizeof(Camera));
+	for (int i = 0; i < max_depth; ++i) {
+		Hit hit = first_intersect(size, spheres, size_spheres, triangles, size_triangles, rays[id]);
+		hit.norm = dot(hit.norm, rays[id].dir) < 0.0f ? hit.norm : hit.norm * (-1.0f);
+		Material mat = materials[hit.mati];
+		TextureInfo tex_info = texture_infos[hit.texi];
 
-	//for (int i = 0; i < size_spheres; ++i) {
-	//	printf("%8.2f %8.2f %8.2f  %2.2f %2.2f %2.2f  %8.2f %d %d\n", spheres[i].pos.x, spheres[i].pos.y, spheres[i].pos.z, spheres[i].ori.x, spheres[i].ori.y, spheres[i].ori.z, spheres[i].r, spheres[i].mati, spheres[i].texi);
-	//}
+		if (tex_info.flag & HAS_TEXTURE) {
+			float4 tex_color = read_imagef(textures, samplerA, (float4)(hit.u*tex_info.width, hit.v*tex_info.height, tex_info.index, 0));
+			mat.kd = (float3)(tex_color.x, tex_color.y, tex_color.z);
+			mat.ks = mat.kd;
+		}
+		if (tex_info.flag & HAS_BUMP_MAP) {
+			float4 tex_norm = read_imagef(bump_maps, samplerA, (float4)(hit.u*tex_info.width, hit.v*tex_info.height, tex_info.index, 0));
+			float3 w = hit.norm;
+			float3 u, v;
+			ons(&w, &u, &v);
+			hit.norm = hit.norm + (tex_norm.y - 0.5f)*2.0f*cross(u, w) + (tex_norm.x - 0.5f)*2.0f*cross(v, w);
+			hit.norm = normalize(hit.norm);
+			//hit.norm = dot(hit.norm, rays[id].dir) < 0.0f ? hit.norm : hit.norm * (-1.0f);
+		}
 
-	//for (int i = 0; i < max_depth; ++i) {
-	//	Hit hit = first_intersect(size, spheres, size_spheres, triangles, size_triangles, rays[id]);
-	//	if (hit.t > 0) {
-	//		Material mat = materials[hit.mati];
+		if (hit.t > 0) {
+			switch (mat.type) {
+				case 0:
+				{
+					if (!sampled) {
+						radiance = radiance + mat.emission * factor;
+					}
+					i = 999;
+				}
+				break;
+				case 1:
+				{
+					float R = fresnel(hit.norm, mat.n, rays[id]);	// Probability of reflecting ray
+					if (rand(&randoms[id]) < R) {
+						// Perfect reflection dir
+						float3 new_dir = normalize(rays[id].dir - hit.norm*dot(hit.norm, rays[id].dir)*2.0f);
 
-	//		radiance = radiance + mat.emission * factor;
+						// Compute two random numbers to pick a random point on the hemisphere above the hitpoint
+						float rand1 = 2.0f * M_PI * rand(&randoms[id]);
+						float rand2 = rand(&randoms[id]) * mat.glossiness;
+						float rand2s = sqrt(rand2);
+						// Create a local orthogonal coordinate frame centered at the hitpoint
+						float3 w = new_dir;
+						float3 u, v;
+						ons(&w, &u, &v);
 
-	//		//compute two random numbers to pick a random point on the hemisphere above the hitpoint
-	//		float rand1 = 2.0f * M_PI * rand(&randoms[id]);
-	//		float rand2 = rand(&randoms[id]);
-	//		float rand2s = sqrt(rand2);
+						// Use the coordinte frame and random numbers to compute the next ray direction
+						new_dir = normalize(u * cos(rand1)*rand2s + v*sin(rand1)*rand2s + w*sqrt(1.0f - rand2));
 
-	//		//create a local orthogonal coordinate frame centered at the hitpoint
-	//		float3 w = hit.norm;
-	//		float3 axis = fabs(w.x) > 0.1f ? (float3)(0.0f, 1.0f, 0.0f) : (float3)(1.0f, 0.0f, 0.0f);
-	//		float3 u = normalize(cross(axis, w));
-	//		float3 v = cross(w, u);
+						Ray ray_to = cons_ray(hit.pos + hit.norm*0.01f, new_dir);
 
-	//		//use the coordinte frame and random numbers to compute the next ray direction
-	//		float3 new_dir = normalize(u * cos(rand1)*rand2s + v*sin(rand1)*rand2s + w*sqrt(1.0f - rand2));
+						float3 S = mat.ks * fmax(0.0f, dot(normalize(ray_to.dir - rays[id].dir), hit.norm));
+						factor = factor * S / R;
 
-	//		//add a very small offset to the hitpoint to prevent self intersection
-	//		Ray ray_to = cons_ray(hit.pos + hit.norm*0.01f, new_dir);
+						rays[id] = ray_to;
+						sampled = false;
+					} else {
+						if (mode == RAY_TRACING || mode == EXPLICIT_LIGHT_SAMPLING) {
+							float width = 398.0f;
+							float3 light_pos = (float3)(601.0f + width*rand(&randoms[id]), 999.99, 1.0f + width*rand(&randoms[id]));
+							float r = length(light_pos - hit.pos);
+							float A = width*width;
+							float3 light_dir = normalize(light_pos - hit.pos);
+							Ray shadow_ray = cons_ray(hit.pos + hit.norm*0.01f, light_dir);
+							Hit shadow_hit = first_intersect(size, spheres, size_spheres, triangles, size_triangles, shadow_ray);
+							float3 LD = mat.kd * fmax(0.0f, dot(shadow_ray.dir, hit.norm));
+							float f = A / (r*r) * dot((float3)(0, -1, 0), -light_dir);
+							radiance = radiance + materials[shadow_hit.mati].emission*LD*f*factor / (1 - R);
+							if (materials[shadow_hit.mati].type == 0) {
+								sampled = true;
+							} else {
+								sampled = false;
+							}
+							if (mode == RAY_TRACING) {
+								i = 999;
+							}
+						}
 
-	//		float3 L = mat.kd * fmax(0.0f, dot(ray_to.dir, hit.norm));
-	//		float3 B = mat.ks * pow(fmax(0.01f, dot(normalize(ray_to.dir - rays[id].dir), hit.norm)), mat.shininess);
-	//		factor = factor * (L + B);
+						if (mode == PATH_TRACING || mode == EXPLICIT_LIGHT_SAMPLING) {
+							// Compute two random numbers to pick a random point on the hemisphere above the hitpoint
+							float rand1 = 2.0f * M_PI * rand(&randoms[id]);
+							float rand2 = rand(&randoms[id]);
+							float rand2s = sqrt(rand2);
+							// Create a local orthogonal coordinate frame centered at the hitpoint
+							float3 w = hit.norm;
+							float3 u, v;
+							ons(&w, &u, &v);
 
-	//		rays[id] = ray_to;
-	//	}
-	//}
+							// Use the coordinte frame and random numbers to compute the next ray direction
+							float3 new_dir = normalize(u * cos(rand1)*rand2s + v*sin(rand1)*rand2s + w*sqrt(1.0f - rand2));
+							// Add a very small offset to the hitpoint to prevent self intersection
+							Ray ray_to = cons_ray(hit.pos + hit.norm*0.01f, new_dir);
+
+							float3 D = mat.kd * fmax(0.0f, dot(ray_to.dir, hit.norm));
+							factor = factor * D / (1 - R);
+
+							rays[id] = ray_to;
+						}
+					}
+				}
+				break;
+				case 2:
+				{
+					Ray ray_to;
+					float3 pos, dir;
+					float R = fresnel(hit.norm, mat.n, rays[id]);	// Probability of reflecting ray
+					if (in) {
+						mat.n = 1.0f / mat.n;
+					}
+					float cosa = dot(-rays[id].dir, hit.norm);
+					float disc = 1.0f - (1.0f - cosa*cosa) / mat.n / mat.n;
+					if (disc > 0 && rand(&randoms[id]) > R) {	// Refract
+						in = !in;
+						pos = hit.pos - hit.norm*0.01f;
+						dir = normalize(rays[id].dir / mat.n + hit.norm*(cosa / mat.n - sqrt(disc)));
+						//factor = factor * (1 - (1 - mat.ks * (1 - R))) / (1 - R);
+						factor = factor * mat.ks;
+					} else {									// Reflect
+						pos = hit.pos + hit.norm*0.01f;
+						dir = normalize(rays[id].dir - hit.norm*dot(hit.norm, rays[id].dir)*2.0f);
+						//factor = factor * (1 - (1 - mat.ks * R)) / R;
+						factor = factor * mat.ks;
+					}
+					ray_to = cons_ray(pos, dir);
+
+					rays[id] = ray_to;
+					sampled = false;
+				}
+				break;
+			}
+		} else {
+			break;
+		}
+	}
 	radiances[id] = (radiances[id] * sample_id + radiance) / (sample_id + 1);
 }
 
 void kernel draw_screen(write_only image2d_t canvas,
 						global float3* radiances,
-						const uint mode) {
+						const uint mode,
+						const uint filter) {
 
-	uint id = get_global_id(1)*get_global_size(0) + get_global_id(0);
+	uint width = get_global_size(0);
+	uint height = get_global_size(1);
+	uint x = get_global_id(0);
+	uint y = get_global_id(1);
+	uint id = y * width + x;
 
-	//radiances[id] = (float3)(1, 0, 0);
+	float3 color;
+	switch (filter) {
+		case RAW:
+			color = radiances[id];
+			break;
+		case 1:
+			if (0 < x && x < width && 0 < y && y < height) {
+				color = (radiances[(y + 1) * width + (x - 1)] + radiances[(y + 1) * width + (x + 0)] + radiances[(y + 1) * width + (x + 1)] +
+						 radiances[(y + 0) * width + (x - 1)] + radiances[(y + 0) * width + (x + 0)] + radiances[(y + 0) * width + (x + 1)] +
+						 radiances[(y - 1) * width + (x - 1)] + radiances[(y - 1) * width + (x + 0)] + radiances[(y - 1) * width + (x + 1)]) / 9;
+			} else {
+				color = radiances[id];
+			}
+			break;
+		case 2:
+			if (0 < x && x < width && 0 < y && y < height) {
+				color = (float3)(0, 0, 0);
+				float3 colors[9];
+				colors[0] = radiances[(y - 1) * width + (x - 1)];
+				colors[1] = radiances[(y - 1) * width + (x + 0)];
+				colors[2] = radiances[(y - 1) * width + (x + 1)];
 
-	switch (mode) {
-		case 0:write_imagef(canvas, (int2)(get_global_id(0), get_global_id(1)), (float4)(radiances[id], 1));
-			break;
-		case 1:write_imagef(canvas, (int2)(get_global_id(0), get_global_id(1)), (float4)(sRGB(radiances[id]), 1));
-			break;
-		case 2:write_imagef(canvas, (int2)(get_global_id(0), get_global_id(1)), reinhard_tone_map(radiances[id]));
-			break;
-		case 3:write_imagef(canvas, (int2)(get_global_id(0), get_global_id(1)), filmic_tone_map(radiances[id]));
+				colors[3] = radiances[(y + 0) * width + (x - 1)];
+				colors[4] = radiances[(y + 0) * width + (x + 0)];
+				colors[5] = radiances[(y + 0) * width + (x + 1)];
+
+				colors[6] = radiances[(y + 1) * width + (x - 1)];
+				colors[7] = radiances[(y + 1) * width + (x + 0)];
+				colors[8] = radiances[(y + 1) * width + (x + 1)];
+
+				for (int i = 0; i < 9; i++) {
+					for (int j = 0; j < 9 - i; j++) {
+						if (colors[j].x > colors[j + 1].x) {
+							float3 temp = colors[j];
+							colors[j] = colors[j + 1];
+							colors[j + 1] = temp;
+						}
+					}
+				}
+				color.x = colors[4].x;
+
+				for (int i = 0; i < 9; i++) {
+					for (int j = 0; j < 9 - i; j++) {
+						if (colors[j].y > colors[j + 1].y) {
+							float3 temp = colors[j];
+							colors[j] = colors[j + 1];
+							colors[j + 1] = temp;
+						}
+					}
+				}
+				color.y = colors[4].y;
+
+				for (int i = 0; i < 9; i++) {
+					for (int j = 0; j < 9 - i; j++) {
+						if (colors[j].z > colors[j + 1].z) {
+							float3 temp = colors[j];
+							colors[j] = colors[j + 1];
+							colors[j + 1] = temp;
+						}
+					}
+				}
+				color.z = colors[4].z;
+
+
+			} else {
+				color = radiances[id];
+			}
 			break;
 	}
+
+	float4 out;
+	switch (mode) {
+		case RAW:
+			out = (float4)(color, 1);
+			break;
+		case SRGB:
+			out = (float4)(sRGB(color), 1);
+			break;
+		case REINHARD:
+			out = reinhard_tone_map(color);
+			break;
+		case FILMIC:
+			out = filmic_tone_map(color);
+			break;
+	}
+
+	write_imagef(canvas, (int2)(x, y), out);
 }
 
 

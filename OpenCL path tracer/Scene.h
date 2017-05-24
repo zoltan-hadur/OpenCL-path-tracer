@@ -18,7 +18,7 @@ private:
 		RAW, SRGB, REINHARD, FILMIC, ToneMap_COUNT
 	};
 	enum Mode {
-		RAY_TRACING, PATH_TRACING, Mode_COUNT
+		RAY_TRACING, PATH_TRACING, EXPLICIT_LIGHT_SAMPLING, Mode_COUNT
 	};
 
 	GLuint canvas_id;		// CLDevice renders to this texture
@@ -36,6 +36,7 @@ private:
 	cl_uint max_depth;
 	cl_uint tone_map;
 	cl_uint mode;
+	cl_uint filter;
 public:
 	Scene();
 	void init(int width, int height);
@@ -44,9 +45,11 @@ public:
 	int add_material(Material mat);
 	int add_texture(std::string file_path);
 	int add_texture_info(cl_uint index, cl_uint flag);
+	Camera& get_camera();
 	void commit();
 	void next_tone_map();
 	void next_mode();
+	void next_filter();
 	void render();
 	void draw();
 	void capture_picture();
@@ -58,9 +61,10 @@ Scene::Scene() {
 
 void Scene::init(int width, int height) {
 	sample_id = 0;
-	max_depth = 10;
-	tone_map = RAW;
+	max_depth = 7;
+	tone_map = REINHARD;
 	mode = RAY_TRACING;
+	filter = 0;
 
 	GLConsole::add_function("commit()", std::bind(&Scene::commit, this));
 	GLConsole::add_function("capture_picture()", std::bind(&Scene::capture_picture, this));
@@ -100,11 +104,16 @@ int Scene::add_texture(std::string file_path) {
 		std::vector<cl_float> expanded_rgb = device.expand_image(rgb, width, height);
 		std::vector<cl_float> expanded_bump_map = device.expand_image(bump_map, width, height);
 
-		glBindTexture(GL_TEXTURE_2D_ARRAY, canvas_id + 1);
-		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, id, 2048, 1024, 1, GL_RGBA, GL_FLOAT, expanded_rgb.data());
+		device.upload_texture(expanded_rgb, canvas_id + 1, id);
+		device.upload_texture(expanded_bump_map, canvas_id + 2, id);
 
-		glBindTexture(GL_TEXTURE_2D_ARRAY, canvas_id + 2);
-		glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, id, 2048, 1024, 1, GL_RGBA, GL_FLOAT, expanded_bump_map.data());
+		return id;
+
+		//glBindTexture(GL_TEXTURE_2D_ARRAY, canvas_id + 1);
+		//glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, id, 2048, 1024, 1, GL_RGBA, GL_FLOAT, expanded_rgb.data());
+
+		//glBindTexture(GL_TEXTURE_2D_ARRAY, canvas_id + 2);
+		//glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, id, 2048, 1024, 1, GL_RGBA, GL_FLOAT, expanded_bump_map.data());
 	} else {
 		std::cout << "Maximum number of textures reached!" << std::endl;
 		return -1;
@@ -116,6 +125,11 @@ int Scene::add_texture_info(cl_uint index, cl_uint flag) {
 	return texture_infos.size() - 1;
 }
 
+Camera& Scene::get_camera() {
+	sample_id = 0;
+	return camera;
+}
+
 void Scene::commit() {
 	device.commit(spheres, triangles, materials, texture_infos);
 }
@@ -125,13 +139,18 @@ void Scene::next_tone_map() {
 }
 
 void Scene::next_mode() {
+	sample_id = 0;
 	mode = (mode + 1) % Mode_COUNT;
+}
+
+void Scene::next_filter() {
+	filter = (filter + 1) % 3;
 }
 
 void Scene::render() {
 	device.generate_primary_rays(camera);
 	device.trace_rays(sample_id, max_depth, mode);
-	device.draw_screen(tone_map);
+	device.draw_screen(tone_map, filter);
 	sample_id++;
 }
 

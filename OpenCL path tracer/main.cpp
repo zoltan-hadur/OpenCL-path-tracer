@@ -25,19 +25,63 @@ void onInitialization() {
 	scene.init(screen_width, screen_height);
 	console.init();
 	console.print_help();
-	max_fps = 60; GLConsole::cvars.attach_cvar<float>("app.max_fps", &max_fps, "Determines the maximum allowed frames per second. Interval: [30, infty).");
+	max_fps = 9999; GLConsole::cvars.attach_cvar<float>("app.max_fps", &max_fps, "Determines the maximum allowed frames per second. Interval: [30, infty).");
 
-	//const int LAMP = scene.add_material(Material(float3(0, 0, 0), float3(0, 0, 0), float3(1, 1, 1), 0, 0, false));
-	//const int RED = scene.add_material(Material(float3(1, 0, 0), float3(1, 1, 1), float3(0, 0, 0), 0, 50, false));
+	const int lamp = scene.add_material(Material(float3(0.0, 0.0, 0.0), float3(0.0, 0.0, 0.0), float3(8, 6, 4) * 1, 0, 0, 0));
+	const int d_red = scene.add_material(Material(float3(1.0, 0.3, 0.3), float3(0.04, 0.04, 0.04), float3(0, 0, 0), 2, 1, 1));
+	const int d_green = scene.add_material(Material(float3(0.3, 1.0, 0.3), float3(0.04, 0.04, 0.04), float3(0, 0, 0), 2, 1, 1));
+	const int d_blue = scene.add_material(Material(float3(0.3, 0.3, 1.0), float3(0.04, 0.04, 0.04), float3(0, 0, 0), 2, 1, 1));
+	const int d_white = scene.add_material(Material(float3(1.0, 1.0, 1.0), float3(0.04, 0.04, 0.04), float3(0, 0, 0), 2, 1, 1));
+	const int s_red = scene.add_material(Material(float3(1.0, 0.3, 0.3), float3(1.0, 0.3, 0.3), float3(0, 0, 0), 2, 0, 1));
+	const int s_green = scene.add_material(Material(float3(0.3, 1.0, 0.3), float3(0.3, 1.0, 0.3), float3(0, 0, 0), 2, 0, 1));
+	const int s_blue = scene.add_material(Material(float3(0.3, 0.3, 1.0), float3(0.3, 0.3, 1.0), float3(0, 0, 0), 2, 0.01, 1));
+	const int s_white = scene.add_material(Material(float3(1.0, 1.0, 1.0), float3(1.0, 1.0, 1.0), float3(0, 0, 0), 2.0, 0.001, 1));
+	const int gold = scene.add_material(Material(float3(0.0, 0.0, 0.0), float3(252, 201, 88) / 255, float3(0, 0, 0), 0.16, 0.0, 1));
+	const int aluminium = scene.add_material(Material(float3(0.0, 0.0, 0.0), float3(128, 126, 121) / 255, float3(0, 0, 0), 0.16, 0.0, 1));
+	const int glass = scene.add_material(Material(float3(0.0, 0.0, 0.0), float3(1, 1, 1), float3(0, 0, 0), 1.5, 0.0, 2));
 
-	//scene.add_sphere(Sphere(float3(800, 1000, 800), float3(0, 0, 0), 100, LAMP));
-	//scene.add_sphere(Sphere(float3(800, 500, 800), float3(0, 0, 0), 100, RED));
+	const int earth = scene.add_texture("textures/earth_2k.bmp");
+	const int squares = scene.add_texture("textures/squares_2k.bmp");
+	const int tex_earth = scene.add_texture_info(earth, 1);
+	const int bump_earth = scene.add_texture_info(earth, 2);
+	const int full_earth = scene.add_texture_info(earth, 1 | 2);
+	const int bump_squares = scene.add_texture_info(squares, 2);
 
-	scene.add_sphere(Sphere(float3(800, 500, 500), float3(0, 0, 0), 200, 0));
-	scene.add_sphere(Sphere(float3(800, 1000, 500), float3(0, 0, 0), 200, 1));
-	scene.add_sphere(Sphere(float3(0, 1, 2), float3(3, 4, 5), 6, 7, 8));
+	// Lamp
+	scene.add_triangle(Triangle(float3(600.0f, 999.99f, 0.0f), float3(1000.0f, 999.99f, 0.0f), float3(1000.0f, 999.99f, 400.0f), lamp));
+	scene.add_triangle(Triangle(float3(600.0f, 999.99f, 0.0f), float3(600.0f, 999.99f, 400.0f), float3(1000.0f, 999.99f, 400.0f), lamp));
 
-	printf("%d\n", sizeof(Camera));
+	//left wall
+	scene.add_triangle(Triangle(float3(0.0f, 0.0f, -2000.0f), float3(0.0f, 0.0f, 1000.0f), float3(0.0f, 1000.0f, -2000.0f), d_red));
+	scene.add_triangle(Triangle(float3(0.0f, 1000.0f, 1000.0f), float3(0.0f, 1000.0f, -2000.0f), float3(0.0f, 0.0f, 1000.0f), d_red));
+	//right wall
+	scene.add_triangle(Triangle(float3(1600.0f, 0.0f, -2000.0f), float3(1600.0f, 0.0f, 1000.0f), float3(1600.0f, 1000.0f, -2000.0f), d_blue));
+	scene.add_triangle(Triangle(float3(1600.0f, 1000.0f, 1000.0f), float3(1600.0f, 1000.0f, -2000.0f), float3(1600.0f, 0.0f, 1000.0f), d_blue));
+	//floor
+	scene.add_triangle(Triangle(float3(0.0f, 0.0f, -2000.0f), float3(1600.0f, 0.0f, -2000.0f), float3(1600.0f, 0.0f, 1000.0f), s_white));
+	scene.add_triangle(Triangle(float3(0.0f, 0.0f, -2000.0f), float3(1600.0f, 0.0f, 1000.0f), float3(0.0f, 0.0f, 1000.0f), s_white));
+	//ceiling
+	scene.add_triangle(Triangle(float3(0.0f, 1000.0f, -2000.0f), float3(1600.0f, 1000.0f, -2000.0f), float3(1600.0f, 1000.0f, 1000.0f), d_white));
+	scene.add_triangle(Triangle(float3(0.0f, 1000.0f, -2000.0f), float3(1600.0f, 1000.0f, 1000.0f), float3(0.0f, 1000.0f, 1000.0f), d_white));
+	//front wall
+	scene.add_triangle(Triangle(float3(1600.0f, 0.0f, 1000.0), float3(0.0f, 0.0f, 1000.0f), float3(1600.0f, 1000.0f, 1000.0f), d_white));
+	scene.add_triangle(Triangle(float3(0.0f, 0.0f, 1000.0f), float3(1600.0f, 1000.0f, 1000.0f), float3(0.0f, 1000.0f, 1000.0f), d_white));
+	//rear wall
+	scene.add_triangle(Triangle(float3(0.0f, 0.0f, -2000.0f), float3(1600.0f, 0.0f, -2000.0f), float3(1600.0f, 1000.0f, -2000.0f), d_white));
+	scene.add_triangle(Triangle(float3(0.0f, 0.0f, -2000.0f), float3(1600.0f, 1000.0f, -2000.0f), float3(0.0f, 1000.0f, -2000.0f), d_white));
+
+
+	////scene.add_sphere(Sphere(float3(500, 100, 400), float3(0, 0, 0), 100, s_blue));
+	//scene.add_sphere(Sphere(float3(400, 200, 700), float3(0, 0, 0), 200, s_green));
+	////scene.add_sphere(Sphere(float3(1450, 150, 850), float3(0, 0, 0), 150, s_red));
+	////scene.add_sphere(Sphere(float3(800, 200, 500), float3(0, 0, 0), 200, gold));
+	//scene.add_sphere(Sphere(float3(1200, 200, 200), float3(0, 0, 0), 200, glass));
+
+	scene.add_sphere(Sphere(float3(300, 300, 000), float3(90, 0, 0), 200, glass));
+
+	scene.add_sphere(Sphere(float3(500 - 1, 150, 500), float3(180, 0, 0), 150, aluminium, bump_squares));
+	scene.add_sphere(Sphere(float3(800, 150, 500), float3(180, 0, 0), 150, gold, bump_earth));
+	scene.add_sphere(Sphere(float3(1100 + 1, 150, 500), float3(180, 0, 0), 150, gold, full_earth));
 
 	scene.commit();
 }
@@ -63,18 +107,26 @@ void onKeyboard(unsigned char key, int x, int y) {
 		glutLeaveFullScreen();
 		glutDestroyWindow(1);
 		exit(EXIT_SUCCESS);
+	}
+	if (console.is_open()) {
+		console.on_keyboard(key);
 	} else {
-		if (console.is_open()) {
-			console.on_keyboard(key);
-		} else {
-			switch (key) {
-				case ' ':
-					glutFullScreenToggle();
-					break;
-				default:
-					keys_down[key] = true;
-					break;
-			}
+		switch (key) {
+			case ' ':
+				glutFullScreenToggle();
+				break;
+			case 't':
+				scene.next_tone_map();
+				break;
+			case 'm':
+				scene.next_mode();
+				break;
+			case 'f':
+				scene.next_filter();
+				break;
+			default:
+				keys_down[key] = true;
+				break;
 		}
 	}
 }
@@ -122,20 +174,20 @@ void onMouse(int button, int state, int x, int y) {
 		}
 	} else {	// Normal click event
 		last_x = x; last_y = y;
-		if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
-			float X = (float)x;
-			X = X / glutGet(GLUT_WINDOW_WIDTH)*screen_width;
-			float Y = (float)(glutGet(GLUT_WINDOW_HEIGHT) - y);
-			Y = Y / glutGet(GLUT_WINDOW_HEIGHT)*screen_height;
-			//std::cout << cam.get_ray((int)X, (int)Y) << std::endl;
-		}
+		//if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
+		//	float X = (float)x;
+		//	X = X / glutGet(GLUT_WINDOW_WIDTH)*screen_width;
+		//	float Y = (float)(glutGet(GLUT_WINDOW_HEIGHT) - y);
+		//	Y = Y / glutGet(GLUT_WINDOW_HEIGHT)*screen_height;
+		//	//std::cout << cam.get_ray((int)X, (int)Y) << std::endl;
+		//}
 	}
 }
 
 void onMouseMotion(int x, int y) {
 	int dx = x - last_x;
 	int dy = y - last_y;
-	//cam.rotate(dy*0.10f, dx*0.10f);
+	scene.get_camera().rotate(dy*0.10f, dx*0.10f);
 	last_x = x;
 	last_y = y;
 }
@@ -150,8 +202,26 @@ void onIdle() {
 	time_elapsed = time_elapsed + dt;
 	acc = acc + dt;
 
-	scene.render();
+	if (keys_down['w']) {
+		scene.get_camera().translate_forward(dt * 1000);
+	}
+	if (keys_down['s']) {
+		scene.get_camera().translate_forward(-dt * 1000);
+	}
+	if (keys_down['d']) {
+		scene.get_camera().translate_right(dt * 1000);
+	}
+	if (keys_down['a']) {
+		scene.get_camera().translate_right(-dt * 1000);
+	}
+	if (keys_down['q']) {
+		scene.get_camera().translate_up(dt * 1000);
+	}
+	if (keys_down['y']) {
+		scene.get_camera().translate_up(-dt * 1000);
+	}
 
+	scene.render();
 
 	if (frames >= 1) {
 		wait_time = std::max((1.0f - (time_elapsed * max_fps / 1 - max_fps * wait_time)) / max_fps, 0.0f);
