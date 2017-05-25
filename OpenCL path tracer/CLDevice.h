@@ -89,10 +89,7 @@ void CLDevice::init(int width, int height) {
 	std::vector<cl::Device> devices;
 	if (platform.getDevices(CL_DEVICE_TYPE_GPU, &devices) != CL_SUCCESS) {								// Try to get the first avaliable OpenCL capable GPU
 		std::cout << "Error finding OpenCL capable GPU!" << std::endl;
-		if (platform.getDevices(CL_DEVICE_TYPE_CPU, &devices) != CL_SUCCESS) {							// Try to get the first avaliable OpenCL capable CPU if no GPU was found
-			std::cout << "Error finding OpenCL capable CPU!" << std::endl;
-			exit(EXIT_FAILURE);
-		}
+		exit(EXIT_FAILURE);
 	}
 	device = devices[0];
 	std::cout << "Using device: " << device.getInfo<CL_DEVICE_NAME>() << std::endl;

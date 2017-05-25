@@ -123,10 +123,10 @@ void ons(float3* w, float3* u, float3* v) {
 	//*u = X;
 	//*v = Z;
 
-	if ((*w).y >= 0.99) {
+	if ((*w).y >= 0.999) {
 		*u = X;
 		*v = Z;
-	} else if ((*w).y <= -0.99) {
+	} else if ((*w).y <= -0.999) {
 		*w = -Y;
 		*u = -X;
 		*v = -Z;
@@ -196,15 +196,27 @@ bool intersect_sphere(Sphere sphere, Ray ray, Hit* hit) {
 	float3 up = Y;
 	float3 forward = Z;
 
-	right = rodrigues(right, Y, sphere.ori.x);
-	right = rodrigues(right, X, sphere.ori.y);
-	right = rodrigues(right, Y, sphere.ori.z);
-	up = rodrigues(up, Y, sphere.ori.x);
-	up = rodrigues(up, X, sphere.ori.y);
-	up = rodrigues(up, Y, sphere.ori.z);
-	forward = rodrigues(forward, Y, sphere.ori.x);
-	forward = rodrigues(forward, X, sphere.ori.y);
-	forward = rodrigues(forward, Y, sphere.ori.z);
+	up = rodrigues(up, up, sphere.ori.x);
+	right = rodrigues(right, up, sphere.ori.x);
+	forward = rodrigues(forward, up, sphere.ori.x);
+
+	up = rodrigues(up, right, sphere.ori.y);
+	right = rodrigues(right, right, sphere.ori.y);
+	forward = rodrigues(forward, right, sphere.ori.y);
+
+	up = rodrigues(up, forward, sphere.ori.z);
+	right = rodrigues(right, forward, sphere.ori.z);
+	forward = rodrigues(forward, forward, sphere.ori.z);
+
+	//right = rodrigues(right, Y, sphere.ori.x);
+	//right = rodrigues(right, X, sphere.ori.y);
+	//right = rodrigues(right, Y, sphere.ori.z);
+	//up = rodrigues(up, Y, sphere.ori.x);
+	//up = rodrigues(up, X, sphere.ori.y);
+	//up = rodrigues(up, Y, sphere.ori.z);
+	//forward = rodrigues(forward, Y, sphere.ori.x);
+	//forward = rodrigues(forward, X, sphere.ori.y);
+	//forward = rodrigues(forward, Y, sphere.ori.z);
 
 	float cosr = dot(right, hit_norm);
 	float cosf = dot(forward, hit_norm);

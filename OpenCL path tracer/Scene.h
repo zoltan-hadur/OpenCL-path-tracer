@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <atomic>
+#include <mutex>
 #include "GLConsole.h"
 #include "CLDevice.h"
 #include "BMP.h"
@@ -11,6 +13,9 @@
 #include "Triangle.h"
 #include "Material.h"
 #include "TextureInfo.h"
+
+extern HDC current_dc;
+extern HGLRC current_context;
 
 class Scene {
 private:
@@ -24,9 +29,9 @@ private:
 	GLuint canvas_id;		// CLDevice renders to this texture
 	CLDevice device;
 	Camera camera;
-	std::vector<Sphere> spheres;
-	std::vector<Triangle> triangles;
-	std::vector<Material> materials;
+	std::vector<Sphere*> spheres;
+	std::vector<Triangle*> triangles;
+	std::vector<Material*> materials;
 	std::vector<std::vector<float>> textures;
 	std::vector<std::vector<float>> bump_maps;
 	std::vector<std::pair<cl_float, cl_float>> texture_resolutions;
@@ -37,12 +42,14 @@ private:
 	cl_uint tone_map;
 	cl_uint mode;
 	cl_uint filter;
+	std::atomic_bool detach;
+	std::mutex mtx;
 public:
 	Scene();
 	void init(int width, int height);
-	void add_sphere(Sphere obj);
-	void add_triangle(Triangle obj);
-	int add_material(Material mat);
+	void add_sphere(Sphere* obj);
+	void add_triangle(Triangle* obj);
+	int add_material(Material* mat);
 	int add_texture(std::string file_path);
 	int add_texture_info(cl_uint index, cl_uint flag);
 	Camera& get_camera();
@@ -52,7 +59,7 @@ public:
 	void next_filter();
 	void render();
 	void draw();
-	void capture_picture();
+	void capture_screen();
 };
 
 Scene::Scene() {
@@ -65,9 +72,10 @@ void Scene::init(int width, int height) {
 	tone_map = REINHARD;
 	mode = RAY_TRACING;
 	filter = 0;
+	detach = false;
 
 	GLConsole::add_function("commit()", std::bind(&Scene::commit, this));
-	GLConsole::add_function("capture_picture()", std::bind(&Scene::capture_picture, this));
+	GLConsole::add_function("capture_screen()", std::bind(&Scene::capture_screen, this));
 
 	device.init(width, height);
 	canvas_id = device.get_canvas_id();
@@ -76,15 +84,15 @@ void Scene::init(int width, int height) {
 	texture_infos.push_back(TextureInfo(0, 0, 0, 0));
 }
 
-void Scene::add_sphere(Sphere obj) {
+void Scene::add_sphere(Sphere* obj) {
 	spheres.push_back(obj);
 }
 
-void Scene::add_triangle(Triangle obj) {
+void Scene::add_triangle(Triangle* obj) {
 	triangles.push_back(obj);
 }
 
-int Scene::add_material(Material mat) {
+int Scene::add_material(Material* mat) {
 	materials.push_back(mat);
 	return materials.size() - 1;
 }
@@ -108,12 +116,6 @@ int Scene::add_texture(std::string file_path) {
 		device.upload_texture(expanded_bump_map, canvas_id + 2, id);
 
 		return id;
-
-		//glBindTexture(GL_TEXTURE_2D_ARRAY, canvas_id + 1);
-		//glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, id, 2048, 1024, 1, GL_RGBA, GL_FLOAT, expanded_rgb.data());
-
-		//glBindTexture(GL_TEXTURE_2D_ARRAY, canvas_id + 2);
-		//glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, id, 2048, 1024, 1, GL_RGBA, GL_FLOAT, expanded_bump_map.data());
 	} else {
 		std::cout << "Maximum number of textures reached!" << std::endl;
 		return -1;
@@ -131,7 +133,23 @@ Camera& Scene::get_camera() {
 }
 
 void Scene::commit() {
-	device.commit(spheres, triangles, materials, texture_infos);
+	sample_id = 0;
+
+	std::vector<Sphere> spheres_obj;
+	for (int i = 0; i < spheres.size(); ++i) {
+		spheres_obj.push_back(*spheres[i]);
+	}
+	std::vector<Triangle> triangles_obj;
+	for (int i = 0; i < triangles.size(); ++i) {
+		triangles_obj.push_back(*triangles[i]);
+	}
+	std::vector<Material> materials_obj;
+	for (int i = 0; i < materials.size(); ++i) {
+		materials_obj.push_back(*materials[i]);
+	}
+	mtx.lock();
+	device.commit(spheres_obj, triangles_obj, materials_obj, texture_infos);
+	mtx.unlock();
 }
 
 void Scene::next_tone_map() {
@@ -148,9 +166,15 @@ void Scene::next_filter() {
 }
 
 void Scene::render() {
+	if (detach) {
+		wglMakeCurrent(NULL, NULL);
+	}
+	while (!wglMakeCurrent(current_dc, current_context));
+	mtx.lock();
 	device.generate_primary_rays(camera);
 	device.trace_rays(sample_id, max_depth, mode);
 	device.draw_screen(tone_map, filter);
+	mtx.unlock();
 	sample_id++;
 }
 
@@ -166,16 +190,22 @@ void Scene::draw() {
 	glEnd();
 }
 
-void Scene::capture_picture() {
+void Scene::capture_screen() {
 	static int id = 0;
 	std::string file_name = "image_" + std::to_string(id) + ".bmp";
 	int width, height;
 	std::vector<cl_uchar> image;
+
+	detach = true;
+	while (!wglMakeCurrent(current_dc, current_context));
 	glBindTexture(GL_TEXTURE_2D, canvas_id);
 	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
 	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
 	image.resize(width * height * 3);
 	glGetTexImage(GL_TEXTURE_2D, 0, GL_BGR, GL_UNSIGNED_BYTE, image.data());
+	wglMakeCurrent(NULL, NULL);
+	detach = false;
+	
 
 	CreateDirectoryA("rendered", NULL);
 	BMP::write("rendered/" + file_name, image, width, height);

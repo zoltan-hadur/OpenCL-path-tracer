@@ -125,16 +125,20 @@ void CVarContainer::print_tree(std::ostream& cout) {
 // Tries to complete a CVar's name whose was partially given
 std::string CVarContainer::complete(std::string name) {
 	for (auto node : variables) {								// Iterates through all the CVar
-		auto found = node.first.find(name, 0);					// Tries to find the partial name in the CVar's name's
-		if (found != std::string::npos) {						// 
+		//auto found = node.first.substr(0, name.length()).find(name, 0);					// Tries to find the partial name in the CVar's name's
+		//if (found != std::string::npos) {						// 
+		if (node.first == name) {
+			return "";
+		}
+		if (node.first.substr(0, name.length()) == name) {		// Found it
 			std::string str = node.first.substr(name.length());	// Other part of the CVar's name
-			found = str.find('.');								// Do not want to complete the full name, just until the first dot
+			auto found = str.find('.');							// Do not want to complete the full name, just until the first dot
 			if (found != std::string::npos) {
-				return name + str.substr(0, found);
+				return str.substr(0, found);
 			} else {
-				return name + str;
+				return str;
 			}
 		}
 	}
-	return name;												// Nothing was found
+	return "";													// Nothing was found
 }

@@ -3,6 +3,7 @@
 #include <GL\glew.h>
 #include <GL\glext.h>
 #include <GL\freeglut.h>
+#include <future>
 #include <functional>
 #include <vector>
 #include <deque>
@@ -29,6 +30,7 @@ private:
 	Stopwatch watch;							// To get elapsed time since last call (i.e. dt)
 
 	static std::map < std::string, std::function<void(void)>> funcs;	// Function pointers
+	static std::vector<std::future<void>> pending_futures;
 
 	float animl_rolling;						// Time needed to roll down/up the console window in seconds
 	float animl_interface;						// Time needed for the console interface to appear/disappear in seconds
@@ -103,7 +105,8 @@ public:
 };
 
 std::map<std::string, std::function<void(void)>> GLConsole::funcs;	// Static variables need to be defined
-CVarContainer GLConsole::cvars;					// Static variables need to be defined
+std::vector<std::future<void>> GLConsole::pending_futures;
+CVarContainer GLConsole::cvars = CVarContainer();					// Static variables need to be defined
 std::ostringstream GLConsole::cout;				// Static variables need to be defined
 
 GLConsole::GLConsole() {
@@ -113,7 +116,7 @@ GLConsole::GLConsole() {
 void GLConsole::init() {
 	glWindowPos2i = (PFNGLWINDOWPOS2IPROC)glutGetProcAddress("glWindowPos2i");	// Loads the function
 
-	cvars = CVarContainer();
+	//cvars = CVarContainer();
 	state = CLOSED;
 	watch = Stopwatch();
 
@@ -227,8 +230,12 @@ void GLConsole::on_keyboard(unsigned char key) {
 			this->delete_char_before();
 			break;
 		case 13:	// Enter key
-			this->process_command();
-			break;
+		{
+			auto f = std::async(std::launch::async, &GLConsole::process_command, this);
+			pending_futures.push_back(std::move(f));
+		}
+			//this->process_command();
+		break;
 		case 127:	// Delete key
 			this->delete_char_after();
 			break;
@@ -316,9 +323,10 @@ void GLConsole::print_help() {
 		cout << " " << f.first << "\n";
 	}
 	cout << "Commands:\n";
-	cout << " Help: prints help\n";
+	cout << " Help: prints this help message\n";
 	cout << " List: lists all console variables\n";
 	cout << " Cls: clears the screen\n";
+	cout << " Wait x: waits x milliseconds\n";
 	cout << " Reset: resets the console to the default state\n";
 	cout << " Exit: completly exits the application\n";
 	cout << "Other:\n";
@@ -327,6 +335,9 @@ void GLConsole::print_help() {
 	cout << " Tab: auto completes command\n";
 	cout << " [command]: prints the variable's name, value and it's description\n";
 	cout << " [command] = [value]: sets the [command] variable's value to [value]\n";
+	cout << "Notes:\n";
+	cout << " Commands must end with a semicolon to execute them\n";
+	cout << " You can write multiple commands separated by semicolons\n";
 	cout << "----------------------------------HELP----------------------------------\n";
 }
 
@@ -359,7 +370,7 @@ void GLConsole::roll_console(float dt) {
 			state = CLOSED;											// Move to the next state
 		}
 	}
-	acc_rolling = tanh(acc_rolling/animl_rolling * 2) / tanh(2) * animl_rolling;		// Non linear scale for better animation effect
+	acc_rolling = tanh(acc_rolling / animl_rolling * 2) / tanh(2) * animl_rolling;		// Non linear scale for better animation effect
 	// Draw the console's window according to the elapsed time since the start of the animation
 	glColor4f(color_background[0], color_background[1], color_background[2], color_background_transparency);
 	glBegin(GL_QUADS);
@@ -587,13 +598,15 @@ void GLConsole::set_clipboard_text(std::string copy) {
 }
 
 void GLConsole::handle_cout() {
-	if (!cout.str().empty()) {					// Copy printed text to output buffer if have any avaliable data
+	std::ostringstream copy_cout = std::ostringstream(cout.str());
+	cout.str(cout.str().substr(copy_cout.str().size()));	// Remove what will be printed
+	if (!copy_cout.str().empty()) {							// Copy printed text to output buffer if have any avaliable data
 		while (pos_scroll > 0) {							// Scroll down completly to see the newly printed text
 			this->scroll_down();
 		}
 
 		std::string line = "";
-		for (auto c : GLConsole::cout.str()) {				// Divide the string to lines of strings
+		for (auto c : copy_cout.str()) {					// Divide the string to lines of strings
 			switch (c) {
 				case '\n':									// At the end of a line
 					buffer_output.push_front(line);			// Put the line into the output buffer
@@ -606,7 +619,6 @@ void GLConsole::handle_cout() {
 					line = line + c;						// Else just concat the char
 			}
 		}
-		cout.str("");							// Clear the stream
 		if (buffer_output.size() > size_buffer_output) {	// The buffer has a maximum length
 			buffer_output.resize(size_buffer_output);		// If reached, resize it
 		}
@@ -683,7 +695,10 @@ void GLConsole::cursor_jump_right() {
 
 void GLConsole::complete_command() {
 	std::string command = std::string(buffer_input.begin(), buffer_input.end());	// Get command string from input buffer
-	command = cvars.complete(command);												// Complete the command
+	std::string partial = command;
+	partial.erase(std::remove(partial.begin(), partial.end(), ' '), partial.end());	// Remove spaces
+	partial = partial.substr(partial.find_last_of(';') + 1);
+	command = command + cvars.complete(partial);									// Complete the command
 	buffer_input = std::deque<unsigned char>(command.begin(), command.end());		// Write back to input buffer
 	this->cursor_jump_right();
 }
@@ -691,64 +706,87 @@ void GLConsole::complete_command() {
 void GLConsole::process_command() {
 	std::string command = std::string(buffer_input.begin(), buffer_input.end());	// Get the command string
 
-	buffer_command.push_front(command);												// Put the command into the command history
-	if (buffer_command.size() > size_buffer_command) {								// Resize the command buffer if needed
-		buffer_command.resize(size_buffer_command);
+	if (buffer_command.empty() || buffer_command.front() != command) {
+		buffer_command.push_front(command);											// Put the command into the command history
+		if (buffer_command.size() > size_buffer_command) {							// Resize the command buffer if needed
+			buffer_command.resize(size_buffer_command);
+		}
 	}
 	pos_buffer_command = -1;														// No command selected in the command buffer
 
-	cout << ">" << command << '\n';										// Write the command to the output
+	cout << ">" << command << '\n';													// Write the command to the output
 	buffer_input.clear();															// Clear input buffer
 	this->cursor_jump_left();														// And set the cursor to the top left
 
 	std::transform(command.begin(), command.end(), command.begin(), ::tolower);		// Convert command string to lowercase for compares
+	command.erase(std::remove(command.begin(), command.end(), ' '), command.end());	// Remove spaces
+	command.erase(std::remove(command.begin(), command.end(), '\t'), command.end());// Remove tabs
+	command.erase(std::remove(command.begin(), command.end(), '\n'), command.end());// Remove new lines
+	command.erase(std::remove(command.begin(), command.end(), '\r'), command.end());// Remove carriage returns
 
-	if (command == "help") {														// List the avalaible commands
-		this->print_help();
+	std::deque<std::string> commands;
+	while (command.find(';') != std::string::npos) {
+		auto pos = command.find(';');
+		commands.push_back(command.substr(0, pos));
+		command = command.substr(pos + 1);
 	}
 
-	else if (command == "list") {													// Lists the modifiable variables with their associated value
-		cvars.print_tree(cout);
-	}
+	while (!commands.empty()) {
+		command = commands.front();
+		commands.pop_front();
 
-	else if (command == "cls") {													// Completly clears the screen
-		buffer_output.clear();
-		cout.str("");
-	}
-
-	else if (command == "reset") {													// Resets the console to the default state
-		this->reset();
-		cout << "The console has been reseted!\n";
-	}
-
-	else if (command == "exit") {													// Exits the application
-		glutLeaveFullScreen();
-		glutDestroyWindow(1);
-		exit(0);
-	}
-
-	else if (command.find("()") != std::string::npos) {								// Call the function
-		try {
-			funcs.at(command)();
-		} catch (...) {
-			cout << "Function does not exist!\n";
+		if (command == "help") {													// List the avalaible commands
+			this->print_help();
 		}
-	}
 
-	else if (command.find(" = ") != std::string::npos) {							// Sets a console variable
-		std::string name = command.substr(0, command.find(" = "));					// Name of the variable
-		std::string value = command.substr(command.find(" = ") + 3);				// Value to be set
-		try {
-			cvars.set_cvar(name, value);											// Possibility of not existing cvar
+		else if (command == "list") {												// Lists the modifiable variables with their associated value
+			cvars.print_tree(cout);
+		}
+
+		else if (command == "cls") {												// Completly clears the screen
+			buffer_output.clear();
+			//cout.str("");
+		}
+
+		else if (command.substr(0, 4) == "wait") {
+			std::this_thread::sleep_for(std::chrono::milliseconds(std::stoi(command.substr(4))));
+		}
+
+		else if (command == "reset") {												// Resets the console to the default state
+			this->reset();
+			cout << "The console has been reseted!\n";
+		}
+
+		else if (command == "exit") {												// Exits the application
+			glutLeaveFullScreen();
+			glutDestroyWindow(1);
+			exit(0);
+		}
+
+		else if (command.find("()") != std::string::npos) {							// Call the function
+			try {
+				funcs.at(command)();
+			} catch (...) {
+				cout << "Function does not exist!\n";
+			}
+		}
+
+		else if (command.find('=') != std::string::npos) {							// Sets a console variable
+			auto pos = command.find('=');
+			std::string name = command.substr(0, pos);								// Name of the variable
+			std::string value = command.substr(pos + 1);							// Value to be set
+			try {
+				cvars.set_cvar(name, value);										// Possibility of not existing cvar
+			} catch (char const* str) {
+				cout << str << "\n";
+			}
+		}
+
+		else try {																	// Gets the value of a variable
+			CVarBase* node = cvars.find(command);
+			cout << *node << std::endl;
 		} catch (char const* str) {
 			cout << str << "\n";
 		}
-	}
-
-	else try {																		// Gets the value of a variable
-		CVarBase* node = cvars.find(command);
-		cout << *node << std::endl;
-	} catch (char const* str) {
-		cout << str << "\n";
 	}
 }

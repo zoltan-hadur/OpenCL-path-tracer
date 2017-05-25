@@ -176,7 +176,9 @@ std::ostream & operator<<(std::ostream & os, float3& c) {
 }
 
 std::istream & operator>>(std::istream & is, float3& c) {
-	is >> c[0] >> c[1] >> c[2];
+	//is >> c[0] >> c[1] >> c[2];
+	std::string str(std::istreambuf_iterator<char>(is), {});
+	sscanf(str.c_str(),"[%f,%f,%f]", &c[0], &c[1], &c[2]);
 	return is;
 }
 
