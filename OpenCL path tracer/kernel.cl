@@ -204,9 +204,9 @@ bool intersect_sphere(Sphere sphere, Ray ray, Hit* hit) {
 	right = rodrigues(right, right, sphere.ori.y);
 	forward = rodrigues(forward, right, sphere.ori.y);
 
-	up = rodrigues(up, forward, sphere.ori.z);
-	right = rodrigues(right, forward, sphere.ori.z);
-	forward = rodrigues(forward, forward, sphere.ori.z);
+	up = rodrigues(up, up, sphere.ori.z);
+	right = rodrigues(right, up, sphere.ori.z);
+	forward = rodrigues(forward, up, sphere.ori.z);
 
 	//right = rodrigues(right, Y, sphere.ori.x);
 	//right = rodrigues(right, X, sphere.ori.y);

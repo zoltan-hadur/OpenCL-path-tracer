@@ -17,7 +17,7 @@ public:
 	T& get_var();																			// Get the variable of a CVar
 	void set_var_p(T* var);																	// Attach a variable to the CVar
 	void set_callback(std::function<void(void)> callback);
-	void print(std::ostream& os, bool with_name = true) override;							// Prints any type of variable, just need to overload << for your own class
+	void print(std::ostream& os, bool only_var) override;									// Prints any type of variable, just need to overload << for your own class
 	void read(std::istream& is) override;													// Reads any type of variable, just need to overload >> for your own class
 	template<typename T> friend std::ostream& operator<<(std::ostream& os, CVar<T>& cvar);
 	template<typename T> friend std::istream& operator>>(std::istream& is, CVar<T>& cvar);
@@ -42,11 +42,14 @@ template<typename T> void CVar<T>::set_callback(std::function<void(void)> callba
 	this->callback = callback;
 }
 
-template<typename T> void CVar<T>::print(std::ostream& os, bool with_name) {
-	if (with_name) {	// Full print, i.e. name, value, help
-		os << this->name << " = " << *(this->var) << "   |" << this->help << "|";
-	} else {			// Only the value will be printed
-		os << *(this->var);
+template<typename T> void CVar<T>::print(std::ostream& os, bool only_var) {
+	if (only_var) {
+		os << *var;
+	} else {
+		os << name << " = " << *var;
+		if (!help.empty()) {
+			os << "   |" << this->help << "|";
+		}
 	}
 }
 

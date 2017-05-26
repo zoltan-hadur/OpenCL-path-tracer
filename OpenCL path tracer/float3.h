@@ -171,7 +171,7 @@ float3 operator/(float c, float3 r) {
 }
 
 std::ostream & operator<<(std::ostream & os, float3& c) {
-	os << "[" << c[0] << " " << c[1] << " " << c[2] << "]";
+	os << "[" << c[0] << ", " << c[1] << ", " << c[2] << "]";
 	return os;
 }
 

@@ -3,7 +3,6 @@
 #include <GL\glew.h>
 #include <GL\glext.h>
 #include <GL\freeglut.h>
-#include <future>
 #include <functional>
 #include <vector>
 #include <deque>
@@ -27,10 +26,10 @@ private:
 		CLOSED, ROLLING_DOWN, INTERFACE_APPEARING, OPENED, INTERFACE_DISAPPEARING, ROLLING_UP
 	};
 	State state;								// The state of the console (opened, closed, etc)
-	Stopwatch watch;							// To get elapsed time since last call (i.e. dt)
+	Stopwatch watch_render;						// To get elapsed time since last call (i.e. dt)
+	Stopwatch watch_command;					// For command wait
 
 	static std::map < std::string, std::function<void(void)>> funcs;	// Function pointers
-	static std::vector<std::future<void>> pending_futures;
 
 	float animl_rolling;						// Time needed to roll down/up the console window in seconds
 	float animl_interface;						// Time needed for the console interface to appear/disappear in seconds
@@ -52,6 +51,8 @@ private:
 	int pos_buffer_command;						// Index pointing to a command in the command buffer
 	int size_buffer_command;					// Command_history's size
 	std::deque<std::string> buffer_command;		// List with all the commands that the user previously entered
+	std::deque<std::string> buffer_commands;	// List of commands waiting for execution
+	std::deque<std::string> buffer_commands_single;
 	int pos_cursor;								// Position of the cursor to manipulate the input buffer
 	int pos_selection;							// Position of where the cursor was at when the selection started
 	bool selecting_buffer_input;				// True if user currently selecting characters from the input buffer
@@ -72,7 +73,7 @@ private:
 	void insert_paste(std::string paste);		// Inserts a whole string at the cursor's position
 	std::string get_clipboard_text();			// Returns with the string stored in the global clipboard (ctrl+v)
 	void set_clipboard_text(std::string copy);	// Sets the global clipboard with the string selected in the input buffer (ctrl+c, ctrl+x)
-	void handle_cout();							// Handle when something writes to the console using GLConsole::cout
+	void process_cout();						// Handle when something writes to the console using GLConsole::cout
 	void buffer_command_previous();				// Sets the input buffer to the previous command (like pressing the up arrow in Command Prompt)
 	void buffer_command_next();					// Sets the input buffer to the next command (like pressing the down arrow in Command Prompt)
 	void cursor_move_left();					// Moves the cursor to the left by one (like pressing left arrow in a text editor)
@@ -80,7 +81,8 @@ private:
 	void cursor_jump_left();					// Moves the cursor to the top left (like pressing home in a text editor)
 	void cursor_jump_right();					// Moves the cursor to the top right (like pressing end in a text editor)
 	void complete_command();					// Completes the partially writed command in the input buffer (like pressing tab in Command Prompt)
-	void process_command();						// Processes the command in the input buffer
+	void process_commands();					// Processes the commands in the commands buffer
+	void process_command(std::string command);	// Processes a single command
 public:
 	static CVarContainer cvars;					// Variables that are attached to normal variables, and vice versa modifiable from the console
 	static std::ostringstream cout;				// Console out, works like std::cout
@@ -105,9 +107,8 @@ public:
 };
 
 std::map<std::string, std::function<void(void)>> GLConsole::funcs;	// Static variables need to be defined
-std::vector<std::future<void>> GLConsole::pending_futures;
-CVarContainer GLConsole::cvars = CVarContainer();					// Static variables need to be defined
-std::ostringstream GLConsole::cout;				// Static variables need to be defined
+CVarContainer GLConsole::cvars;										// Static variables need to be defined
+std::ostringstream GLConsole::cout;									// Static variables need to be defined
 
 GLConsole::GLConsole() {
 	// Does nothing
@@ -116,9 +117,9 @@ GLConsole::GLConsole() {
 void GLConsole::init() {
 	glWindowPos2i = (PFNGLWINDOWPOS2IPROC)glutGetProcAddress("glWindowPos2i");	// Loads the function
 
-	//cvars = CVarContainer();
 	state = CLOSED;
-	watch = Stopwatch();
+	watch_render.start();
+	watch_command.start();
 
 	animl_rolling = 0.33f;						cvars.attach_cvar<float>("console.animations.rolling", &animl_rolling, "Time needed to roll down/up the console window in seconds. Interval: [0, infty).", std::bind(&GLConsole::animl_rolling_changed, this));
 	animl_interface = 0.25f;					cvars.attach_cvar<float>("console.animations.interface", &animl_interface, "Time needed for the console interface to appear/disappear in seconds. Interval: (0, infty).", std::bind(&GLConsole::animl_interface_changed, this));
@@ -195,8 +196,9 @@ bool GLConsole::is_open() {
 void GLConsole::draw() {
 	glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBindTexture(GL_TEXTURE_2D, 0);
-	float dt = watch.get_delta_time();		// Gets the elapsed time in seconds since the last call
-	this->handle_cout();					// Handle if something printed to the console
+	float dt = watch_render.get_delta_time();		// Gets the elapsed time in seconds since the last call
+	this->process_commands();				// Execute commands from the command list
+	this->process_cout();					// Handle if something printed to the console
 	if (state == ROLLING_DOWN || state == ROLLING_UP) {
 		this->roll_console(dt);				// Animate opening/closing
 	} else if (state == OPENED || state == INTERFACE_APPEARING || state == INTERFACE_DISAPPEARING) {
@@ -207,37 +209,39 @@ void GLConsole::draw() {
 void GLConsole::on_keyboard(unsigned char key) {
 	switch (key) {
 		case 3:		// Ctrl + c
-			if (selecting_buffer_input) {
-				// Copies string from input buffer and pastes it to the clipboard
-				this->set_clipboard_text(std::string(buffer_input.begin() + std::min(pos_selection, pos_cursor), buffer_input.begin() + std::max(pos_selection, pos_cursor)));
+			if (selecting_buffer_input) {																			// If selecting text
+				int from = std::min(pos_selection, pos_cursor);														// Selection starts at this index
+				int to = std::max(pos_selection, pos_cursor);														// Selection ends at this index
+				std::string selected_text = std::string(buffer_input.begin() + from, buffer_input.begin() + to);	// The selected text in the input buffer
+				this->set_clipboard_text(selected_text);															// Copy it to the clipboard
 			}
 			break;
 		case 22:	// Ctrl + v
-			// Pastes string from clipboard to the input buffer
-			this->insert_paste(this->get_clipboard_text());
+			this->insert_paste(this->get_clipboard_text());															// Pastes string from clipboard to the input buffer
 			break;
 		case 24:	// Ctrl + x
 			if (selecting_buffer_input) {
-				// Copies string from input buffer and pastes it to the clipboard while clearing the input buffer
-				this->set_clipboard_text(std::string(buffer_input.begin() + std::min(pos_selection, pos_cursor), buffer_input.begin() + std::max(pos_selection, pos_cursor)));
-				this->delete_char_before();
+				int from = std::min(pos_selection, pos_cursor);														// Selection starts at this index
+				int to = std::max(pos_selection, pos_cursor);														// Selection ends at this index
+				std::string selected_text = std::string(buffer_input.begin() + from, buffer_input.begin() + to);	// The selected text in the input buffer
+				this->set_clipboard_text(selected_text);															// Copy it to the clipboard
+				this->delete_char_before();																			// And remove it from the input buffer
 			}
 			break;
 		case 9:		// Tab key
-			this->complete_command();
+			this->complete_command();																				// Completes a CVar's name
 			break;
 		case 8:		// Backspace key
-			this->delete_char_before();
+			this->delete_char_before();																				// Acts like backspace in every text editor
 			break;
 		case 13:	// Enter key
-		{
-			auto f = std::async(std::launch::async, &GLConsole::process_command, this);
-			pending_futures.push_back(std::move(f));
-		}
-			//this->process_command();
+			buffer_commands.push_back(std::string(buffer_input.begin(), buffer_input.end()));						// Add the command from the input buffer to the commands buffer
+			buffer_input.clear();																					// Clear input buffer
+			this->cursor_jump_left();																				// And set the cursor to the top left
+
 		break;
 		case 127:	// Delete key
-			this->delete_char_after();
+			this->delete_char_after();																				// Acts like delete in every text editor
 			break;
 		default:	// Insert char at cursor
 			this->shift_released();	// At insertion for example 'A' shift is pressed, but not currently selecting text, hence this function call
@@ -326,7 +330,8 @@ void GLConsole::print_help() {
 	cout << " Help: prints this help message\n";
 	cout << " List: lists all console variables\n";
 	cout << " Cls: clears the screen\n";
-	cout << " Wait x: waits x milliseconds\n";
+	cout << " Start [name]: starts the script named [name]\n";
+	cout << " Wait [x]: waits x seconds until next command execution\n";
 	cout << " Reset: resets the console to the default state\n";
 	cout << " Exit: completly exits the application\n";
 	cout << "Other:\n";
@@ -597,16 +602,14 @@ void GLConsole::set_clipboard_text(std::string copy) {
 	CloseClipboard();
 }
 
-void GLConsole::handle_cout() {
-	std::ostringstream copy_cout = std::ostringstream(cout.str());
-	cout.str(cout.str().substr(copy_cout.str().size()));	// Remove what will be printed
-	if (!copy_cout.str().empty()) {							// Copy printed text to output buffer if have any avaliable data
-		while (pos_scroll > 0) {							// Scroll down completly to see the newly printed text
+void GLConsole::process_cout() {
+	std::string buffer = cout.str();
+	if (!buffer.empty()) {
+		while (pos_scroll > 0) {
 			this->scroll_down();
 		}
-
 		std::string line = "";
-		for (auto c : copy_cout.str()) {					// Divide the string to lines of strings
+		for (auto c : buffer) {								// Divide the string to lines of strings
 			switch (c) {
 				case '\n':									// At the end of a line
 					buffer_output.push_front(line);			// Put the line into the output buffer
@@ -623,6 +626,8 @@ void GLConsole::handle_cout() {
 			buffer_output.resize(size_buffer_output);		// If reached, resize it
 		}
 	}
+	cout.str("");
+	cout.clear();
 }
 
 void GLConsole::buffer_command_previous() {
@@ -703,90 +708,109 @@ void GLConsole::complete_command() {
 	this->cursor_jump_right();
 }
 
-void GLConsole::process_command() {
-	std::string command = std::string(buffer_input.begin(), buffer_input.end());	// Get the command string
+void GLConsole::process_commands() {
+	while (!buffer_commands.empty() && buffer_commands_single.empty()) {					// When there are avalaiable commands, and al single command was executed
+		std::string command = buffer_commands.front();										// Get the command string
+		buffer_commands.pop_front();														// Remove it from the commands buffer
 
-	if (buffer_command.empty() || buffer_command.front() != command) {
-		buffer_command.push_front(command);											// Put the command into the command history
-		if (buffer_command.size() > size_buffer_command) {							// Resize the command buffer if needed
-			buffer_command.resize(size_buffer_command);
-		}
-	}
-	pos_buffer_command = -1;														// No command selected in the command buffer
-
-	cout << ">" << command << '\n';													// Write the command to the output
-	buffer_input.clear();															// Clear input buffer
-	this->cursor_jump_left();														// And set the cursor to the top left
-
-	std::transform(command.begin(), command.end(), command.begin(), ::tolower);		// Convert command string to lowercase for compares
-	command.erase(std::remove(command.begin(), command.end(), ' '), command.end());	// Remove spaces
-	command.erase(std::remove(command.begin(), command.end(), '\t'), command.end());// Remove tabs
-	command.erase(std::remove(command.begin(), command.end(), '\n'), command.end());// Remove new lines
-	command.erase(std::remove(command.begin(), command.end(), '\r'), command.end());// Remove carriage returns
-
-	std::deque<std::string> commands;
-	while (command.find(';') != std::string::npos) {
-		auto pos = command.find(';');
-		commands.push_back(command.substr(0, pos));
-		command = command.substr(pos + 1);
-	}
-
-	while (!commands.empty()) {
-		command = commands.front();
-		commands.pop_front();
-
-		if (command == "help") {													// List the avalaible commands
-			this->print_help();
-		}
-
-		else if (command == "list") {												// Lists the modifiable variables with their associated value
-			cvars.print_tree(cout);
-		}
-
-		else if (command == "cls") {												// Completly clears the screen
-			buffer_output.clear();
-			//cout.str("");
-		}
-
-		else if (command.substr(0, 4) == "wait") {
-			std::this_thread::sleep_for(std::chrono::milliseconds(std::stoi(command.substr(4))));
-		}
-
-		else if (command == "reset") {												// Resets the console to the default state
-			this->reset();
-			cout << "The console has been reseted!\n";
-		}
-
-		else if (command == "exit") {												// Exits the application
-			glutLeaveFullScreen();
-			glutDestroyWindow(1);
-			exit(0);
-		}
-
-		else if (command.find("()") != std::string::npos) {							// Call the function
-			try {
-				funcs.at(command)();
-			} catch (...) {
-				cout << "Function does not exist!\n";
+		if (buffer_command.empty() || buffer_command.front() != command) {					// Put it into the command history if it's empty or command differs from the last entered command
+			buffer_command.push_front(command);
+			if (buffer_command.size() > size_buffer_command) {								// Resize the command buffer if needed
+				buffer_command.resize(size_buffer_command);
 			}
 		}
+		pos_buffer_command = -1;															// No command selected in the command buffer
 
-		else if (command.find('=') != std::string::npos) {							// Sets a console variable
-			auto pos = command.find('=');
-			std::string name = command.substr(0, pos);								// Name of the variable
-			std::string value = command.substr(pos + 1);							// Value to be set
-			try {
-				cvars.set_cvar(name, value);										// Possibility of not existing cvar
-			} catch (char const* str) {
-				cout << str << "\n";
-			}
+		cout << ">" << command << "\n";														// Print the command to the console
+		buffer_input.clear();																// Clear the input buffer
+		this->cursor_jump_left();															// And set the cursor tot he top left
+
+		std::transform(command.begin(), command.end(), command.begin(), ::tolower);			// Convert command string to lowercase
+		char chars[] = { ' ', '\t', '\n', '\r' };
+		for (auto c : chars) {
+			command.erase(std::remove(command.begin(), command.end(), c), command.end());	// Remove the above chars from the command
 		}
 
-		else try {																	// Gets the value of a variable
-			CVarBase* node = cvars.find(command);
-			cout << *node << std::endl;
+		while (command.find(';') != std::string::npos) {									// Split command into commands by semicolon
+			auto pos = command.find(';');
+			buffer_commands_single.push_back(command.substr(0, pos));						// List of single, executable commands by the process_command method
+			command = command.substr(pos + 1);
+		}
+	}
+
+	if (watch_command.try_stop() && !buffer_commands_single.empty()) {
+		std::string command = buffer_commands_single.front();
+		buffer_commands_single.pop_front();
+		this->process_command(command);
+	}
+}
+
+void GLConsole::process_command(std::string command) {
+	if (command == "help") {													// List the avalaible commands
+		this->print_help();
+	}
+
+	else if (command == "list") {												// Lists the modifiable variables with their associated value
+		cvars.print_tree(cout);
+	}
+
+	else if (command == "cls") {												// Completly clears the screen
+		buffer_output.clear();
+		//cout.str("");
+	}
+
+	else if (command.substr(0, 5) == "start") {
+		std::string file_path = command.substr(5) + ".script";
+		std::ifstream is = std::ifstream(file_path);
+		if (is.good()) {
+			for (std::string line; std::getline(is, line); ) {
+				buffer_commands.push_back(line);
+			}
+		} else {
+			cout << "Script does not exist!\n";
+		}
+	}
+
+	else if (command.substr(0, 4) == "wait") {
+		//std::this_thread::sleep_for(std::chrono::milliseconds(std::stoi(command.substr(4))));
+		float secs = std::stof(command.substr(4));
+		watch_command.start(secs);
+	}
+
+	else if (command == "reset") {												// Resets the console to the default state
+		this->reset();
+		cout << "The console has been reseted!\n";
+	}
+
+	else if (command == "exit") {												// Exits the application
+		glutLeaveFullScreen();
+		glutDestroyWindow(1);
+		exit(0);
+	}
+
+	else if (command.find("()") != std::string::npos) {							// Call the function
+		try {
+			funcs.at(command)();
+		} catch (...) {
+			cout << "Function does not exist!\n";
+		}
+	}
+
+	else if (command.find('=') != std::string::npos) {							// Sets a console variable
+		auto pos = command.find('=');
+		std::string name = command.substr(0, pos);								// Name of the variable
+		std::string value = command.substr(pos + 1);							// Value to be set
+		try {
+			cvars.set_cvar(name, value);										// Possibility of not existing cvar
 		} catch (char const* str) {
 			cout << str << "\n";
 		}
+	}
+
+	else try {																	// Gets the value of a variable
+		CVarBase* node = cvars.find(command);
+		cout << *node << "\n";
+	} catch (char const* str) {
+		cout << str << "\n";
 	}
 }

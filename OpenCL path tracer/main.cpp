@@ -15,22 +15,18 @@
 
 GLConsole console;
 Scene scene;
-HDC current_dc;
-HGLRC current_context;
+Stopwatch watch;
 const int screen_width = 192 * 5;
 const int screen_height = 108 * 5;
 int keys_down[256];
 float max_fps;
 
 void onInitialization() {
-	current_dc = wglGetCurrentDC();
-	current_context = wglGetCurrentContext();
-
 	glViewport(0, 0, screen_width, screen_height);
 	scene.init(screen_width, screen_height);
 	console.init();
 	console.print_help();
-	max_fps = 9999; GLConsole::cvars.attach_cvar<float>("app.max_fps", &max_fps, "Determines the maximum allowed frames per second. Interval: [30, infty).");
+	max_fps = 30; GLConsole::cvars.attach_cvar<float>("app.max_fps", &max_fps, "Determines the maximum allowed frames per second. Interval: [30, infty).");
 
 	const int lamp = scene.add_material(new Material(float3(0.0, 0.0, 0.0), float3(0.0, 0.0, 0.0), float3(8, 6, 4) * 1, 0, 0, 0));
 	const int d_red = scene.add_material(new Material(float3(1.0, 0.3, 0.3), float3(0.04, 0.04, 0.04), float3(0, 0, 0), 2, 1, 1));
@@ -84,12 +80,12 @@ void onInitialization() {
 	////scene.add_sphere(new Sphere(float3(800, 200, 500), float3(0, 0, 0), 200, gold));
 	//scene.add_sphere(new Sphere(float3(1200, 200, 200), float3(0, 0, 0), 200, glass));
 
-	scene.add_sphere(new Sphere(float3(300, 300, -100), float3(90, 0, 0), 200, glass));
+	scene.add_sphere(new Sphere(float3(300, 150, -100), float3(90, 0, 0), 150, glass, full_ball));
 
 	//scene.add_sphere(new Sphere(float3(900, 100, -200), float3(0, 0, 0), 100, glass));
 	scene.add_sphere(new Sphere(float3(500 - 1, 150, 500), float3(180, 0, 0), 150, aluminium, bump_squares));
-	scene.add_sphere(new Sphere(float3(800, 150, 400), float3(180, 0, 0), 150, gold, bump_earth));
-	scene.add_sphere(new Sphere(float3(1100 + 1, 150, 300), float3(180, 0, 0), 150, gold, full_earth));
+	scene.add_sphere(new Sphere(float3(800, 150, 450), float3(180, 0, 0), 150, gold, bump_earth));
+	scene.add_sphere(new Sphere(float3(1100 + 1, 150, 400), float3(180, 0, 0), 150, s_white, full_earth));
 
 	//float R = 150;
 	//float r = R / 2;
@@ -103,6 +99,7 @@ void onInitialization() {
 	//scene.add_sphere(new Sphere(float3(800, R + sqrt(2)*R, 500), float3(45, 0, 0), R, s_white, full_ball));
 
 	scene.commit();
+	watch.start();
 }
 
 void onDisplay() {
@@ -211,10 +208,9 @@ void onMouseMotion(int x, int y) {
 	last_y = y;
 }
 
-Stopwatch watch;
-float time_elapsed = 0;
 int frames = 0;
 float wait_time = 0;
+float time_elapsed = 0;
 float acc = 0;
 void onIdle() {
 	float dt = watch.get_delta_time();

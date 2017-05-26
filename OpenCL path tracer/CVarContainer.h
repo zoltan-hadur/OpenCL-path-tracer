@@ -21,7 +21,7 @@ public:
 	template<typename T> void set_cvar(std::string name, T& var);																			// Sets the corresponding CVar's variable's value
 	void set_cvar(std::string name, std::string value);																						// Sets the corresponding CVar's variable's value that was read from the console
 	template<typename T> void attach_cvar(std::string name, T* var, std::string help = "", std::function<void(void)> callback = nullptr);	// Attaches a variable to a CVar
-	void print_tree(std::ostream& cout);																									// Prints all CVar to the given ostream
+	void print_tree(std::ostringstream& cout);																									// Prints all CVar to the given ostream
 	std::string complete(std::string name);																									// Tries to complete a CVar's name whose was partially given
 };
 
@@ -95,7 +95,7 @@ template<typename T> void CVarContainer::attach_cvar(std::string name, T* var, s
 }
 
 // Prints all CVar to the given ostream
-void CVarContainer::print_tree(std::ostream& cout) {
+void CVarContainer::print_tree(std::ostringstream& cout) {
 	int max_length = 0;
 	for (auto node : variables) {								// Find the longest CVar name's length's
 		max_length = std::max(max_length, (int)node.first.length());
@@ -116,7 +116,7 @@ void CVarContainer::print_tree(std::ostream& cout) {
 			found = variable.find(previous);
 		}
 		cout << std::string(previous.length(), ' ') << variable.substr(previous.length()) << std::string(max_length - variable.length(), ' ') << " = ";
-		node.second->print(cout, false);
+		node.second->print(cout, true);
 		cout << "\n";
 		previous = variable.substr(0, variable.find_last_of('.'));
 	}

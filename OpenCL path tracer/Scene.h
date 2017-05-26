@@ -3,8 +3,6 @@
 #include <string>
 #include <vector>
 #include <utility>
-#include <atomic>
-#include <mutex>
 #include "GLConsole.h"
 #include "CLDevice.h"
 #include "BMP.h"
@@ -13,9 +11,6 @@
 #include "Triangle.h"
 #include "Material.h"
 #include "TextureInfo.h"
-
-extern HDC current_dc;
-extern HGLRC current_context;
 
 class Scene {
 private:
@@ -42,8 +37,6 @@ private:
 	cl_uint tone_map;
 	cl_uint mode;
 	cl_uint filter;
-	std::atomic_bool detach;
-	std::mutex mtx;
 public:
 	Scene();
 	void init(int width, int height);
@@ -72,7 +65,6 @@ void Scene::init(int width, int height) {
 	tone_map = REINHARD;
 	mode = RAY_TRACING;
 	filter = 0;
-	detach = false;
 
 	GLConsole::add_function("commit()", std::bind(&Scene::commit, this));
 	GLConsole::add_function("capture_screen()", std::bind(&Scene::capture_screen, this));
@@ -117,8 +109,7 @@ int Scene::add_texture(std::string file_path) {
 
 		return id;
 	} else {
-		std::cout << "Maximum number of textures reached!" << std::endl;
-		return -1;
+		throw "Maximum number of textures reached!";
 	}
 }
 
@@ -147,9 +138,8 @@ void Scene::commit() {
 	for (int i = 0; i < materials.size(); ++i) {
 		materials_obj.push_back(*materials[i]);
 	}
-	mtx.lock();
+
 	device.commit(spheres_obj, triangles_obj, materials_obj, texture_infos);
-	mtx.unlock();
 }
 
 void Scene::next_tone_map() {
@@ -166,15 +156,9 @@ void Scene::next_filter() {
 }
 
 void Scene::render() {
-	if (detach) {
-		wglMakeCurrent(NULL, NULL);
-	}
-	while (!wglMakeCurrent(current_dc, current_context));
-	mtx.lock();
 	device.generate_primary_rays(camera);
 	device.trace_rays(sample_id, max_depth, mode);
 	device.draw_screen(tone_map, filter);
-	mtx.unlock();
 	sample_id++;
 }
 
@@ -196,16 +180,11 @@ void Scene::capture_screen() {
 	int width, height;
 	std::vector<cl_uchar> image;
 
-	detach = true;
-	while (!wglMakeCurrent(current_dc, current_context));
 	glBindTexture(GL_TEXTURE_2D, canvas_id);
 	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
 	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
 	image.resize(width * height * 3);
 	glGetTexImage(GL_TEXTURE_2D, 0, GL_BGR, GL_UNSIGNED_BYTE, image.data());
-	wglMakeCurrent(NULL, NULL);
-	detach = false;
-	
 
 	CreateDirectoryA("rendered", NULL);
 	BMP::write("rendered/" + file_name, image, width, height);
