@@ -398,7 +398,7 @@ void kernel trace_rays(read_only image2d_array_t textures,
 			ons(&w, &u, &v);
 			hit.norm = hit.norm + (tex_norm.y - 0.5f)*2.0f*cross(u, w) + (tex_norm.x - 0.5f)*2.0f*cross(v, w);
 			hit.norm = normalize(hit.norm);
-			//hit.norm = dot(hit.norm, rays[id].dir) < 0.0f ? hit.norm : hit.norm * (-1.0f);
+			hit.norm = dot(hit.norm, rays[id].dir) < 0.0f ? hit.norm : hit.norm * (-1.0f);
 		}
 
 		if (hit.t > 0) {

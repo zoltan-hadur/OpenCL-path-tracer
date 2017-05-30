@@ -1,7 +1,9 @@
 #pragma once
 
+#include <sstream>
 #include "float3.h"
 #include "Ray.h"
+#include "GLConsole.h"
 
 class Camera {
 private:
@@ -25,6 +27,8 @@ public:
 	void decrease_focus_distance(float dt);		// Decreases the focus distance.
 	void set_focus_distance(float d);			// Sets the focus distance.
 	Ray get_ray(int x, int y);					// Generates a ray that originates from the camera and points toward to a point on the screen defined by x y.
+	void look_at(std::vector<std::string> params);
+	void set_pos(std::vector<std::string> params);
 };
 
 Camera::Camera(cl_uint width = 600, cl_uint height = 600) {
@@ -103,4 +107,43 @@ Ray Camera::get_ray(int x, int y) {
 	float3 dir = (pos_on_screen - pos).normalize();
 
 	return Ray(pos, dir);
+}
+
+void Camera::look_at(std::vector<std::string> params) {
+	if (params.size() == 3) {
+		std::string var = "[" + params[0] + "," + params[1] + "," + params[2] + "]";
+		float3 look;
+		std::stringstream(var) >> look;
+
+		float3 f = forward.normalize();
+		float3 l = (look - pos).normalize();
+
+		float3 h_f = float3(f[0], 0, f[2]).normalize();
+		float3 h_l = float3(l[0], 0, l[2]).normalize();
+
+		float yaw = atan2(h_l[2], h_l[0]) - atan2(h_f[2], h_f[0]);
+		yaw = yaw / 3.141592654f * 180.0f;
+		this->rotate(0, -yaw);
+
+		f = forward.normalize();
+		l = (look - pos).normalize();
+
+		float pitch = f.dot(l);
+		if (pitch < 1) {
+			pitch = acos(pitch) / 3.141592654f * 180.0f;
+			pitch = std::copysignf(pitch, f[1] - l[1]);
+			rotate(pitch, 0);
+		}
+	} else {
+		GLConsole::cout << "Function takes 3 variable!\n";
+	}
+}
+
+void Camera::set_pos(std::vector<std::string> params) {
+	if (params.size() == 3) {
+		std::string var = "[" + params[0] + "," + params[1] + "," + params[2] + "]";
+		std::stringstream(var) >> pos;
+	} else {
+		GLConsole::cout << "Function takes 3 variable!\n";
+	}
 }

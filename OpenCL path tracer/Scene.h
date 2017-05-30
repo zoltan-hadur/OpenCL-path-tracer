@@ -50,6 +50,8 @@ public:
 	void next_tone_map();
 	void next_mode();
 	void next_filter();
+	void inc_depth();
+	void dec_depth();
 	void render();
 	void draw();
 	void capture_screen();
@@ -66,8 +68,10 @@ void Scene::init(int width, int height) {
 	mode = RAY_TRACING;
 	filter = 0;
 
-	GLConsole::add_function("commit()", std::bind(&Scene::commit, this));
-	GLConsole::add_function("capture_screen()", std::bind(&Scene::capture_screen, this));
+	GLConsole::add_function("app.commit(void)", std::bind(&Scene::commit, this));
+	GLConsole::add_function("app.capture_screen(void)", std::bind(&Scene::capture_screen, this));
+	GLConsole::add_function("app.camera.look_at(float, float, float)", std::bind(&Camera::look_at, &camera, std::placeholders::_1));
+	GLConsole::add_function("app.camera.set_pos(float, float, float)", std::bind(&Camera::set_pos, &camera, std::placeholders::_1));
 
 	device.init(width, height);
 	canvas_id = device.get_canvas_id();
@@ -153,6 +157,18 @@ void Scene::next_mode() {
 
 void Scene::next_filter() {
 	filter = (filter + 1) % 3;
+}
+
+void Scene::inc_depth() {
+	sample_id = 0;
+	max_depth++;
+}
+
+void Scene::dec_depth() {
+	sample_id = 0;
+	if (max_depth > 0) {
+		max_depth--;
+	}
 }
 
 void Scene::render() {

@@ -80,23 +80,23 @@ void onInitialization() {
 	////scene.add_sphere(new Sphere(float3(800, 200, 500), float3(0, 0, 0), 200, gold));
 	//scene.add_sphere(new Sphere(float3(1200, 200, 200), float3(0, 0, 0), 200, glass));
 
-	scene.add_sphere(new Sphere(float3(300, 150, -100), float3(90, 0, 0), 150, glass, full_ball));
+	//scene.add_sphere(new Sphere(float3(150, 150, -100), float3(90, 0, 0), 150, glass, full_ball));
 
-	//scene.add_sphere(new Sphere(float3(900, 100, -200), float3(0, 0, 0), 100, glass));
-	scene.add_sphere(new Sphere(float3(500 - 1, 150, 500), float3(180, 0, 0), 150, aluminium, bump_squares));
-	scene.add_sphere(new Sphere(float3(800, 150, 450), float3(180, 0, 0), 150, gold, bump_earth));
-	scene.add_sphere(new Sphere(float3(1100 + 1, 150, 400), float3(180, 0, 0), 150, s_white, full_earth));
+	////scene.add_sphere(new Sphere(float3(900, 100, -200), float3(0, 0, 0), 100, glass));
+	//scene.add_sphere(new Sphere(float3(500 - 1, 150, 500), float3(180, 0, 0), 150, aluminium, bump_squares));
+	//scene.add_sphere(new Sphere(float3(800, 150, 450), float3(180, 0, 0), 150, gold, bump_earth));
+	//scene.add_sphere(new Sphere(float3(1100 + 1, 150, 400), float3(180, 0, 0), 150, s_white, full_earth));
 
-	//float R = 150;
-	//float r = R / 2;
+	float R = 150;
+	float r = R / 2;
 	//scene.add_sphere(new Sphere(float3(800, 1000, 500), float3(0, 0, 0), 100, lamp));
-	////scene.add_sphere(new Sphere(float3(800, r, 500), float3(0, 0, 0), r, lamp));
+	//scene.add_sphere(new Sphere(float3(800, r, 500), float3(0, 0, 0), r, lamp));
 
-	//scene.add_sphere(new Sphere(float3(800 - R - 1, R, 500 - R - 1), float3(180, 0, 0), R, gold, bump_earth));
-	//scene.add_sphere(new Sphere(float3(800 + R + 1, R, 500 - R - 1), float3(180, 0, 0), R, gold, full_earth));
-	//scene.add_sphere(new Sphere(float3(800 - R - 1, R, 500 + R + 1), float3(180, 0, 0), R, d_green, bump_earth));
-	//scene.add_sphere(new Sphere(float3(800 + R + 1, R, 500 + R + 1), float3(180, 0, 0), R, aluminium, bump_squares));
-	//scene.add_sphere(new Sphere(float3(800, R + sqrt(2)*R, 500), float3(45, 0, 0), R, s_white, full_ball));
+	scene.add_sphere(new Sphere(float3(800 - R - 1, R, 500 - R - 1), float3(180, 0, 0), R, gold, bump_earth));
+	scene.add_sphere(new Sphere(float3(800 + R + 1, R, 500 - R - 1), float3(180, 0, 0), R, gold, full_earth));
+	scene.add_sphere(new Sphere(float3(800 - R - 1, R, 500 + R + 1), float3(180, 0, 0), R, d_green, bump_earth));
+	scene.add_sphere(new Sphere(float3(800 + R + 1, R, 500 + R + 1), float3(180, 0, 0), R, aluminium, bump_squares));
+	scene.add_sphere(new Sphere(float3(800, R + sqrt(2)*R, 500), float3(45, 0, 0), R, s_white, full_ball));
 
 	scene.commit();
 	watch.start();
@@ -139,6 +139,12 @@ void onKeyboard(unsigned char key, int x, int y) {
 				break;
 			case 'f':
 				scene.next_filter();
+				break;
+			case '+':
+				scene.inc_depth();
+				break;
+			case '-':
+				scene.dec_depth();
 				break;
 			default:
 				keys_down[key] = true;
@@ -237,6 +243,7 @@ void onIdle() {
 	}
 
 	scene.render();
+	console.process();
 
 	if (frames >= 1) {
 		wait_time = std::max((1.0f - (time_elapsed * max_fps / 1 - max_fps * wait_time)) / max_fps, 0.0f);

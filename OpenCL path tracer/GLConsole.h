@@ -29,7 +29,7 @@ private:
 	Stopwatch watch_render;						// To get elapsed time since last call (i.e. dt)
 	Stopwatch watch_command;					// For command wait
 
-	static std::map < std::string, std::function<void(void)>> funcs;	// Function pointers
+	static std::map < std::string, std::function<void(std::vector<std::string>) >> funcs;	// Function pointers
 
 	float animl_rolling;						// Time needed to roll down/up the console window in seconds
 	float animl_interface;						// Time needed for the console interface to appear/disappear in seconds
@@ -95,6 +95,7 @@ public:
 	void toggle();								// Opens the console window if it was closed, and vice versa
 	bool is_open();								// Returns true if console is open and usable
 	void draw();								// Draws the whole console (animations, window, interface, text, everything), also handles the cout
+	void process();								// Process commands and cout
 	void on_keyboard(unsigned char key);		// Keyboard event handler
 	void on_special(int key);					// Keyboard event handler for special keys (arrow, f1,2,3..., etc)
 	void shift_pressed();						// Sets pressed_shift to true
@@ -102,11 +103,11 @@ public:
 	void scroll_up();							// Scrolls up in the output text
 	void scroll_down();							// Scroll down in the output text
 	void print_help();							// Prints help
-	static void add_function(std::string name, std::function<void(void)> f);	// Store the function pointer
+	static void add_function(std::string name, std::function<void(std::vector<std::string>)> f);	// Store the function pointer
 	static void remove_function(std::string name);								// Removes the function pointer
 };
 
-std::map<std::string, std::function<void(void)>> GLConsole::funcs;	// Static variables need to be defined
+std::map<std::string, std::function<void(std::vector<std::string>)>> GLConsole::funcs;	// Static variables need to be defined
 CVarContainer GLConsole::cvars;										// Static variables need to be defined
 std::ostringstream GLConsole::cout;									// Static variables need to be defined
 
@@ -196,14 +197,17 @@ bool GLConsole::is_open() {
 void GLConsole::draw() {
 	glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBindTexture(GL_TEXTURE_2D, 0);
-	float dt = watch_render.get_delta_time();		// Gets the elapsed time in seconds since the last call
-	this->process_commands();				// Execute commands from the command list
-	this->process_cout();					// Handle if something printed to the console
+	float dt = watch_render.get_delta_time();// Gets the elapsed time in seconds since the last call
 	if (state == ROLLING_DOWN || state == ROLLING_UP) {
 		this->roll_console(dt);				// Animate opening/closing
 	} else if (state == OPENED || state == INTERFACE_APPEARING || state == INTERFACE_DISAPPEARING) {
 		this->draw_console(dt);				// Animate interface appearing/disapperaing and drawing text
 	}
+}
+
+void GLConsole::process() {
+	this->process_commands();				// Execute commands from the command list
+	this->process_cout();					// Handle if something printed to the console
 }
 
 void GLConsole::on_keyboard(unsigned char key) {
@@ -239,7 +243,7 @@ void GLConsole::on_keyboard(unsigned char key) {
 			buffer_input.clear();																					// Clear input buffer
 			this->cursor_jump_left();																				// And set the cursor to the top left
 
-		break;
+			break;
 		case 127:	// Delete key
 			this->delete_char_after();																				// Acts like delete in every text editor
 			break;
@@ -346,7 +350,7 @@ void GLConsole::print_help() {
 	cout << "----------------------------------HELP----------------------------------\n";
 }
 
-void GLConsole::add_function(std::string name, std::function<void(void)> f) {
+void GLConsole::add_function(std::string name, std::function<void(std::vector<std::string>)> f) {
 	funcs.insert({ name, f });
 }
 
@@ -738,7 +742,7 @@ void GLConsole::process_commands() {
 		}
 	}
 
-	if (watch_command.try_stop() && !buffer_commands_single.empty()) {
+	while (watch_command.try_stop() && !buffer_commands_single.empty()) {					// Executes commands until a wait command not called
 		std::string command = buffer_commands_single.front();
 		buffer_commands_single.pop_front();
 		this->process_command(command);
@@ -788,10 +792,33 @@ void GLConsole::process_command(std::string command) {
 		exit(0);
 	}
 
-	else if (command.find("()") != std::string::npos) {							// Call the function
-		try {
-			funcs.at(command)();
-		} catch (...) {
+	else if (command.find("(") != std::string::npos) {							// Call the function
+		std::string func_name = command.substr(0, command.find("("));
+		std::string params = command.substr(func_name.size() + 1);
+		params = params.substr(0, params.size() - 1);
+		std::vector<std::string> func_params;
+
+		std::string param = "";
+		for (int i = 0; i < params.size(); ++i) {
+			if (params[i] == ',') {
+				func_params.push_back(param);
+				param = "";
+			} else {
+				param = param + params[i];
+				if (i == params.size() - 1) {
+					func_params.push_back(param);
+				}
+			}
+		}
+		bool executed = false;
+		for (auto element : funcs) {
+			if (element.first.find(func_name) != std::string::npos) {
+				element.second(func_params);
+				executed = true;
+				break;
+			}
+		}
+		if (!executed) {
 			cout << "Function does not exist!\n";
 		}
 	}

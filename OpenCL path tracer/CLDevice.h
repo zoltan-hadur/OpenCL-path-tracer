@@ -152,7 +152,7 @@ void CLDevice::init(int width, int height) {
 	canvas = cl::ImageGL(context, CL_MEM_WRITE_ONLY, GL_TEXTURE_2D, 0, texture);						// Create the OpenCL image from the OpenGL texture
 
 
-	max_textures = device.getInfo<CL_DEVICE_MAX_MEM_ALLOC_SIZE>()/1024/1024/2/20;
+	max_textures = device.getInfo<CL_DEVICE_MAX_MEM_ALLOC_SIZE>() / 1024 / 1024 / 2 / 20;
 	// Textures
 	glEnable(GL_TEXTURE_3D);
 	glEnable(GL_TEXTURE_2D_ARRAY);
