@@ -5,7 +5,7 @@
 #include <GL\glew.h>
 #include <GL\glext.h>
 #include <GL\freeglut.h>
-#include <CL\cl.hpp>
+#include <CL\opencl.hpp>
 #include <random>
 #include <vector>
 #include <string>

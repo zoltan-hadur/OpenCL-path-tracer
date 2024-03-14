@@ -1,6 +1,6 @@
 #pragma once
 
-#include <CL\cl.hpp>
+#include <CL\opencl.hpp>
 #include "GLConsole.h"
 #include "float3.h"
 

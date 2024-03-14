@@ -1,6 +1,6 @@
 #pragma once
 
-#include <CL\cl.hpp>
+#include <CL\opencl.hpp>
 #include "float3.h"
 
 class Triangle {
