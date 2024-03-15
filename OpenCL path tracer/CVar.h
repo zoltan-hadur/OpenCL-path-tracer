@@ -13,7 +13,14 @@ private:
 	std::string help;	// Description of the variable
 	std::function<void(void)> callback;
 public:
-	CVar<T>(std::string name, T& var, std::string help = "", std::function<void(void)> callback = nullptr);// Creates a CVar
+    // Creates a CVar
+    CVar(std::string name, T& var, std::string help, std::function<void(void)> callback = nullptr)
+    {
+        this->name = name;
+        this->var = (&var);
+        this->help = help;
+        this->callback = callback;
+    }
 	T& get_var();																			// Get the variable of a CVar
 	void set_var_p(T* var);																	// Attach a variable to the CVar
 	void set_callback(std::function<void(void)> callback);
@@ -22,13 +29,6 @@ public:
 	template<typename T> friend std::ostream& operator<<(std::ostream& os, CVar<T>& cvar);
 	template<typename T> friend std::istream& operator>>(std::istream& is, CVar<T>& cvar);
 };
-
-template<typename T> CVar<T>::CVar(std::string name, T& var, std::string help, std::function<void(void)> callback = nullptr) {
-	this->name = name;
-	this->var = (&var);
-	this->help = help;
-	this->callback = callback;
-}
 
 template<typename T> T& CVar<T>::get_var() {
 	return *(this->var);
@@ -66,6 +66,6 @@ template<typename T> std::ostream& operator<<(std::ostream& os, CVar<T>& cvar) {
 }
 
 template<typename T> std::istream& operator>>(std::istream& is, CVar<T>& cvar) {
-	cvar.read(os);
-	return os;
+    cvar.read(is);
+    return is;
 }

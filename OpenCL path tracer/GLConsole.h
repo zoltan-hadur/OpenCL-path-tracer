@@ -540,7 +540,8 @@ std::deque<std::string> GLConsole::handle_overflow(std::deque<std::string>& line
 }
 
 std::deque<std::string> GLConsole::handle_overflow(std::deque<unsigned char>& line_original, int max_lines) {
-	return this->handle_overflow(std::deque<std::string>({ std::string(buffer_input.begin(), buffer_input.end()) }), max_lines);
+    auto dequeue = std::deque<std::string>({ std::string(buffer_input.begin(), buffer_input.end()) });
+	return this->handle_overflow(dequeue, max_lines);
 }
 
 void GLConsole::delete_char_before() {
