@@ -139,7 +139,6 @@ void CLDevice::init(int width, int height) {
 	queue.enqueueWriteBuffer(buffer_randoms, CL_TRUE, 0, sizeof(cl_uint) * width * height, seeds.data());// Upload seeds for random number generating to the device
 
 	// Create canvas wich will be using while rendering
-	glEnable(GL_TEXTURE_2D);
 	GLuint texture;
 	glGenTextures(1, &texture);
 	canvas_id = texture;
@@ -151,11 +150,15 @@ void CLDevice::init(int width, int height) {
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, NULL);	// Allocate memory on device for canvas
 	canvas = cl::ImageGL(context, CL_MEM_WRITE_ONLY, GL_TEXTURE_2D, 0, texture);						// Create the OpenCL image from the OpenGL texture
 
+  // Create FBO and attach texture to it
+  GLuint fboId = 0;
+  glGenFramebuffers(1, &fboId);
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, fboId);
+  glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, canvas_id, 0);
+
 
 	max_textures = device.getInfo<CL_DEVICE_MAX_MEM_ALLOC_SIZE>() / 1024 / 1024 / 2 / 20;
 	// Textures
-	glEnable(GL_TEXTURE_3D);
-	glEnable(GL_TEXTURE_2D_ARRAY);
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);

@@ -21,6 +21,8 @@ private:
 		RAY_TRACING, PATH_TRACING, EXPLICIT_LIGHT_SAMPLING, Mode_COUNT
 	};
 
+  int width;
+  int height;
 	GLuint canvas_id;		// CLDevice renders to this texture
 	CLDevice device;
 	Camera camera;
@@ -62,6 +64,9 @@ Scene::Scene() {
 }
 
 void Scene::init(int width, int height) {
+  this->width = width;
+  this->height = height;
+
 	sample_id = 0;
 	max_depth = 7;
 	tone_map = REINHARD;
@@ -179,15 +184,27 @@ void Scene::render() {
 }
 
 void Scene::draw() {
-	glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glBindTexture(GL_TEXTURE_2D, canvas_id);
-	glColor4f(1, 1, 1, 1);
-	glBegin(GL_QUADS);
-	glTexCoord2i(0, 1); glVertex2f(-1.0f, 1.0f);
-	glTexCoord2i(1, 1); glVertex2f(1.0f, 1.0f);
-	glTexCoord2i(1, 0); glVertex2f(1.0f, -1.0f);
-	glTexCoord2i(0, 0); glVertex2f(-1.0f, -1.0f);
-	glEnd();
+  int windowWidth = glutGet(GLUT_WINDOW_WIDTH);
+  int windowHeight = glutGet(GLUT_WINDOW_HEIGHT);
+  int width;
+  int height;
+  int posX;
+  int posY;
+  if ((float)this->width / (float)this->height < (float)windowWidth / (float)windowHeight)
+  {
+    height = windowHeight;
+    width = (float)windowHeight * (float)this->width / (float)this->height;
+    posX = (windowWidth - width) / 2.0;
+    posY = 0;
+  }
+  else
+  {
+    width = windowWidth;
+    height = windowWidth / ((float)this->width / (float)this->height);
+    posX = 0;
+    posY = (windowHeight - height) / 2.0;
+  }
+  glBlitFramebuffer(0, 0, this->width, this->height, posX, posY, posX + width, posY + height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 }
 
 void Scene::capture_screen() {

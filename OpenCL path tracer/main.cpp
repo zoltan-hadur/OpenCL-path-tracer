@@ -264,6 +264,7 @@ int main(int argc, char **argv) {
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
 
 	glutCreateWindow("OpenCL path tracer");
+  glewInit();
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
