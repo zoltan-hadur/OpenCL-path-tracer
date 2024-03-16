@@ -5,7 +5,7 @@
 #include <utility>
 #include "GLConsole.h"
 #include "CLDevice.h"
-#include "BMP.h"
+#include "Bitmap.h"
 #include "Camera.h"
 #include "Sphere.h"
 #include "Triangle.h"
@@ -101,17 +101,15 @@ int Scene::add_material(Material* mat) {
 int Scene::add_texture(std::string file_path) {
 	if (texture_resolutions.size() < device.get_max_textures()) {
 		int id = texture_resolutions.size();
-		int width, height;
-		std::vector<cl_uchar> image;
-		BMP::read(file_path, image, width, height);
+		auto bitmap = Bitmap::Read(file_path);
 
-		texture_resolutions.push_back({ width / 2048.0f, height / 1024.0f });
+		texture_resolutions.push_back({ bitmap.Width() / 2048.0f, bitmap.Height() / 1024.0f });
 
-		std::vector<cl_float> rgb = device.bgr_to_rgb(image, width, height);
-		std::vector<cl_float> grayscale = device.rgb_to_grayscale(rgb, width, height);
-		std::vector<cl_float> bump_map = device.derivate_image(grayscale, width, height);
-		std::vector<cl_float> expanded_rgb = device.expand_image(rgb, width, height);
-		std::vector<cl_float> expanded_bump_map = device.expand_image(bump_map, width, height);
+		std::vector<cl_float> rgb = device.bgr_to_rgb(bitmap.Bytes(), bitmap.Width(), bitmap.Height());
+		std::vector<cl_float> grayscale = device.rgb_to_grayscale(rgb, bitmap.Width(), bitmap.Height());
+		std::vector<cl_float> bump_map = device.derivate_image(grayscale, bitmap.Width(), bitmap.Height());
+		std::vector<cl_float> expanded_rgb = device.expand_image(rgb, bitmap.Width(), bitmap.Height());
+		std::vector<cl_float> expanded_bump_map = device.expand_image(bump_map, bitmap.Width(), bitmap.Height());
 
 		device.upload_texture(expanded_rgb, canvas_id + 1, id);
 		device.upload_texture(expanded_bump_map, canvas_id + 2, id);
@@ -220,7 +218,7 @@ void Scene::capture_screen() {
 	glGetTexImage(GL_TEXTURE_2D, 0, GL_BGR, GL_UNSIGNED_BYTE, image.data());
 
 	CreateDirectoryA("rendered", NULL);
-	BMP::write("rendered/" + file_name, image, width, height);
+    Bitmap(width, height, std::move(image)).Write("rendered/" + file_name);
 
 	id++;
 	GLConsole::cout << file_name + " created\n";

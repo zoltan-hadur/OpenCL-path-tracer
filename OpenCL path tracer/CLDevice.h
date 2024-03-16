@@ -57,7 +57,7 @@ public:
 	void trace_rays(cl_uint sample_id, cl_uint max_depth, cl_uint mode);
 	void draw_screen(cl_uint tone_map, cl_uint filter);
 
-	std::vector<cl_float> bgr_to_rgb(std::vector<cl_uchar>& image, int width, int height);			// Convert uchar BGR image to float RGBA image
+	std::vector<cl_float> bgr_to_rgb(std::vector<cl_uchar> const& image, int width, int height);			// Convert uchar BGR image to float RGBA image
 	std::vector<cl_float> rgb_to_grayscale(std::vector<cl_float>& image, int width, int height);	// Convert float RGBA image to float grayscale image
 	std::vector<cl_float> derivate_image(std::vector<cl_float>& image, int width, int height);		// Derivate float grayscale image, returns float RGBA image
 	std::vector<cl_float> expand_image(std::vector<cl_float>& image, int width, int height);		// Expands the image to 2048x1024 like GL_REPEAT
@@ -246,7 +246,7 @@ void CLDevice::draw_screen(cl_uint tone_map, cl_uint filter) {
 
 
 
-std::vector<cl_float> CLDevice::bgr_to_rgb(std::vector<cl_uchar>& image, int width, int height) {
+std::vector<cl_float> CLDevice::bgr_to_rgb(std::vector<cl_uchar> const& image, int width, int height) {
 	cl::Buffer image_in = cl::Buffer(context, CL_MEM_READ_ONLY, sizeof(cl_uchar) * width * height * 3);
 	cl::Buffer image_out = cl::Buffer(context, CL_MEM_WRITE_ONLY, sizeof(cl_float) * width * height * 4);
 	queue.enqueueWriteBuffer(image_in, CL_TRUE, 0, width * height * 3, image.data());
