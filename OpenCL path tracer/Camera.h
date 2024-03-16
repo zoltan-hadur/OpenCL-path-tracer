@@ -1,7 +1,7 @@
 #pragma once
 
 #include <sstream>
-#include "float3.h"
+#include "Float3.h"
 #include "Ray.h"
 #include "GLConsole.h"
 

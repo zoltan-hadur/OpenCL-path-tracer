@@ -13,7 +13,7 @@
 #include <algorithm>
 #include "Stopwatch.h"
 #include "CVarContainer.h"
-#include "float3.h"
+#include "Float3.h"
 
 
 

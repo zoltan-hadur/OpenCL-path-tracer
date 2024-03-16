@@ -114,7 +114,7 @@
     <ClInclude Include="CVar.h" />
     <ClInclude Include="CVarBase.h" />
     <ClInclude Include="CVarContainer.h" />
-    <ClInclude Include="float3.h" />
+    <ClInclude Include="Float3.h" />
     <ClInclude Include="GLConsole.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="CLDevice.h" />

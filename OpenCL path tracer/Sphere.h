@@ -2,7 +2,7 @@
 
 #include <CL\opencl.hpp>
 #include "GLConsole.h"
-#include "float3.h"
+#include "Float3.h"
 
 class Sphere {
 public:

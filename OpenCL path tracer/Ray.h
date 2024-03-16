@@ -1,6 +1,6 @@
 #pragma once
 
-#include "float3.h"
+#include "Float3.h"
 
 class Ray {
 private:

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <CL\opencl.hpp>
-#include "float3.h"
+#include "Float3.h"
 
 class Triangle {
 public:
