@@ -39,11 +39,11 @@ private:
 	float acc_cursor;							// Controls the animation
 	float overlap;								// How much percent the console window takes from the screen
 	int scroll_lines;							// Number of lines scrolled when the mouse wheels move
-	float3 color_background;					// Color of the console window
+	Float3 color_background;					// Color of the console window
 	float color_background_transparency;		// Transparency of the console window
-	float3 color_interface;						// Color of the console's interface
-	float3 color_text;							// Color of the text
-	float3 color_text_selection;				// Color of the selected text
+	Float3 color_interface;						// Color of the console's interface
+	Float3 color_text;							// Color of the text
+	Float3 color_text_selection;				// Color of the selected text
 	float pos_scrollbar;						// Position of the scrollbar
 	int pos_scroll;								// Determines how much lines were shifted in the output buffer
 	int size_buffer_output;						// The output buffer's size
@@ -130,11 +130,11 @@ void GLConsole::init() {
 	acc_cursor = 0.0f;
 	overlap = 0.68f;							cvars.attach_cvar<float>("console.overlap", &overlap, "How much percent the console window takes from the screen. Interval: [0.2, 1].");
 	scroll_lines = 1;							cvars.attach_cvar<int>("console.buffers.scroll_lines", &scroll_lines, "Number of lines scrolled. Interval: [1, infty).");
-	color_background = float3(0, 0.5f, 1);		cvars.attach_cvar<float3>("console.colors.background", &color_background, "Color of the console window in RGB. Interval: [0, 1].");
+	color_background = Float3(0, 0.5f, 1);		cvars.attach_cvar<Float3>("console.colors.background", &color_background, "Color of the console window in RGB. Interval: [0, 1].");
 	color_background_transparency = 0.68f;		cvars.attach_cvar<float>("console.colors.background_transparency", &color_background_transparency, "Transparency of the console window, i.e. Alpha channel. Interval: [0, 1].");
-	color_interface = float3(1, 1, 1);			cvars.attach_cvar<float3>("console.colors.interface", &color_interface, "Color of the console interface in RGB. Interval: [0, 1].");
-	color_text = float3(1, 1, 1);				cvars.attach_cvar<float3>("console.colors.text", &color_text, "Color of the text in RGB. Interval: [0, 1].");
-	color_text_selection = float3(1, 0, 0);		cvars.attach_cvar<float3>("console.colors.text_selection", &color_text_selection, "Color of the selected text in RGB. Interval: [0, 1].");
+	color_interface = Float3(1, 1, 1);			cvars.attach_cvar<Float3>("console.colors.interface", &color_interface, "Color of the console interface in RGB. Interval: [0, 1].");
+	color_text = Float3(1, 1, 1);				cvars.attach_cvar<Float3>("console.colors.text", &color_text, "Color of the text in RGB. Interval: [0, 1].");
+	color_text_selection = Float3(1, 0, 0);		cvars.attach_cvar<Float3>("console.colors.text_selection", &color_text_selection, "Color of the selected text in RGB. Interval: [0, 1].");
 	pos_scrollbar = 0.0f;
 	pos_scroll = 0;
 	size_buffer_output = 1000;					cvars.attach_cvar<int>("console.buffers.output", &size_buffer_output, "The output buffer's size. Interval: [100, infty).");
@@ -155,11 +155,11 @@ void GLConsole::reset() {
 	animl_cursor = 1.0f;
 	overlap = 0.68f;
 	scroll_lines = 1;
-	color_background = float3(0, 0.5f, 1);
+	color_background = Float3(0, 0.5f, 1);
 	color_background_transparency = 0.68f;
-	color_interface = float3(1, 1, 1);
-	color_text = float3(1, 1, 1);
-	color_text_selection = float3(1, 0, 0);
+	color_interface = Float3(1, 1, 1);
+	color_text = Float3(1, 1, 1);
+	color_text_selection = Float3(1, 0, 0);
 	size_buffer_output = 1000;
 	pos_buffer_command = -1;
 	size_buffer_command = 50;

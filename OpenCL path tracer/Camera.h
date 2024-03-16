@@ -7,10 +7,10 @@
 
 class Camera {
 private:
-	float3 pos;									// Position of the eye
-	float3 right;								// X axis of the camera's coordinate system
-	float3 up;									// Y axis of the camera's coordinate system
-	float3 forward;								// Z axis of the camera's coordinate system
+	Float3 pos;									// Position of the eye
+	Float3 right;								// X axis of the camera's coordinate system
+	Float3 up;									// Y axis of the camera's coordinate system
+	Float3 forward;								// Z axis of the camera's coordinate system
 	cl_float focus_distance;					// Focus distance
 	cl_float fov;								// Horizontal field of vision in °
 	cl_uint width;								// Width of the canvas
@@ -41,21 +41,21 @@ Camera::Camera(cl_uint width = 600, cl_uint height = 600) {
 	float up_length = height / 2.0f;
 	float forward_length = right_length / tan(fov / 2.0f / 180.0f * 3.14159265358979323846f);
 
-	pos = float3(800.0f, 500.0f, -1500.0f);
-	right = float3(right_length, 0.0f, 0.0f);
-	up = float3(0.0f, up_length, 0.0f);
-	forward = float3(0.0f, 0.0f, forward_length);
+	pos = Float3(800.0f, 500.0f, -1500.0f);
+	right = Float3(right_length, 0.0f, 0.0f);
+	up = Float3(0.0f, up_length, 0.0f);
+	forward = Float3(0.0f, 0.0f, forward_length);
 }
 
 void Camera::rotate(float dpitch, float dyaw) {
-	float3 y_axis = float3(0, 1, 0);
+	Float3 y_axis = Float3(0, 1, 0);
 
-	right = float3::rodrigues(right, y_axis, dyaw);
-	up = float3::rodrigues(up, y_axis, dyaw);
-	forward = float3::rodrigues(forward, y_axis, dyaw);
+	right = Float3::rodrigues(right, y_axis, dyaw);
+	up = Float3::rodrigues(up, y_axis, dyaw);
+	forward = Float3::rodrigues(forward, y_axis, dyaw);
 
-	up = float3::rodrigues(up, right.normalize(), dpitch);
-	forward = float3::rodrigues(forward, right.normalize(), dpitch);
+	up = Float3::rodrigues(up, right.normalize(), dpitch);
+	forward = Float3::rodrigues(forward, right.normalize(), dpitch);
 }
 
 void Camera::translate_right(float v) {
@@ -100,11 +100,11 @@ void Camera::set_focus_distance(float d) {
 }
 
 Ray Camera::get_ray(int x, int y) {
-	float3 right = this->right * (2.0f * x / width - 1);
-	float3 up = this->up * (2.0f * y / height - 1);
+	Float3 right = this->right * (2.0f * x / width - 1);
+	Float3 up = this->up * (2.0f * y / height - 1);
 
-	float3 pos_on_screen = pos + forward + right + up;
-	float3 dir = (pos_on_screen - pos).normalize();
+	Float3 pos_on_screen = pos + forward + right + up;
+	Float3 dir = (pos_on_screen - pos).normalize();
 
 	return Ray(pos, dir);
 }
@@ -112,14 +112,14 @@ Ray Camera::get_ray(int x, int y) {
 void Camera::look_at(std::vector<std::string> params) {
 	if (params.size() == 3) {
 		std::string var = "[" + params[0] + "," + params[1] + "," + params[2] + "]";
-		float3 look;
+		Float3 look;
 		std::stringstream(var) >> look;
 
-		float3 f = forward.normalize();
-		float3 l = (look - pos).normalize();
+		Float3 f = forward.normalize();
+		Float3 l = (look - pos).normalize();
 
-		float3 h_f = float3(f[0], 0, f[2]).normalize();
-		float3 h_l = float3(l[0], 0, l[2]).normalize();
+		Float3 h_f = Float3(f[0], 0, f[2]).normalize();
+		Float3 h_l = Float3(l[0], 0, l[2]).normalize();
 
 		float yaw = atan2(h_l[2], h_l[0]) - atan2(h_f[2], h_f[0]);
 		yaw = yaw / 3.141592654f * 180.0f;

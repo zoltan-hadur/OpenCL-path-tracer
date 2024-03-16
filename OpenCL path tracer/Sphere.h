@@ -6,18 +6,18 @@
 
 class Sphere {
 public:
-	float3 pos;		// Coordinate of the center
-	float3 ori;		// Orientation
+	Float3 pos;		// Coordinate of the center
+	Float3 ori;		// Orientation
 	cl_float r;		// Radius
 	cl_uint mati;	// Index to material
 	cl_uint texi;	// Index to texture info
 	cl_uint reserved;
 	void console_add();
 public:
-	Sphere(float3 pos, float3 ori, cl_float r, cl_uint mati, cl_uint texi = 0);
+	Sphere(Float3 pos, Float3 ori, cl_float r, cl_uint mati, cl_uint texi = 0);
 };
 
-Sphere::Sphere(float3 pos, float3 ori, cl_float r, cl_uint mati, cl_uint texi) {
+Sphere::Sphere(Float3 pos, Float3 ori, cl_float r, cl_uint mati, cl_uint texi) {
 	this->pos = pos;
 	this->ori = ori;
 	this->r = r;
