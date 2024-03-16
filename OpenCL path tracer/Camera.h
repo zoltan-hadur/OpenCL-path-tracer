@@ -50,39 +50,39 @@ Camera::Camera(cl_uint width = 600, cl_uint height = 600) {
 void Camera::rotate(float dpitch, float dyaw) {
 	Float3 y_axis = Float3(0, 1, 0);
 
-	right = Float3::rodrigues(right, y_axis, dyaw);
-	up = Float3::rodrigues(up, y_axis, dyaw);
-	forward = Float3::rodrigues(forward, y_axis, dyaw);
+	right = Float3::Rotate(right, y_axis, dyaw);
+	up = Float3::Rotate(up, y_axis, dyaw);
+	forward = Float3::Rotate(forward, y_axis, dyaw);
 
-	up = Float3::rodrigues(up, right.normalize(), dpitch);
-	forward = Float3::rodrigues(forward, right.normalize(), dpitch);
+	up = Float3::Rotate(up, right.Normalize(), dpitch);
+	forward = Float3::Rotate(forward, right.Normalize(), dpitch);
 }
 
 void Camera::translate_right(float v) {
-	pos = pos + right.normalize() * v;
+	pos = pos + right.Normalize() * v;
 }
 
 void Camera::translate_up(float v) {
-	pos = pos + up.normalize() * v;
+	pos = pos + up.Normalize() * v;
 }
 
 void Camera::translate_forward(float v) {
-	pos = pos + forward.normalize() * v;
+	pos = pos + forward.Normalize() * v;
 }
 
 void Camera::increase_fov(float dt) {
-	float fov = atan(right.length() / forward.length()) * 2 * 180 / 3.14159265358979323846f;
+	float fov = atan(right.Length() / forward.Length()) * 2 * 180 / 3.14159265358979323846f;
 	if (fov + dt < 175) {
 		fov = fov + dt;
-		forward = forward.normalize() * (right.length() / tan(fov / 2 / 180 * 3.14159265358979323846f));
+		forward = forward.Normalize() * (right.Length() / tan(fov / 2 / 180 * 3.14159265358979323846f));
 	}
 }
 
 void Camera::decrease_fov(float dt) {
-	float fov = atan(right.length() / forward.length()) * 2 * 180 / 3.14159265358979323846f;
+	float fov = atan(right.Length() / forward.Length()) * 2 * 180 / 3.14159265358979323846f;
 	if (fov - dt > 0) {
 		fov = fov - dt;
-		forward = forward.normalize() * (right.length() / tan(fov / 2 / 180 * 3.14159265358979323846f));
+		forward = forward.Normalize() * (right.Length() / tan(fov / 2 / 180 * 3.14159265358979323846f));
 	}
 }
 
@@ -104,7 +104,7 @@ Ray Camera::get_ray(int x, int y) {
 	Float3 up = this->up * (2.0f * y / height - 1);
 
 	Float3 pos_on_screen = pos + forward + right + up;
-	Float3 dir = (pos_on_screen - pos).normalize();
+	Float3 dir = (pos_on_screen - pos).Normalize();
 
 	return Ray(pos, dir);
 }
@@ -115,20 +115,20 @@ void Camera::look_at(std::vector<std::string> params) {
 		Float3 look;
 		std::stringstream(var) >> look;
 
-		Float3 f = forward.normalize();
-		Float3 l = (look - pos).normalize();
+		Float3 f = forward.Normalize();
+		Float3 l = (look - pos).Normalize();
 
-		Float3 h_f = Float3(f[0], 0, f[2]).normalize();
-		Float3 h_l = Float3(l[0], 0, l[2]).normalize();
+		Float3 h_f = Float3(f[0], 0, f[2]).Normalize();
+		Float3 h_l = Float3(l[0], 0, l[2]).Normalize();
 
 		float yaw = atan2(h_l[2], h_l[0]) - atan2(h_f[2], h_f[0]);
 		yaw = yaw / 3.141592654f * 180.0f;
 		this->rotate(0, -yaw);
 
-		f = forward.normalize();
-		l = (look - pos).normalize();
+		f = forward.Normalize();
+		l = (look - pos).Normalize();
 
-		float pitch = f.dot(l);
+		float pitch = f.Dot(l);
 		if (pitch < 1) {
 			pitch = acos(pitch) / 3.141592654f * 180.0f;
 			pitch = std::copysignf(pitch, f[1] - l[1]);
