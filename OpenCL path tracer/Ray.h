@@ -4,13 +4,13 @@
 
 class Ray {
 private:
-	Float3 pos;		// Origin of the ray
-	Float3 dir;		// Direction of the ray
+	Vector3 pos;		// Origin of the ray
+	Vector3 dir;		// Direction of the ray
 public:
-	Ray(Float3 o = Float3(), Float3 d = Float3(0, 0, 1));
+	Ray(Vector3 o = Vector3(), Vector3 d = Vector3(0, 0, 1));
 };
 
-Ray::Ray(Float3 o, Float3 d) {
+Ray::Ray(Vector3 o, Vector3 d) {
 	pos = o;
 	dir = d;
 }

@@ -5,17 +5,17 @@
 
 class Triangle {
 public:
-	Float3 v1;			// Vertices
-	Float3 v2;			//
-	Float3 v3;			// 
+	Vector3 v1;			// Vertices
+	Vector3 v2;			//
+	Vector3 v3;			// 
 	cl_uint mati;		// Index to the material
 	cl_uint texi;		// Index to the texture info
 	cl_uint reserved[2];
 public:
-	Triangle(Float3 v1, Float3 v2, Float3 v3, cl_uint mati, cl_uint texi = 0);
+	Triangle(Vector3 v1, Vector3 v2, Vector3 v3, cl_uint mati, cl_uint texi = 0);
 };
 
-Triangle::Triangle(Float3 v1, Float3 v2, Float3 v3, cl_uint mati, cl_uint texi) {
+Triangle::Triangle(Vector3 v1, Vector3 v2, Vector3 v3, cl_uint mati, cl_uint texi) {
 	this->v1 = v1;
 	this->v2 = v2;
 	this->v3 = v3;

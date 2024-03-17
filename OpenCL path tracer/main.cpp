@@ -28,18 +28,18 @@ void onInitialization() {
 	console.print_help();
 	max_fps = 30; GLConsole::cvars.attach_cvar<float>("app.max_fps", &max_fps, "Determines the maximum allowed frames per second. Interval: [30, infty).");
 
-	const int lamp = scene.add_material(new Material(Float3(0.0, 0.0, 0.0), Float3(0.0, 0.0, 0.0), Float3(8, 6, 4) * 1, 0, 0, 0));
-	const int d_red = scene.add_material(new Material(Float3(1.0, 0.3, 0.3), Float3(0.04, 0.04, 0.04), Float3(0, 0, 0), 2, 1, 1));
-	const int d_green = scene.add_material(new Material(Float3(0.3, 1.0, 0.3), Float3(0.04, 0.04, 0.04), Float3(0, 0, 0), 2, 1, 1));
-	const int d_blue = scene.add_material(new Material(Float3(0.3, 0.3, 1.0), Float3(0.04, 0.04, 0.04), Float3(0, 0, 0), 2, 1, 1));
-	const int d_white = scene.add_material(new Material(Float3(1.0, 1.0, 1.0), Float3(0.04, 0.04, 0.04), Float3(0, 0, 0), 2, 1, 1));
-	const int s_red = scene.add_material(new Material(Float3(1.0, 0.3, 0.3), Float3(1.0, 0.3, 0.3), Float3(0, 0, 0), 2, 0, 1));
-	const int s_green = scene.add_material(new Material(Float3(0.3, 1.0, 0.3), Float3(0.3, 1.0, 0.3), Float3(0, 0, 0), 2, 0, 1));
-	const int s_blue = scene.add_material(new Material(Float3(0.3, 0.3, 1.0), Float3(0.3, 0.3, 1.0), Float3(0, 0, 0), 2, 0.01, 1));
-	const int s_white = scene.add_material(new Material(Float3(1.0, 1.0, 1.0), Float3(1.0, 1.0, 1.0), Float3(0, 0, 0), 2.00, 0.000, 1));
-	const int gold = scene.add_material(new Material(Float3(0.0, 0.0, 0.0), Float3(252, 201, 88) / 255, Float3(0, 0, 0), 0.16, 0.0, 1));
-	const int aluminium = scene.add_material(new Material(Float3(0.0, 0.0, 0.0), Float3(128, 126, 121) / 255, Float3(0, 0, 0), 0.16, 0.0, 1));
-	const int glass = scene.add_material(new Material(Float3(0.0, 0.0, 0.0), Float3(1, 1, 1), Float3(0, 0, 0), 1.5, 0.0, 2));
+	const int lamp = scene.add_material(new Material(Vector3(0.0, 0.0, 0.0), Vector3(0.0, 0.0, 0.0), Vector3(8, 6, 4) * 1, 0, 0, 0));
+	const int d_red = scene.add_material(new Material(Vector3(1.0, 0.3, 0.3), Vector3(0.04, 0.04, 0.04), Vector3(0, 0, 0), 2, 1, 1));
+	const int d_green = scene.add_material(new Material(Vector3(0.3, 1.0, 0.3), Vector3(0.04, 0.04, 0.04), Vector3(0, 0, 0), 2, 1, 1));
+	const int d_blue = scene.add_material(new Material(Vector3(0.3, 0.3, 1.0), Vector3(0.04, 0.04, 0.04), Vector3(0, 0, 0), 2, 1, 1));
+	const int d_white = scene.add_material(new Material(Vector3(1.0, 1.0, 1.0), Vector3(0.04, 0.04, 0.04), Vector3(0, 0, 0), 2, 1, 1));
+	const int s_red = scene.add_material(new Material(Vector3(1.0, 0.3, 0.3), Vector3(1.0, 0.3, 0.3), Vector3(0, 0, 0), 2, 0, 1));
+	const int s_green = scene.add_material(new Material(Vector3(0.3, 1.0, 0.3), Vector3(0.3, 1.0, 0.3), Vector3(0, 0, 0), 2, 0, 1));
+	const int s_blue = scene.add_material(new Material(Vector3(0.3, 0.3, 1.0), Vector3(0.3, 0.3, 1.0), Vector3(0, 0, 0), 2, 0.01, 1));
+	const int s_white = scene.add_material(new Material(Vector3(1.0, 1.0, 1.0), Vector3(1.0, 1.0, 1.0), Vector3(0, 0, 0), 2.00, 0.000, 1));
+	const int gold = scene.add_material(new Material(Vector3(0.0, 0.0, 0.0), Vector3(252, 201, 88) / 255, Vector3(0, 0, 0), 0.16, 0.0, 1));
+	const int aluminium = scene.add_material(new Material(Vector3(0.0, 0.0, 0.0), Vector3(128, 126, 121) / 255, Vector3(0, 0, 0), 0.16, 0.0, 1));
+	const int glass = scene.add_material(new Material(Vector3(0.0, 0.0, 0.0), Vector3(1, 1, 1), Vector3(0, 0, 0), 1.5, 0.0, 2));
 
 	const int earth = scene.add_texture("textures/earth_2k.bmp");
 	const int squares = scene.add_texture("textures/squares_2k.bmp");
@@ -51,52 +51,52 @@ void onInitialization() {
 	const int full_ball = scene.add_texture_info(ball, 1 | 2);
 
 	// Lamp
-	scene.add_triangle(new Triangle(Float3(600.0f, 999.99f, 0.0f), Float3(1000.0f, 999.99f, 0.0f), Float3(1000.0f, 999.99f, 400.0f), lamp));
-	scene.add_triangle(new Triangle(Float3(600.0f, 999.99f, 0.0f), Float3(600.0f, 999.99f, 400.0f), Float3(1000.0f, 999.99f, 400.0f), lamp));
+	scene.add_triangle(new Triangle(Vector3(600.0f, 999.99f, 0.0f), Vector3(1000.0f, 999.99f, 0.0f), Vector3(1000.0f, 999.99f, 400.0f), lamp));
+	scene.add_triangle(new Triangle(Vector3(600.0f, 999.99f, 0.0f), Vector3(600.0f, 999.99f, 400.0f), Vector3(1000.0f, 999.99f, 400.0f), lamp));
 
 	//left wall
-	scene.add_triangle(new Triangle(Float3(0.0f, 0.0f, -2000.0f), Float3(0.0f, 0.0f, 1000.0f), Float3(0.0f, 1000.0f, -2000.0f), d_red));
-	scene.add_triangle(new Triangle(Float3(0.0f, 1000.0f, 1000.0f), Float3(0.0f, 1000.0f, -2000.0f), Float3(0.0f, 0.0f, 1000.0f), d_red));
+	scene.add_triangle(new Triangle(Vector3(0.0f, 0.0f, -2000.0f), Vector3(0.0f, 0.0f, 1000.0f), Vector3(0.0f, 1000.0f, -2000.0f), d_red));
+	scene.add_triangle(new Triangle(Vector3(0.0f, 1000.0f, 1000.0f), Vector3(0.0f, 1000.0f, -2000.0f), Vector3(0.0f, 0.0f, 1000.0f), d_red));
 	//right wall
-	scene.add_triangle(new Triangle(Float3(1600.0f, 0.0f, -2000.0f), Float3(1600.0f, 0.0f, 1000.0f), Float3(1600.0f, 1000.0f, -2000.0f), d_blue));
-	scene.add_triangle(new Triangle(Float3(1600.0f, 1000.0f, 1000.0f), Float3(1600.0f, 1000.0f, -2000.0f), Float3(1600.0f, 0.0f, 1000.0f), d_blue));
+	scene.add_triangle(new Triangle(Vector3(1600.0f, 0.0f, -2000.0f), Vector3(1600.0f, 0.0f, 1000.0f), Vector3(1600.0f, 1000.0f, -2000.0f), d_blue));
+	scene.add_triangle(new Triangle(Vector3(1600.0f, 1000.0f, 1000.0f), Vector3(1600.0f, 1000.0f, -2000.0f), Vector3(1600.0f, 0.0f, 1000.0f), d_blue));
 	//floor
-	scene.add_triangle(new Triangle(Float3(0.0f, 0.0f, -2000.0f), Float3(1600.0f, 0.0f, -2000.0f), Float3(1600.0f, 0.0f, 1000.0f), d_white));
-	scene.add_triangle(new Triangle(Float3(0.0f, 0.0f, -2000.0f), Float3(1600.0f, 0.0f, 1000.0f), Float3(0.0f, 0.0f, 1000.0f), d_white));
+	scene.add_triangle(new Triangle(Vector3(0.0f, 0.0f, -2000.0f), Vector3(1600.0f, 0.0f, -2000.0f), Vector3(1600.0f, 0.0f, 1000.0f), d_white));
+	scene.add_triangle(new Triangle(Vector3(0.0f, 0.0f, -2000.0f), Vector3(1600.0f, 0.0f, 1000.0f), Vector3(0.0f, 0.0f, 1000.0f), d_white));
 	//ceiling
-	scene.add_triangle(new Triangle(Float3(0.0f, 1000.0f, -2000.0f), Float3(1600.0f, 1000.0f, -2000.0f), Float3(1600.0f, 1000.0f, 1000.0f), d_white));
-	scene.add_triangle(new Triangle(Float3(0.0f, 1000.0f, -2000.0f), Float3(1600.0f, 1000.0f, 1000.0f), Float3(0.0f, 1000.0f, 1000.0f), d_white));
+	scene.add_triangle(new Triangle(Vector3(0.0f, 1000.0f, -2000.0f), Vector3(1600.0f, 1000.0f, -2000.0f), Vector3(1600.0f, 1000.0f, 1000.0f), d_white));
+	scene.add_triangle(new Triangle(Vector3(0.0f, 1000.0f, -2000.0f), Vector3(1600.0f, 1000.0f, 1000.0f), Vector3(0.0f, 1000.0f, 1000.0f), d_white));
 	//front wall
-	scene.add_triangle(new Triangle(Float3(1600.0f, 0.0f, 1000.0), Float3(0.0f, 0.0f, 1000.0f), Float3(1600.0f, 1000.0f, 1000.0f), d_white));
-	scene.add_triangle(new Triangle(Float3(0.0f, 0.0f, 1000.0f), Float3(1600.0f, 1000.0f, 1000.0f), Float3(0.0f, 1000.0f, 1000.0f), d_white));
+	scene.add_triangle(new Triangle(Vector3(1600.0f, 0.0f, 1000.0), Vector3(0.0f, 0.0f, 1000.0f), Vector3(1600.0f, 1000.0f, 1000.0f), d_white));
+	scene.add_triangle(new Triangle(Vector3(0.0f, 0.0f, 1000.0f), Vector3(1600.0f, 1000.0f, 1000.0f), Vector3(0.0f, 1000.0f, 1000.0f), d_white));
 	//rear wall
-	scene.add_triangle(new Triangle(Float3(0.0f, 0.0f, -2000.0f), Float3(1600.0f, 0.0f, -2000.0f), Float3(1600.0f, 1000.0f, -2000.0f), d_white));
-	scene.add_triangle(new Triangle(Float3(0.0f, 0.0f, -2000.0f), Float3(1600.0f, 1000.0f, -2000.0f), Float3(0.0f, 1000.0f, -2000.0f), d_white));
+	scene.add_triangle(new Triangle(Vector3(0.0f, 0.0f, -2000.0f), Vector3(1600.0f, 0.0f, -2000.0f), Vector3(1600.0f, 1000.0f, -2000.0f), d_white));
+	scene.add_triangle(new Triangle(Vector3(0.0f, 0.0f, -2000.0f), Vector3(1600.0f, 1000.0f, -2000.0f), Vector3(0.0f, 1000.0f, -2000.0f), d_white));
 
 
-	////scene.add_sphere(new Sphere(Float3(500, 100, 400), Float3(0, 0, 0), 100, s_blue));
-	//scene.add_sphere(new Sphere(Float3(400, 200, 700), Float3(0, 0, 0), 200, s_green));
-	////scene.add_sphere(new Sphere(Float3(1450, 150, 850), Float3(0, 0, 0), 150, s_red));
-	////scene.add_sphere(new Sphere(Float3(800, 200, 500), Float3(0, 0, 0), 200, gold));
-	//scene.add_sphere(new Sphere(Float3(1200, 200, 200), Float3(0, 0, 0), 200, glass));
+	////scene.add_sphere(new Sphere(Vector3(500, 100, 400), Vector3(0, 0, 0), 100, s_blue));
+	//scene.add_sphere(new Sphere(Vector3(400, 200, 700), Vector3(0, 0, 0), 200, s_green));
+	////scene.add_sphere(new Sphere(Vector3(1450, 150, 850), Vector3(0, 0, 0), 150, s_red));
+	////scene.add_sphere(new Sphere(Vector3(800, 200, 500), Vector3(0, 0, 0), 200, gold));
+	//scene.add_sphere(new Sphere(Vector3(1200, 200, 200), Vector3(0, 0, 0), 200, glass));
 
-	//scene.add_sphere(new Sphere(Float3(150, 150, -100), Float3(90, 0, 0), 150, glass, full_ball));
+	//scene.add_sphere(new Sphere(Vector3(150, 150, -100), Vector3(90, 0, 0), 150, glass, full_ball));
 
-	////scene.add_sphere(new Sphere(Float3(900, 100, -200), Float3(0, 0, 0), 100, glass));
-	//scene.add_sphere(new Sphere(Float3(500 - 1, 150, 500), Float3(180, 0, 0), 150, aluminium, bump_squares));
-	//scene.add_sphere(new Sphere(Float3(800, 150, 450), Float3(180, 0, 0), 150, gold, bump_earth));
-	//scene.add_sphere(new Sphere(Float3(1100 + 1, 150, 400), Float3(180, 0, 0), 150, s_white, full_earth));
+	////scene.add_sphere(new Sphere(Vector3(900, 100, -200), Vector3(0, 0, 0), 100, glass));
+	//scene.add_sphere(new Sphere(Vector3(500 - 1, 150, 500), Vector3(180, 0, 0), 150, aluminium, bump_squares));
+	//scene.add_sphere(new Sphere(Vector3(800, 150, 450), Vector3(180, 0, 0), 150, gold, bump_earth));
+	//scene.add_sphere(new Sphere(Vector3(1100 + 1, 150, 400), Vector3(180, 0, 0), 150, s_white, full_earth));
 
 	float R = 150;
 	float r = R / 2;
-	//scene.add_sphere(new Sphere(Float3(800, 1000, 500), Float3(0, 0, 0), 100, lamp));
-	//scene.add_sphere(new Sphere(Float3(800, r, 500), Float3(0, 0, 0), r, lamp));
+	//scene.add_sphere(new Sphere(Vector3(800, 1000, 500), Vector3(0, 0, 0), 100, lamp));
+	//scene.add_sphere(new Sphere(Vector3(800, r, 500), Vector3(0, 0, 0), r, lamp));
 
-	scene.add_sphere(new Sphere(Float3(800 - R - 1, R, 500 - R - 1), Float3(180, 0, 0), R, gold, bump_earth));
-	scene.add_sphere(new Sphere(Float3(800 + R + 1, R, 500 - R - 1), Float3(180, 0, 0), R, gold, full_earth));
-	scene.add_sphere(new Sphere(Float3(800 - R - 1, R, 500 + R + 1), Float3(180, 0, 0), R, d_green, bump_earth));
-	scene.add_sphere(new Sphere(Float3(800 + R + 1, R, 500 + R + 1), Float3(180, 0, 0), R, aluminium, bump_squares));
-	scene.add_sphere(new Sphere(Float3(800, R + sqrt(2)*R, 500), Float3(45, 0, 0), R, s_white, full_ball));
+	scene.add_sphere(new Sphere(Vector3(800 - R - 1, R, 500 - R - 1), Vector3(180, 0, 0), R, gold, bump_earth));
+	scene.add_sphere(new Sphere(Vector3(800 + R + 1, R, 500 - R - 1), Vector3(180, 0, 0), R, gold, full_earth));
+	scene.add_sphere(new Sphere(Vector3(800 - R - 1, R, 500 + R + 1), Vector3(180, 0, 0), R, d_green, bump_earth));
+	scene.add_sphere(new Sphere(Vector3(800 + R + 1, R, 500 + R + 1), Vector3(180, 0, 0), R, aluminium, bump_squares));
+	scene.add_sphere(new Sphere(Vector3(800, R + sqrt(2)*R, 500), Vector3(45, 0, 0), R, s_white, full_ball));
 
 	scene.commit();
 	watch.start();
