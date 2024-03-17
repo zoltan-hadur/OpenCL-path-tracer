@@ -1,7 +1,7 @@
 #pragma once
 
 #include <CL\opencl.hpp>
-#include "Float3.h"
+#include "Vector3.h"
 
 class Material {
 private:

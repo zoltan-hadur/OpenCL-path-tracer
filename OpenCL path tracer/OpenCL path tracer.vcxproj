@@ -106,7 +106,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Bitmap.cpp" />
-    <ClCompile Include="Float3.cpp" />
+    <ClCompile Include="Vector3.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -115,7 +115,7 @@
     <ClInclude Include="CVar.h" />
     <ClInclude Include="CVarBase.h" />
     <ClInclude Include="CVarContainer.h" />
-    <ClInclude Include="Float3.h" />
+    <ClInclude Include="Vector3.h" />
     <ClInclude Include="GLConsole.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="CLDevice.h" />
