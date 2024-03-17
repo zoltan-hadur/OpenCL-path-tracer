@@ -18,6 +18,7 @@
 #include "Triangle.h"
 #include "Material.h"
 #include "TextureInfo.h"
+#include "Color.h"
 
 class CLDevice {
 private:
@@ -122,7 +123,7 @@ void CLDevice::init(int width, int height) {
 
 	queue = cl::CommandQueue(context, device);															// The command queue to execute kernel functions on the OpenCL device
 
-	buffer_radiances = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(Vector3) * width * height);			// Allocate memory on device
+	buffer_radiances = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(Color) * width * height);			// Allocate memory on device
 	buffer_rays = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(Ray) * width * height);
 	buffer_randoms = cl::Buffer(context, CL_MEM_READ_WRITE, sizeof(cl_uint) * width * height);
 
