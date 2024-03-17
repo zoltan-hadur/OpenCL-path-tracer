@@ -8,11 +8,6 @@ Vector3::Vector3(float x, float y, float z)
     _vector = cl_float3{ x, y, z };
 }
 
-Vector3::Vector3(cl_float3 vector)
-{
-    _vector = std::move(vector);
-}
-
 float Vector3::Sum() const
 {
     return (*this)[0] + (*this)[1] + (*this)[2];

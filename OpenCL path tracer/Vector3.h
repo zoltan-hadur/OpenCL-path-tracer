@@ -3,12 +3,13 @@
 #include <CL\opencl.hpp>
 #include <iostream>
 
+/// <summary>
+/// Wraps cl_float3 with some additional convenient methods.
+/// </summary>
 class Vector3
 {
 private:
     cl_float3 _vector;
-
-    Vector3(cl_float3 vector);
 public:
     Vector3(float x = 0, float y = 0, float z = 0);
 
