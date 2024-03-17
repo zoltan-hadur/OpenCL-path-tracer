@@ -23,12 +23,15 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Bitmap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Vector3.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Ray.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="float3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="GLConsole.h">
@@ -67,7 +70,10 @@
     <ClInclude Include="CLDevice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BMP.h">
+    <ClInclude Include="Bitmap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
