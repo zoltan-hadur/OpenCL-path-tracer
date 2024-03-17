@@ -140,12 +140,12 @@ Vector3 operator/(float value, Vector3 vector)
     return Vector3(value, value, value) / vector;
 }
 
-std::ostream& operator<<(std::ostream& os, Vector3 vector)
+std::ostream& operator<<(std::ostream& os, Vector3& vector)
 {
     return os << std::format("[{}, {}, {}]", vector.x, vector.y, vector.z);
 }
 
-std::istream& operator>>(std::istream& is, Vector3 vector)
+std::istream& operator>>(std::istream& is, Vector3& vector)
 {
     std::string str(std::istreambuf_iterator<char>(is), {});
     sscanf_s(str.c_str(), "[%f,%f,%f]", &vector.x, &vector.y, &vector.z);
