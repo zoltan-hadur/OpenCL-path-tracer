@@ -1,6 +1,5 @@
 #pragma once
 
-#include <CL\opencl.hpp>
 #include <iostream>
 
 #pragma pack(1)
