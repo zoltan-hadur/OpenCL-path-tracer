@@ -5,6 +5,8 @@
 #include "Ray.h"
 #include "GLConsole.h"
 
+#pragma pack(1)
+__declspec(align(16))
 class Camera {
 private:
 	Vector3 pos;									// Position of the eye
@@ -30,6 +32,7 @@ public:
 	void look_at(std::vector<std::string> params);
 	void set_pos(std::vector<std::string> params);
 };
+#pragma pack()
 
 Camera::Camera(cl_uint width = 600, cl_uint height = 600) {
 	focus_distance = 1000.0f;

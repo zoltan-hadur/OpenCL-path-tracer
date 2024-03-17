@@ -21,7 +21,7 @@
 #define HAS_TEXTURE 1
 #define HAS_BUMP_MAP 2
 
-typedef struct {
+typedef struct Material {
 	float3 kd;			// Diffuse color
 	float3 ks;			// Specular color
 	float3 emission;	// Emission
@@ -29,22 +29,21 @@ typedef struct {
 	float n;			// Refractive index
 	float glossiness;	// Glossiness
 	uint type;			// 0-emitter, 1-diffuse or specular, 2-refractive
-	uint reserved;
-}Material;
+} __attribute__ ((aligned(16),packed)) Material;
 
-typedef struct {
+typedef struct TextureInfo {
 	float width;		// Width of the texture
 	float height;		// Height of the texture
 	uint index;			// Index to the texture
 	uint flag;			// 0-nothing, 1-texture, 2-bump map
-}TextureInfo;
+} __attribute__ ((aligned(4),packed)) TextureInfo;
 
-typedef struct {
+typedef struct Ray {
 	float3 pos;			// Origin of the ray
 	float3 dir;			// Direction of the ray
-}Ray;
+} __attribute__ ((aligned(16),packed)) Ray;
 
-typedef struct {
+typedef struct Hit {
 	float3 pos;			// Position of the intersection
 	float3 norm;		// Normal vector at the intersection point
 	float t;			// Time
@@ -52,28 +51,25 @@ typedef struct {
 	float v;			// V texture coordinate
 	uint mati;			// Index to the material
 	uint texi;			// Index to the texture info
-	uint reserved[3];
-}Hit;
+} Hit;
 
-typedef struct {
+typedef struct Sphere {
 	float3 pos;			// Coordinate of the center
 	float3 ori;			// Orientation
 	float r;			// Radius
 	uint mati;			// Index to the material
 	uint texi;			// Index to the texture info
-	uint reserved;
-}Sphere;
+} __attribute__ ((aligned(16),packed)) Sphere;
 
-typedef struct {
+typedef struct Triangle {
 	float3 v1;			// Vertices
 	float3 v2;			//
 	float3 v3;			// 
 	uint mati;			// Index to the material
 	uint texi;			// Index to the texture info
-	uint reserved[2];
-}Triangle;
+} __attribute__ ((aligned(16),packed)) Triangle;
 
-typedef struct {
+typedef struct Camera {
 	float3 pos;				// Position of the eye
 	float3 right;			// X axis of the camera's coordinate system
 	float3 up;				// Y axis of the camera's coordinate system
@@ -82,7 +78,7 @@ typedef struct {
 	float fov;				// Horizontal field of vision in °
 	uint width;				// Width of the canvas
 	uint height;			// Height of the canvas
-}Camera;
+} __attribute__ ((aligned(16),packed)) Camera;
 
 Ray cons_ray(float3 pos, float3 dir) {
 	Ray ray; ray.pos = pos; ray.dir = dir; return ray;

@@ -4,6 +4,8 @@
 #include "GLConsole.h"
 #include "Vector3.h"
 
+#pragma pack(1)
+__declspec(align(16))
 class Sphere {
 public:
 	Vector3 pos;		// Coordinate of the center
@@ -11,11 +13,11 @@ public:
 	cl_float r;		// Radius
 	cl_uint mati;	// Index to material
 	cl_uint texi;	// Index to texture info
-	cl_uint reserved;
 	void console_add();
 public:
 	Sphere(Vector3 pos, Vector3 ori, cl_float r, cl_uint mati, cl_uint texi = 0);
 };
+#pragma pack()
 
 Sphere::Sphere(Vector3 pos, Vector3 ori, cl_float r, cl_uint mati, cl_uint texi) {
 	this->pos = pos;
