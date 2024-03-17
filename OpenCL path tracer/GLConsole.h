@@ -13,7 +13,7 @@
 #include <algorithm>
 #include "Stopwatch.h"
 #include "CVarContainer.h"
-#include "Vector3.h"
+#include "Color.h"
 
 
 
@@ -39,11 +39,10 @@ private:
 	float acc_cursor;							// Controls the animation
 	float overlap;								// How much percent the console window takes from the screen
 	int scroll_lines;							// Number of lines scrolled when the mouse wheels move
-	Vector3 color_background;					// Color of the console window
-	float color_background_transparency;		// Transparency of the console window
-	Vector3 color_interface;						// Color of the console's interface
-	Vector3 color_text;							// Color of the text
-	Vector3 color_text_selection;				// Color of the selected text
+	Color color_background;					// Color of the console window
+    Color color_interface;						// Color of the console's interface
+    Color color_text;							// Color of the text
+    Color color_text_selection;				// Color of the selected text
 	float pos_scrollbar;						// Position of the scrollbar
 	int pos_scroll;								// Determines how much lines were shifted in the output buffer
 	int size_buffer_output;						// The output buffer's size
@@ -130,11 +129,10 @@ void GLConsole::init() {
 	acc_cursor = 0.0f;
 	overlap = 0.68f;							cvars.attach_cvar<float>("console.overlap", &overlap, "How much percent the console window takes from the screen. Interval: [0.2, 1].");
 	scroll_lines = 1;							cvars.attach_cvar<int>("console.buffers.scroll_lines", &scroll_lines, "Number of lines scrolled. Interval: [1, infty).");
-	color_background = Vector3(0, 0.5f, 1);		cvars.attach_cvar<Vector3>("console.colors.background", &color_background, "Color of the console window in RGB. Interval: [0, 1].");
-	color_background_transparency = 0.68f;		cvars.attach_cvar<float>("console.colors.background_transparency", &color_background_transparency, "Transparency of the console window, i.e. Alpha channel. Interval: [0, 1].");
-	color_interface = Vector3(1, 1, 1);			cvars.attach_cvar<Vector3>("console.colors.interface", &color_interface, "Color of the console interface in RGB. Interval: [0, 1].");
-	color_text = Vector3(1, 1, 1);				cvars.attach_cvar<Vector3>("console.colors.text", &color_text, "Color of the text in RGB. Interval: [0, 1].");
-	color_text_selection = Vector3(1, 0, 0);		cvars.attach_cvar<Vector3>("console.colors.text_selection", &color_text_selection, "Color of the selected text in RGB. Interval: [0, 1].");
+	color_background = Color(0, 0.5f, 1, 0.68f);		cvars.attach_cvar<Color>("console.colors.background", &color_background, "Color of the console window in RGBA. Interval: [0, 1].");
+	color_interface = Color(1, 1, 1);			cvars.attach_cvar<Color>("console.colors.interface", &color_interface, "Color of the console interface in RGBA. Interval: [0, 1].");
+	color_text = Color(1, 1, 1);				cvars.attach_cvar<Color>("console.colors.text", &color_text, "Color of the text in RGBA. Interval: [0, 1].");
+	color_text_selection = Color(1, 0, 0);		cvars.attach_cvar<Color>("console.colors.text_selection", &color_text_selection, "Color of the selected text in RGBA. Interval: [0, 1].");
 	pos_scrollbar = 0.0f;
 	pos_scroll = 0;
 	size_buffer_output = 1000;					cvars.attach_cvar<int>("console.buffers.output", &size_buffer_output, "The output buffer's size. Interval: [100, infty).");
@@ -155,11 +153,10 @@ void GLConsole::reset() {
 	animl_cursor = 1.0f;
 	overlap = 0.68f;
 	scroll_lines = 1;
-	color_background = Vector3(0, 0.5f, 1);
-	color_background_transparency = 0.68f;
-	color_interface = Vector3(1, 1, 1);
-	color_text = Vector3(1, 1, 1);
-	color_text_selection = Vector3(1, 0, 0);
+	color_background = Color(0, 0.5f, 1, 0.68f);
+	color_interface = Color(1, 1, 1);
+	color_text = Color(1, 1, 1);
+	color_text_selection = Color(1, 0, 0);
 	size_buffer_output = 1000;
 	pos_buffer_command = -1;
 	size_buffer_command = 50;
@@ -381,7 +378,7 @@ void GLConsole::roll_console(float dt) {
 	}
 	acc_rolling = tanh(acc_rolling / animl_rolling * 2) / tanh(2) * animl_rolling;		// Non linear scale for better animation effect
 	// Draw the console's window according to the elapsed time since the start of the animation
-	glColor4f(color_background[0], color_background[1], color_background[2], color_background_transparency);
+	glColor4f(color_background.R, color_background.G, color_background.B, color_background.A);
 	glBegin(GL_QUADS);
 	glVertex2f(-1, 1);
 	glVertex2f(1, 1);
@@ -400,7 +397,7 @@ void GLConsole::draw_console(float dt) {
 	int max_output_lines = overlap * height / char_height - 1;							// Maximum number of lines that fits in to the console
 
 	// Draw the background
-	glColor4f(color_background[0], color_background[1], color_background[2], color_background_transparency);	// Set background color
+	glColor4f(color_background.R, color_background.G, color_background.B, color_background.A);	// Set background color
 	glBegin(GL_QUADS);
 	glVertex2f(-1, 1);
 	glVertex2f(1, 1);
@@ -415,7 +412,7 @@ void GLConsole::draw_console(float dt) {
 	acc_interface = pow(acc_interface / animl_interface, 2);								// Human eye senses brightness not linearly
 	auto input_lines = this->handle_overflow(buffer_input, max_output_lines);				// Get lines from input buffer
 	int input_overflow_shift = (input_lines.size() - 1) * char_height;						// Determines the value needed to translate the raster position in pixels
-	glColor4f(color_interface[0], color_interface[1], color_interface[2], acc_interface);	// Sets color
+	glColor4f(color_interface.R, color_interface.G, color_interface.B, color_interface.A * acc_interface);	// Sets color
 	glWindowPos2i(console_x, console_y + input_overflow_shift);								// If no overflow, the cursor is at the bottom left side of the console by default
 	glutBitmapCharacter(GLUT_BITMAP_8_BY_13, '>');											// The cursor is part of the interface
 	for (int i = 0; i < input_lines.size(); ++i) {											// Start drawing the text in the input buffer
@@ -428,7 +425,7 @@ void GLConsole::draw_console(float dt) {
 			if (std::min(pos_selection, pos_cursor) <= b_pos && b_pos < std::max(pos_selection, pos_cursor) && selecting_buffer_input) {	// Check if char is in the selection
 				this->draw_selection(rasterpos[0], rasterpos[1]);
 			}
-			glColor4f(color_text[0], color_text[1], color_text[2], acc_interface);
+			glColor4f(color_text.R, color_text.G, color_text.B, color_text.A * acc_interface);
 			glWindowPos2i(rasterpos[0], rasterpos[1]);
 			glutBitmapCharacter(GLUT_BITMAP_8_BY_13, c);
 		}
@@ -436,7 +433,7 @@ void GLConsole::draw_console(float dt) {
 
 	// Draw the cursor
 	// The cursor is visible only in the first half
-	glColor4f(color_interface[0], color_interface[1], color_interface[2], acc_interface);
+	glColor4f(color_interface.R, color_interface.G, color_interface.B, color_interface.A * acc_interface);
 	acc_cursor = fmod(acc_cursor + dt, animl_cursor);
 	if (acc_cursor < animl_cursor / 2) {
 		int x_pos = console_x + (pos_cursor % max_chars_in_line + 1) * char_width;
@@ -446,7 +443,7 @@ void GLConsole::draw_console(float dt) {
 	}
 
 	// Draw buffer_output
-	glColor4f(color_text[0], color_text[1], color_text[2], acc_interface);
+	glColor4f(color_text.R, color_text.G, color_text.B, color_text.A * acc_interface);
 	auto output_lines = this->handle_overflow(buffer_output, max_output_lines);	// Get only enough lines to fill the console window from output buffer
 	for (int i = 0; i < output_lines.size(); ++i) {								// Print every line
 		glWindowPos2i(console_x + char_width, console_y + input_overflow_shift + (i + 1) * char_height);
@@ -460,14 +457,14 @@ void GLConsole::draw_console(float dt) {
 	glBegin(GL_QUADS);
 	// Draw scrollbar region
 	int start_x = width - 5; int start_y = height * (1 - overlap) + input_overflow_shift + char_height + 2;
-	glColor4f(color_interface[0], color_interface[1], color_interface[2], acc_interface);
+    glColor4f(color_interface.R, color_interface.G, color_interface.B, color_interface.A * acc_interface);
 	glVertex2f(start_x, start_y);							// Bottom left
 	glVertex2f(start_x, height);							// Top left
 	glVertex2f(start_x + 5, height);						// Top right
 	glVertex2f(start_x + 5, start_y);						// Bottom right
 	// Draw scrollbar slider
 	int shift = (height - (start_y + 20)) * pos_scrollbar;	// Shift for the slider
-	glColor4f(color_interface[0] * 0.7f, color_interface[1] * 0.7f, color_interface[2] * 0.7f, acc_interface);	// It's color is a little darker to be visible
+	glColor4f(color_interface.R * 0.7f, color_interface.G * 0.7f, color_interface.B * 0.7f, color_interface.A * acc_interface);	// It's color is a little darker to be visible
 	glVertex2f(start_x, start_y + shift);					// Bottom left
 	glVertex2f(start_x, start_y + 20 + shift);				// Top left
 	glVertex2f(start_x + 5, start_y + 20 + shift);			// Top right
@@ -476,7 +473,7 @@ void GLConsole::draw_console(float dt) {
 	glBegin(GL_LINE_LOOP);
 	// Draw input line box
 	start_x = 0; start_y = height * (1 - overlap);
-	glColor4f(color_interface[0], color_interface[1], color_interface[2], acc_interface);
+    glColor4f(color_interface.R, color_interface.G, color_interface.B, color_interface.A * acc_interface);
 	glVertex2f(start_x, start_y);														// Bottom left
 	glVertex2f(start_x, start_y + input_lines.size() * char_height + 2);				// Top left
 	glVertex2f(start_x + width - 1, start_y + input_lines.size() * char_height + 2);	// Top right
@@ -504,7 +501,7 @@ void GLConsole::draw_selection(int x, int y) {
 	glMatrixMode(GL_PROJECTION); glPushMatrix(); glLoadIdentity();							// Save current projection matrix
 	glOrtho(0.0, glutGet(GLUT_WINDOW_WIDTH), 0.0, glutGet(GLUT_WINDOW_HEIGHT), -1.0, 1.0);	// Transform it to able to draw in pixel coordinates
 	glMatrixMode(GL_MODELVIEW); glPushMatrix(); glLoadIdentity();							// Save current modelview matrix
-	glColor3f(color_text_selection[0], color_text_selection[1], color_text_selection[2]);
+	glColor4f(color_text_selection.R, color_text_selection.G, color_text_selection.B, color_text_selection.A);
 	glBegin(GL_QUADS);
 	glVertex2f(x, y);
 	glVertex2f(x, y + char_height);
