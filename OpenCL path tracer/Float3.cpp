@@ -1,157 +1,154 @@
 #include "Float3.h"
 
+#include <numbers>
+#include <format>
+
 Float3::Float3(float x, float y, float z)
 {
-    inner = cl_float3{ x, y, z };
+    _vector = cl_float3{ x, y, z };
 }
 
-Float3::Float3(cl_float3 c)
+Float3::Float3(cl_float3 vector)
 {
-    inner = c;
+    _vector = std::move(vector);
 }
 
-float Float3::Sum()
+float Float3::Sum() const
 {
-    Float3 inner = Float3(this->inner);
-    return inner[0] + inner[1] + inner[2];
+    return (*this)[0] + (*this)[1] + (*this)[2];
 }
 
-float Float3::Length()
+float Float3::Length() const
 {
-    Float3 inner = Float3(this->inner);
-    return sqrt((inner * inner).Sum());
+    return sqrt(Dot(*this));
 }
 
-Float3 Float3::Normalize()
+Float3 Float3::Normalize() const
 {
-    Float3 inner = Float3(this->inner);
-    return inner / inner.Length();
+    return *this / Length();
 }
 
-float Float3::Dot(Float3 c)
+float Float3::Dot(Float3 vector) const
 {
-    Float3 inner = Float3(this->inner);
-    return (inner * c).Sum();
+    return (*this * vector).Sum();
 }
 
-Float3 Float3::Cross(Float3 c)
+Float3 Float3::Cross(Float3 vector) const
 {
-    Float3 inner = Float3(this->inner);
-    return Float3(inner[1] * c[2] - c[1] * inner[2],
-        inner[2] * c[0] - c[2] * inner[0],
-        inner[0] * c[1] - c[0] * inner[1]);
+    return Float3(
+        (*this)[1] * vector[2] - vector[1] * (*this)[2],
+        (*this)[2] * vector[0] - vector[2] * (*this)[0],
+        (*this)[0] * vector[1] - vector[0] * (*this)[1]
+    );
 }
 
-Float3 Float3::operator+(Float3 c)
+Float3 Float3::operator+(Float3 vector) const
 {
-    Float3 inner = Float3(this->inner);
-    for (int i = 0; i < 3; ++i)
-        inner[i] = inner[i] + c[i];
-    return inner;
+    return Float3(
+        (*this)[0] + vector[0],
+        (*this)[1] + vector[1],
+        (*this)[2] + vector[2]
+    );
 }
 
-Float3 Float3::operator+(float c)
+Float3 Float3::operator+(float value) const
 {
-    Float3 inner = Float3(this->inner);
-    return inner + Float3(c, c, c);
+    return *this + Float3(value, value, value);
 }
 
-Float3 Float3::operator-(Float3 c)
+Float3 Float3::operator-(Float3 vector) const
 {
-    Float3 inner = Float3(this->inner);
-    for (int i = 0; i < 3; ++i)
-        inner[i] = inner[i] - c[i];
-    return inner;
+    return Float3(
+        (*this)[0] - vector[0],
+        (*this)[1] - vector[1],
+        (*this)[2] - vector[2]
+    );
 }
 
-Float3 Float3::operator-(float c)
+Float3 Float3::operator-(float value) const
 {
-    Float3 inner = Float3(this->inner);
-    return inner - Float3(c, c, c);
+    return *this - Float3(value, value, value);
 }
 
-Float3 Float3::operator*(Float3 c)
+Float3 Float3::operator-() const
 {
-    Float3 inner = Float3(this->inner);
-    for (int i = 0; i < 3; ++i)
-        inner[i] = inner[i] * c[i];
-    return inner;
+    return *this * -1;
 }
 
-Float3 Float3::operator*(float c)
+Float3 Float3::operator*(Float3 vector) const
 {
-    Float3 inner = Float3(this->inner);
-    return inner * Float3(c, c, c);
+    return Float3(
+        (*this)[0] * vector[0],
+        (*this)[1] * vector[1],
+        (*this)[2] * vector[2]
+    );
 }
 
-Float3 Float3::operator/(Float3 c)
+Float3 Float3::operator*(float value) const
 {
-    Float3 inner = Float3(this->inner);
-    for (int i = 0; i < 3; ++i)
-        inner[i] = inner[i] / c[i];
-    return inner;
+    return *this * Float3(value, value, value);
 }
 
-Float3 Float3::operator/(float c)
+Float3 Float3::operator/(Float3 vector) const
 {
-    Float3 inner = Float3(this->inner);
-    return inner / Float3(c, c, c);
+    return Float3(
+        (*this)[0] / vector[0],
+        (*this)[1] / vector[1],
+        (*this)[2] / vector[2]
+    );
 }
 
-float& Float3::operator[](int i)
+Float3 Float3::operator/(float value) const
 {
-    switch (i)
-    {
-    case 0:
-        return inner.x;
-        break;
-    case 1:
-        return inner.y;
-        break;
-    default:
-        return inner.z;
-        break;
-    }
+    return *this / Float3(value, value, value);
 }
 
-Float3 operator+(float c, Float3 r)
+float& Float3::operator[](int index)
 {
-    return Float3(c, c, c) + r;
+    return _vector.s[index];
 }
 
-Float3 operator-(float c, Float3 r)
+float const& Float3::operator[](int index) const
 {
-    return Float3(c, c, c) - r;
+    return _vector.s[index];
 }
 
-Float3 operator*(float c, Float3 r)
+Float3 operator+(float value, Float3 vector)
 {
-    return Float3(c, c, c) * r;
+    return Float3(value, value, value) + vector;
 }
 
-Float3 operator/(float c, Float3 r)
+Float3 operator-(float value, Float3 vector)
 {
-    return Float3(c, c, c) / r;
+    return Float3(value, value, value) - vector;
 }
 
-std::ostream& operator<<(std::ostream& os, Float3& c)
+Float3 operator*(float value, Float3 vector)
 {
-    os << "[" << c[0] << ", " << c[1] << ", " << c[2] << "]";
-    return os;
+    return Float3(value, value, value) * vector;
 }
 
-std::istream& operator>>(std::istream& is, Float3& c)
+Float3 operator/(float value, Float3 vector)
 {
-    //is >> c[0] >> c[1] >> c[2];
+    return Float3(value, value, value) / vector;
+}
+
+std::ostream& operator<<(std::ostream& os, Float3 vector)
+{
+    return os << std::format("[{}, {}, {}]", vector[0], vector[1], vector[2]);
+}
+
+std::istream& operator>>(std::istream& is, Float3 vector)
+{
     std::string str(std::istreambuf_iterator<char>(is), {});
-    sscanf(str.c_str(), "[%f,%f,%f]", &c[0], &c[1], &c[2]);
+    sscanf(str.c_str(), "[%f,%f,%f]", &vector[0], &vector[1], &vector[2]);
     return is;
 }
 
 Float3 Float3::Rotate(Float3 v, Float3 k, float theta)
 {
-    theta = theta / 180.0f * 3.14159265358979323846f;
-    float cost = cos(theta);
-    float sint = sin(theta);
-    return v * cost + k.Cross(v) * sint + k * k.Dot(v) * (1 - cost);
+    theta = theta / 180.0f * std::numbers::pi;
+    auto cosTheta = cos(theta);
+    auto sinTheta = sin(theta);
+    return v * cosTheta + k.Cross(v) * sinTheta + k * k.Dot(v) * (1 - cosTheta);
 }
