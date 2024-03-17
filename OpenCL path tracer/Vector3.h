@@ -3,13 +3,16 @@
 #include <CL\opencl.hpp>
 #include <iostream>
 
-/// <summary>
-/// Wraps cl_float3 with some additional convenient methods.
-/// </summary>
+#pragma pack(1)
+__declspec(align(16))
 class Vector3
 {
+public:
+    float x;
+    float y;
+    float z;
 private:
-    cl_float3 _vector;
+    float w = 0;
 public:
     Vector3(float x = 0, float y = 0, float z = 0);
 
@@ -46,3 +49,4 @@ public:
     /// <returns></returns>
     static Vector3 Rotate(Vector3 v, Vector3 k, float theta);
 };
+#pragma pack()
