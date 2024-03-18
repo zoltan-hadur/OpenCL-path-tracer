@@ -71,8 +71,8 @@
       <AdditionalDependencies>OpenCL.lib;freeglut.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /v /y "$(ProjectDir)kernel.cl" "$(OutDir)"
-</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -98,11 +98,12 @@
       <AdditionalDependencies>OpenCL.lib;freeglut.lib;glew32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /v /y "$(ProjectDir)kernel.cl" "$(OutDir)"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="kernel.cl" />
+    <CopyFileToFolders Include="kernel.cl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Bitmap.cpp" />

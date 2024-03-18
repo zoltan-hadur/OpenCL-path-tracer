@@ -15,9 +15,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="kernel.cl">
+    <CopyFileToFolders Include="kernel.cl">
       <Filter>Source Files</Filter>
-    </None>
+    </CopyFileToFolders>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
