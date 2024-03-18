@@ -11,16 +11,12 @@
 #include "Triangle.h"
 #include "Material.h"
 #include "TextureInfo.h"
+#include "EnumHelper.h"
+#include "ToneMap.h"
+#include "RayTracingMode.h"
 
 class Scene {
 private:
-	enum ToneMap {
-		RAW, SRGB, REINHARD, FILMIC, ToneMap_COUNT
-	};
-	enum Mode {
-		RAY_TRACING, PATH_TRACING, EXPLICIT_LIGHT_SAMPLING, Mode_COUNT
-	};
-
   int width;
   int height;
 	GLuint canvas_id;		// CLDevice renders to this texture
@@ -36,8 +32,8 @@ private:
 
 	cl_uint sample_id;
 	cl_uint max_depth;
-	cl_uint tone_map;
-	cl_uint mode;
+    ToneMap tone_map;
+    RayTracingMode mode;
 	cl_uint filter;
 public:
 	Scene();
@@ -69,8 +65,8 @@ void Scene::init(int width, int height) {
 
 	sample_id = 0;
 	max_depth = 7;
-	tone_map = REINHARD;
-	mode = RAY_TRACING;
+	tone_map = ToneMap::REINHARD;
+	mode = RayTracingMode::RAY_TRACING;
 	filter = 0;
 
 	GLConsole::add_function("app.commit(void)", std::bind(&Scene::commit, this));
@@ -150,12 +146,12 @@ void Scene::commit() {
 }
 
 void Scene::next_tone_map() {
-	tone_map = (tone_map + 1) % ToneMap_COUNT;
+    tone_map = EnumHelper<ToneMap>::Next(tone_map, ToneMap::ToneMap_COUNT);
 }
 
 void Scene::next_mode() {
 	sample_id = 0;
-	mode = (mode + 1) % Mode_COUNT;
+    mode = EnumHelper<RayTracingMode>::Next(mode, RayTracingMode::RayTracingMode_COUNT);
 }
 
 void Scene::next_filter() {

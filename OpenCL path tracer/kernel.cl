@@ -1,25 +1,21 @@
-//enum ToneMap {
-//	RAW, SRGB, REINHARD, FILMIC, ToneMap_COUNT
-//};
-//enum Mode {
-//	RAY_TRACING, PATH_TRACING, EXPLICIT_LIGHT_SAMPLING, Mode_COUNT
-//};
-//enum Texture {
-//	NOTHING, HAS_TEXTURE, HAS_BUMP_MAP
-//};
+typedef enum ToneMap {
+    RAW,
+    SRGB,
+    REINHARD,
+    FILMIC,
+    ToneMap_COUNT
+} __attribute__ ((packed)) ToneMap;
 
-#define RAW 0
-#define SRGB 1
-#define REINHARD 2
-#define FILMIC 3
+typedef enum RayTracingMode {
+    RAY_TRACING,
+    PATH_TRACING,
+    EXPLICIT_LIGHT_SAMPLING,
+    RayTracingMode_COUNT
+} __attribute__ ((packed)) RayTracingMode;
 
-#define RAY_TRACING 0
-#define PATH_TRACING 1
-#define EXPLICIT_LIGHT_SAMPLING 2
-
-#define NOTHING 0
-#define HAS_TEXTURE 1
-#define HAS_BUMP_MAP 2
+typedef enum Texture {
+	NOTHING, HAS_TEXTURE, HAS_BUMP_MAP
+} __attribute__ ((packed)) Texture;
 
 typedef struct Material {
 	float3 kd;			// Diffuse color
@@ -365,7 +361,7 @@ void kernel trace_rays(read_only image2d_array_t textures,
 					   global float3* radiances,
 					   const uint sample_id,
 					   const uint max_depth,
-					   const uint mode) {
+					   const RayTracingMode rayTracingMode) {
 
 	const sampler_t samplerA = CLK_NORMALIZED_COORDS_TRUE | CLK_ADDRESS_REPEAT | CLK_FILTER_LINEAR;
 	uint id = get_global_id(1)*get_global_size(0) + get_global_id(0);
@@ -434,7 +430,7 @@ void kernel trace_rays(read_only image2d_array_t textures,
 						rays[id] = ray_to;
 						sampled = false;
 					} else {
-						if (mode == RAY_TRACING || mode == EXPLICIT_LIGHT_SAMPLING) {
+						if (rayTracingMode == RAY_TRACING || rayTracingMode == EXPLICIT_LIGHT_SAMPLING) {
 							float width = 398.0f;
 							float3 light_pos = (float3)(601.0f + width*rand(&randoms[id]), 999.99, 1.0f + width*rand(&randoms[id]));
 							float r = length(light_pos - hit.pos);
@@ -450,12 +446,12 @@ void kernel trace_rays(read_only image2d_array_t textures,
 							} else {
 								sampled = false;
 							}
-							if (mode == RAY_TRACING) {
+							if (rayTracingMode == RAY_TRACING) {
 								i = 999;
 							}
 						}
 
-						if (mode == PATH_TRACING || mode == EXPLICIT_LIGHT_SAMPLING) {
+						if (rayTracingMode == PATH_TRACING || rayTracingMode == EXPLICIT_LIGHT_SAMPLING) {
 							// Compute two random numbers to pick a random point on the hemisphere above the hitpoint
 							float rand1 = 2.0f * M_PI * rand(&randoms[id]);
 							float rand2 = rand(&randoms[id]);
@@ -516,7 +512,7 @@ void kernel trace_rays(read_only image2d_array_t textures,
 
 void kernel draw_screen(write_only image2d_t canvas,
 						global float3* radiances,
-						const uint mode,
+						const ToneMap toneMap,
 						const uint filter) {
 
 	uint width = get_global_size(0);
@@ -596,7 +592,7 @@ void kernel draw_screen(write_only image2d_t canvas,
 	}
 
 	float4 out;
-	switch (mode) {
+	switch (toneMap) {
 		case RAW:
 			out = (float4)(color, 1);
 			break;

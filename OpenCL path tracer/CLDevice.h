@@ -19,6 +19,8 @@
 #include "Material.h"
 #include "TextureInfo.h"
 #include "Color.h"
+#include "ToneMap.h"
+#include "RayTracingMode.h"
 
 class CLDevice {
 private:
@@ -55,8 +57,8 @@ public:
 	void commit(std::vector<Sphere>& spheres, std::vector<Triangle>& triangles, std::vector<Material>& materials, std::vector<TextureInfo>& texture_infos);
 
 	void generate_primary_rays(Camera camera);
-	void trace_rays(cl_uint sample_id, cl_uint max_depth, cl_uint mode);
-	void draw_screen(cl_uint tone_map, cl_uint filter);
+	void trace_rays(cl_uint sample_id, cl_uint max_depth, RayTracingMode rayTracingMode);
+	void draw_screen(ToneMap tone_map, cl_uint filter);
 
 	std::vector<cl_float> bgr_to_rgb(std::vector<cl_uchar> const& image, int width, int height);			// Convert uchar BGR image to float RGBA image
 	std::vector<cl_float> rgb_to_grayscale(std::vector<cl_float>& image, int width, int height);	// Convert float RGBA image to float grayscale image
@@ -214,7 +216,7 @@ void CLDevice::generate_primary_rays(Camera camera) {
 	queue.enqueueNDRangeKernel(kernel_generate_primary_rays, cl::NullRange, cl::NDRange(width, height), cl::NullRange);
 }
 
-void CLDevice::trace_rays(cl_uint sample_id, cl_uint max_depth, cl_uint mode) {
+void CLDevice::trace_rays(cl_uint sample_id, cl_uint max_depth, RayTracingMode rayTracingMode) {
 	cl::Kernel kernel_trace_rays = cl::Kernel(program, "trace_rays");
 	kernel_trace_rays.setArg(0, buffer_textures);
 	kernel_trace_rays.setArg(1, buffer_bump_maps);
@@ -229,12 +231,12 @@ void CLDevice::trace_rays(cl_uint sample_id, cl_uint max_depth, cl_uint mode) {
 	kernel_trace_rays.setArg(10, buffer_radiances);
 	kernel_trace_rays.setArg(11, sample_id);
 	kernel_trace_rays.setArg(12, max_depth);
-	kernel_trace_rays.setArg(13, mode);
+	kernel_trace_rays.setArg(13, rayTracingMode);
 
 	queue.enqueueNDRangeKernel(kernel_trace_rays, cl::NullRange, cl::NDRange(width, height), cl::NullRange);
 }
 
-void CLDevice::draw_screen(cl_uint tone_map, cl_uint filter) {
+void CLDevice::draw_screen(ToneMap tone_map, cl_uint filter) {
 	cl::Kernel kernel_draw_screen = cl::Kernel(program, "draw_screen");
 	kernel_draw_screen.setArg(0, canvas);
 	kernel_draw_screen.setArg(1, buffer_radiances);

@@ -118,6 +118,9 @@
     <ClInclude Include="CVar.h" />
     <ClInclude Include="CVarBase.h" />
     <ClInclude Include="CVarContainer.h" />
+    <ClInclude Include="EnumHelper.h" />
+    <ClInclude Include="RayTracingMode.h" />
+    <ClInclude Include="ToneMap.h" />
     <ClInclude Include="Vector3.h" />
     <ClInclude Include="GLConsole.h" />
     <ClInclude Include="Material.h" />
