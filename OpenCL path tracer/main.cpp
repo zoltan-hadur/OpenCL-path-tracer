@@ -99,7 +99,7 @@ void onInitialization() {
 	scene.add_sphere(new Sphere(Vector3(800, R + sqrt(2)*R, 500), Vector3(45, 0, 0), R, s_white, full_ball));
 
 	scene.commit();
-	watch.start();
+	watch.Start();
 }
 
 void onDisplay() {
@@ -219,7 +219,7 @@ float wait_time = 0;
 float time_elapsed = 0;
 float acc = 0;
 void onIdle() {
-	float dt = watch.get_delta_time();
+	float dt = watch.GetDeltaTime();
 	time_elapsed = time_elapsed + dt;
 	acc = acc + dt;
 

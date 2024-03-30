@@ -1,38 +1,44 @@
 #include "Stopwatch.h"
 
+#include <stdexcept>
+
 Stopwatch::Stopwatch()
 {
-    start_time = 0;
-    last_time = 0;
-    TTL = 0;
-    running = false;
+    _startTime = std::chrono::steady_clock::time_point::min();
+    _lastTime = std::chrono::steady_clock::time_point::min();
+    _timeToLive = 0;
+    _isRunning = false;
 }
 
-void Stopwatch::start(float time_to_live)
+void Stopwatch::Start(float timeToLive)
 {
-    if (!running)
+    if (_isRunning)
     {
-        start_time = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
-        last_time = start_time;
-        TTL = time_to_live;
-        running = true;
+        throw std::runtime_error("Stopwatch is already running!");
     }
+
+    _startTime = std::chrono::steady_clock::now();
+    _lastTime = _startTime;
+    _timeToLive = timeToLive;
+    _isRunning = true;
 }
 
-void Stopwatch::stop()
+void Stopwatch::Stop()
 {
-    if (running)
+    if (!_isRunning)
     {
-        last_time = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
-        running = false;
+        throw std::runtime_error("Stopwatch is already stopped!");
     }
+
+    _lastTime = std::chrono::steady_clock::now();
+    _isRunning = false;
 }
 
-bool Stopwatch::try_stop()
+bool Stopwatch::TryStop()
 {
-    if (this->get_elapsed_time() > TTL)
+    if (_isRunning && GetElapsedTime() > _timeToLive)
     {
-        this->stop();
+        Stop();
         return true;
     }
     else
@@ -41,34 +47,25 @@ bool Stopwatch::try_stop()
     }
 }
 
-bool Stopwatch::is_running()
+bool Stopwatch::IsRunning()
 {
-    return running;
+    return _isRunning;
 }
 
-float Stopwatch::get_delta_time()
+float Stopwatch::GetDeltaTime()
 {
-    if (running)
+    if (!_isRunning)
     {
-        float time = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
-        float dt = time - last_time;
-        last_time = time;
-        return dt;
+        throw std::runtime_error("Stopwatch is not running!");
     }
-    else
-    {
-        throw "Stopwatch is not running!";
-    }
+
+    auto time = std::chrono::steady_clock::now();
+    auto dt = std::chrono::duration<float>(time - _lastTime);
+    _lastTime = time;
+    return dt.count();
 }
 
-float Stopwatch::get_elapsed_time()
+float Stopwatch::GetElapsedTime()
 {
-    if (running)
-    {
-        return glutGet(GLUT_ELAPSED_TIME) / 1000.0f - start_time;
-    }
-    else
-    {
-        return last_time - start_time;
-    }
+    return std::chrono::duration<float>((_isRunning ? std::chrono::steady_clock::now() : _lastTime) - _startTime).count();
 }

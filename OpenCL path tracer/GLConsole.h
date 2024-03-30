@@ -118,8 +118,8 @@ void GLConsole::init() {
 	glWindowPos2i = (PFNGLWINDOWPOS2IPROC)glutGetProcAddress("glWindowPos2i");	// Loads the function
 
 	state = CLOSED;
-	watch_render.start();
-	watch_command.start();
+	watch_render.Start();
+	watch_command.Start();
 
 	animl_rolling = 0.33f;						cvars.attach_cvar<float>("console.animations.rolling", &animl_rolling, "Time needed to roll down/up the console window in seconds. Interval: [0, infty).", std::bind(&GLConsole::animl_rolling_changed, this));
 	animl_interface = 0.25f;					cvars.attach_cvar<float>("console.animations.interface", &animl_interface, "Time needed for the console interface to appear/disappear in seconds. Interval: (0, infty).", std::bind(&GLConsole::animl_interface_changed, this));
@@ -194,7 +194,7 @@ bool GLConsole::is_open() {
 void GLConsole::draw() {
 	glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBindTexture(GL_TEXTURE_2D, 0);
-	float dt = watch_render.get_delta_time();// Gets the elapsed time in seconds since the last call
+	float dt = watch_render.GetDeltaTime();// Gets the elapsed time in seconds since the last call
 	if (state == ROLLING_DOWN || state == ROLLING_UP) {
 		this->roll_console(dt);				// Animate opening/closing
 	} else if (state == OPENED || state == INTERFACE_APPEARING || state == INTERFACE_DISAPPEARING) {
@@ -740,7 +740,7 @@ void GLConsole::process_commands() {
 		}
 	}
 
-	while (watch_command.try_stop() && !buffer_commands_single.empty()) {					// Executes commands until a wait command not called
+	while ((!watch_command.IsRunning() || watch_command.TryStop()) && !buffer_commands_single.empty()) {					// Executes commands until a wait command not called
 		std::string command = buffer_commands_single.front();
 		buffer_commands_single.pop_front();
 		this->process_command(command);
@@ -776,7 +776,7 @@ void GLConsole::process_command(std::string command) {
 	else if (command.substr(0, 4) == "wait") {
 		//std::this_thread::sleep_for(std::chrono::milliseconds(std::stoi(command.substr(4))));
 		float secs = std::stof(command.substr(4));
-		watch_command.start(secs);
+		watch_command.Start(secs);
 	}
 
 	else if (command == "reset") {												// Resets the console to the default state

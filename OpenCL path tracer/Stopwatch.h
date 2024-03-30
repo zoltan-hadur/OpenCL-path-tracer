@@ -1,20 +1,21 @@
 #pragma once
 
-#include <GL\freeglut.h>
+#include <chrono>
 
 class Stopwatch
 {
 private:
-    float start_time;
-    float last_time;
-    float TTL;
-    bool running;
+    std::chrono::steady_clock::time_point _startTime;
+    std::chrono::steady_clock::time_point _lastTime;
+    float _timeToLive;
+    bool _isRunning;
 public:
     Stopwatch();
-    void start(float time_to_live = 0);
-    void stop();
-    bool try_stop();
-    bool is_running();
-    float get_delta_time();
-    float get_elapsed_time();
+
+    void Start(float timeToLive = 0);
+    void Stop();
+    bool TryStop();
+    bool IsRunning();
+    float GetDeltaTime();
+    float GetElapsedTime();
 };
