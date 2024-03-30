@@ -111,6 +111,7 @@
     <ClCompile Include="Ray.cpp" />
     <ClCompile Include="Stopwatch.cpp" />
     <ClCompile Include="TextureInfo.cpp" />
+    <ClCompile Include="TextureType.cpp" />
     <ClCompile Include="Triangle.cpp" />
     <ClCompile Include="Vector3.cpp" />
     <ClCompile Include="main.cpp" />
@@ -124,6 +125,7 @@
     <ClInclude Include="CVarContainer.h" />
     <ClInclude Include="EnumHelper.h" />
     <ClInclude Include="RayTracingMode.h" />
+    <ClInclude Include="TextureType.h" />
     <ClInclude Include="ToneMap.h" />
     <ClInclude Include="Vector3.h" />
     <ClInclude Include="GLConsole.h" />

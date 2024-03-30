@@ -12,6 +12,7 @@
 #include <thread>
 #include "Scene.h"
 #include "GLConsole.h"
+#include "TextureType.h"
 
 GLConsole console;
 Scene scene;
@@ -44,11 +45,11 @@ void onInitialization() {
 	const int earth = scene.add_texture("textures/earth_2k.bmp");
 	const int squares = scene.add_texture("textures/squares_2k.bmp");
 	const int ball = scene.add_texture("textures/ball_14_1k.bmp");
-	const int tex_earth = scene.add_texture_info(earth, 1);
-	const int bump_earth = scene.add_texture_info(earth, 2);
-	const int full_earth = scene.add_texture_info(earth, 1 | 2);
-	const int bump_squares = scene.add_texture_info(squares, 2);
-	const int full_ball = scene.add_texture_info(ball, 1 | 2);
+	const int tex_earth = scene.add_texture_info(earth, TextureType::Texture);
+	const int bump_earth = scene.add_texture_info(earth, TextureType::BumpMap);
+	const int full_earth = scene.add_texture_info(earth, TextureType::Texture | TextureType::BumpMap);
+	const int bump_squares = scene.add_texture_info(squares, TextureType::BumpMap);
+	const int full_ball = scene.add_texture_info(ball, TextureType::Texture | TextureType::BumpMap);
 
 	// Lamp
 	scene.add_triangle(new Triangle(Vector3(600.0f, 999.99f, 0.0f), Vector3(1000.0f, 999.99f, 0.0f), Vector3(1000.0f, 999.99f, 400.0f), lamp));

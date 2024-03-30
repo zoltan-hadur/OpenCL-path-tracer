@@ -14,6 +14,7 @@
 #include "EnumHelper.h"
 #include "ToneMap.h"
 #include "RayTracingMode.h"
+#include "TextureType.h"
 
 class Scene {
 private:
@@ -42,7 +43,7 @@ public:
 	void add_triangle(Triangle* obj);
 	int add_material(Material* mat);
 	int add_texture(std::string file_path);
-	int add_texture_info(cl_uint index, cl_uint flag);
+	int add_texture_info(cl_uint index, TextureType textureType);
 	Camera& get_camera();
 	void commit();
 	void next_tone_map();
@@ -78,7 +79,7 @@ void Scene::init(int width, int height) {
 	canvas_id = device.get_canvas_id();
 	camera = Camera(width, height);
 
-	texture_infos.push_back(TextureInfo(0, 0, 0, 0));
+	texture_infos.push_back(TextureInfo(0, 0, 0, TextureType::Nothing));
 }
 
 void Scene::add_sphere(Sphere* obj) {
@@ -116,8 +117,8 @@ int Scene::add_texture(std::string file_path) {
 	}
 }
 
-int Scene::add_texture_info(cl_uint index, cl_uint flag) {
-	texture_infos.push_back(TextureInfo(texture_resolutions[index].first, texture_resolutions[index].second, index, flag));
+int Scene::add_texture_info(cl_uint index, TextureType textureType) {
+	texture_infos.push_back(TextureInfo(texture_resolutions[index].first, texture_resolutions[index].second, index, textureType));
 	return texture_infos.size() - 1;
 }
 

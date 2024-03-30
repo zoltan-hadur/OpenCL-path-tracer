@@ -1,9 +1,9 @@
 #include "TextureInfo.h"
 
-TextureInfo::TextureInfo(cl_float width, cl_float height, cl_uint index, cl_uint flag)
+TextureInfo::TextureInfo(float textureWidth, float textureHeight, uint32_t textureIndex, TextureType textureType)
 {
-    this->width = width;
-    this->height = height;
-    this->index = index;
-    this->flag = flag;
+    _textureWidth = textureWidth;
+    _textureHeight = textureHeight;
+    _textureIndex = textureIndex;
+    _textureType = textureType;
 }
