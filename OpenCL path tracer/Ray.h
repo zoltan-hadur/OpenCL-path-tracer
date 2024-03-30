@@ -12,8 +12,3 @@ public:
 	Ray(Vector3 o = Vector3(), Vector3 d = Vector3(0, 0, 1));
 };
 #pragma pack()
-
-Ray::Ray(Vector3 o, Vector3 d) {
-	pos = o;
-	dir = d;
-}
