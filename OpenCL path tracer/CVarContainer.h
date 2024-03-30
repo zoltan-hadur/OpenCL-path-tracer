@@ -116,7 +116,7 @@ void CVarContainer::print_tree(std::ostringstream& cout) {
 			found = variable.find(previous);
 		}
 		cout << std::string(previous.length(), ' ') << variable.substr(previous.length()) << std::string(max_length - variable.length(), ' ') << " = ";
-		node.second->print(cout, true);
+		node.second->Print(cout, true);
 		cout << "\n";
 		previous = variable.substr(0, variable.find_last_of('.'));
 	}

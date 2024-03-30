@@ -24,8 +24,8 @@ public:
 	T& get_var();																			// Get the variable of a CVar
 	void set_var_p(T* var);																	// Attach a variable to the CVar
 	void set_callback(std::function<void(void)> callback);
-	void print(std::ostream& os, bool only_var) override;									// Prints any type of variable, just need to overload << for your own class
-	void read(std::istream& is) override;													// Reads any type of variable, just need to overload >> for your own class
+    std::ostream& Print(std::ostream& os, bool onlyValue) const override;									// Prints any type of variable, just need to overload << for your own class
+    std::istream& Read(std::istream& is) override;													// Reads any type of variable, just need to overload >> for your own class
 	template<typename T> friend std::ostream& operator<<(std::ostream& os, CVar<T>& cvar);
 	template<typename T> friend std::istream& operator>>(std::istream& is, CVar<T>& cvar);
 };
@@ -42,8 +42,8 @@ template<typename T> void CVar<T>::set_callback(std::function<void(void)> callba
 	this->callback = callback;
 }
 
-template<typename T> void CVar<T>::print(std::ostream& os, bool only_var) {
-	if (only_var) {
+template<typename T> std::ostream& CVar<T>::Print(std::ostream& os, bool onlyValue) const {
+	if (onlyValue) {
 		os << *var;
 	} else {
 		os << name << " = " << *var;
@@ -51,21 +51,23 @@ template<typename T> void CVar<T>::print(std::ostream& os, bool only_var) {
 			os << "   |" << this->help << "|";
 		}
 	}
+    return os;
 }
 
-template<typename T> void CVar<T>::read(std::istream& is) {
+template<typename T> std::istream& CVar<T>::Read(std::istream& is) {
 	is >> *(this->var);
 	if (callback) {
 		callback();
 	}
+    return is;
 }
 
 template<typename T> std::ostream& operator<<(std::ostream& os, CVar<T>& cvar) {
-	cvar.print(os);
+	cvar.Print(os);
 	return os;
 }
 
 template<typename T> std::istream& operator>>(std::istream& is, CVar<T>& cvar) {
-    cvar.read(is);
+    cvar.Read(is);
     return is;
 }
