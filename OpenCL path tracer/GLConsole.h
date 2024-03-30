@@ -230,7 +230,7 @@ void GLConsole::on_keyboard(unsigned char key) {
 			}
 			break;
 		case 9:		// Tab key
-			this->complete_command();																				// Completes a CVar's name
+			this->complete_command();																				// Completes a ConsoleVariable's name
 			break;
 		case 8:		// Backspace key
 			this->delete_char_before();																				// Acts like backspace in every text editor
