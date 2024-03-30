@@ -4,70 +4,61 @@
 #include <string>
 #include <sstream>
 
+#include "ConsoleVariableBase.h"
+
 // Stores any type of data, that can be printed to the console, and can be set from the console
 // Class is based on https://github.com/arpg/CVars
-template<typename T> class ConsoleVariable : public ConsoleVariableBase {
+template<typename T> class ConsoleVariable : public ConsoleVariableBase
+{
 private:
-	std::string name;	// Name of the variable
-	T* var;				// Pointer to the variable, so they are attached (modifying the cvar also modifies tha variable and vice versa)
-	std::string help;	// Description of the variable
-	std::function<void(void)> callback;
+    T* _value;
+
 public:
-    // Creates a ConsoleVariable
-    ConsoleVariable(std::string name, T& var, std::string help, std::function<void(void)> callback = nullptr)
+    ConsoleVariable(std::string name, T* value, std::string description, std::function<void(void)> callback = nullptr) :
+        ConsoleVariableBase(name, description, callback)
     {
-        this->name = name;
-        this->var = (&var);
-        this->help = help;
-        this->callback = callback;
+        _value = value;
     }
-	T& get_var();																			// Get the variable of a ConsoleVariable
-	void set_var_p(T* var);																	// Attach a variable to the ConsoleVariable
-	void set_callback(std::function<void(void)> callback);
-    std::ostream& Print(std::ostream& os, bool onlyValue) const override;									// Prints any type of variable, just need to overload << for your own class
-    std::istream& Read(std::istream& is) override;													// Reads any type of variable, just need to overload >> for your own class
-	template<typename T> friend std::ostream& operator<<(std::ostream& os, ConsoleVariable<T>& cvar);
-	template<typename T> friend std::istream& operator>>(std::istream& is, ConsoleVariable<T>& cvar);
+
+    T& Value()
+    {
+        return *_value;
+    }
+
+    void Attach(T* value)
+    {
+        _value = value;
+    }
+
+    void SetCallback(std::function<void(void)> callback)
+    {
+        _callback = callback;
+    }
+
+    std::ostream& Print(std::ostream& os, bool onlyValue) const override
+    {
+        if (onlyValue)
+        {
+            os << *_value;
+        }
+        else
+        {
+            os << _name << " = " << *_value;
+            if (!_description.empty())
+            {
+                os << "   |" << _description << "|";
+            }
+        }
+        return os;
+    }
+
+    std::istream& Read(std::istream& is) override
+    {
+        is >> *_value;
+        if (_callback)
+        {
+            _callback();
+        }
+        return is;
+    }
 };
-
-template<typename T> T& ConsoleVariable<T>::get_var() {
-	return *(this->var);
-}
-
-template<typename T> void ConsoleVariable<T>::set_var_p(T* var) {
-	this->var = var;
-}
-
-template<typename T> void ConsoleVariable<T>::set_callback(std::function<void(void)> callback) {
-	this->callback = callback;
-}
-
-template<typename T> std::ostream& ConsoleVariable<T>::Print(std::ostream& os, bool onlyValue) const {
-	if (onlyValue) {
-		os << *var;
-	} else {
-		os << name << " = " << *var;
-		if (!help.empty()) {
-			os << "   |" << this->help << "|";
-		}
-	}
-    return os;
-}
-
-template<typename T> std::istream& ConsoleVariable<T>::Read(std::istream& is) {
-	is >> *(this->var);
-	if (callback) {
-		callback();
-	}
-    return is;
-}
-
-template<typename T> std::ostream& operator<<(std::ostream& os, ConsoleVariable<T>& cvar) {
-	cvar.Print(os);
-	return os;
-}
-
-template<typename T> std::istream& operator>>(std::istream& is, ConsoleVariable<T>& cvar) {
-    cvar.Read(is);
-    return is;
-}

@@ -41,9 +41,9 @@ ConsoleVariableBase* CVarContainer::find(std::string name, bool throw_exception)
 // Creates a ConsoleVariable and stores it, while returns a reference to the variable
 template<typename T> T& CVarContainer::create_cvar(std::string name, T& var, std::string help, std::function<void(void)> callback) {
 	if (find(name, false) == NULL) {							// If ConsoleVariable does not exist
-		ConsoleVariable<T>* cvar = new ConsoleVariable<T>(name, var, help, callback);	// Create it
+		ConsoleVariable<T>* cvar = new ConsoleVariable<T>(name, &var, help, callback);	// Create it
 		variables.insert({ name, cvar });						// Store it
-		return cvar->get_var();									// And return with it's value
+		return cvar->Value();									// And return with it's value
 	} else {
 		throw "ConsoleVariable already exist!";							// Else throw exception
 	}
@@ -54,7 +54,7 @@ template<typename T> T& CVarContainer::get_cvar(std::string name) {
 	ConsoleVariableBase* cvarnode = find(name, false);						// Try to find ConsoleVariable
 	if (cvarnode != NULL) {										// If found
 		ConsoleVariable<T>* cvar = (ConsoleVariable<T>*)cvarnode;						// Get it's value
-		return cvar->get_var();									// And return with it
+		return cvar->Value();									// And return with it
 	} else {
 		throw "ConsoleVariable does not exist!";							// Else throw exception
 	}
@@ -65,7 +65,7 @@ template<typename T> void CVarContainer::set_cvar(std::string name, T& var) {
 	ConsoleVariableBase* cvarnode = find(name, false);						// Try to find ConsoleVariable
 	if (cvarnode != NULL) {										// If found
 		ConsoleVariable<T>* cvar = (ConsoleVariable<T>*)cvarnode;						// Get it's value
-		cvar->get_var() = var;									// And set it to the new value
+		cvar->Value() = var;									// And set it to the new value
 	} else {
 		throw "ConsoleVariable does not exist!";							// Else throw exception
 	}
@@ -87,8 +87,8 @@ template<typename T> void CVarContainer::attach_cvar(std::string name, T* var, s
 	ConsoleVariableBase* cvarnode = find(name, false);						// Try to find ConsoleVariable
 	if (cvarnode != NULL) {										// If found
 		ConsoleVariable<T>* cvar = (ConsoleVariable<T>*)cvarnode;						// Get it's value
-		cvar->set_var_p(var);									// Set the pointer that points to the new data
-		cvar->set_callback(callback);
+		cvar->Attach(var);									// Set the pointer that points to the new data
+		cvar->SetCallback(callback);
 	} else {
 		this->create_cvar(name, *var, help, callback);			// Else create a ConsoleVariable
 	}
