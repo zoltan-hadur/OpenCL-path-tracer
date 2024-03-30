@@ -833,7 +833,7 @@ void GLConsole::process_command(std::string command) {
 	}
 
 	else try {																	// Gets the value of a variable
-		CVarBase* node = cvars.find(command);
+		ConsoleVariableBase* node = cvars.find(command);
 		cout << *node << "\n";
 	} catch (char const* str) {
 		cout << str << "\n";

@@ -6,7 +6,7 @@
 
 // Stores any type of data, that can be printed to the console, and can be set from the console
 // Class is based on https://github.com/arpg/CVars
-template<typename T> class CVar : public CVarBase {
+template<typename T> class CVar : public ConsoleVariableBase {
 private:
 	std::string name;	// Name of the variable
 	T* var;				// Pointer to the variable, so they are attached (modifying the cvar also modifies tha variable and vice versa)

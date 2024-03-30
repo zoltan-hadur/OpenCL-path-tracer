@@ -6,16 +6,16 @@
 #include <sstream>
 #include <ostream>
 #include <algorithm>
-#include "CVarBase.h"
+#include "ConsoleVariableBase.h"
 #include "CVar.h"
 
 // Manages CVars
 // Class is based on https://github.com/arpg/CVars
 class CVarContainer {
 private:
-	std::map<std::string, CVarBase*> variables;																								// Easy search for CVars using their names
+	std::map<std::string, ConsoleVariableBase*> variables;																								// Easy search for CVars using their names
 public:
-	CVarBase* find(std::string name, bool throw_exception = true);																			// Tries to find the corresponding CVar
+	ConsoleVariableBase* find(std::string name, bool throw_exception = true);																			// Tries to find the corresponding CVar
 	template<typename T> T& create_cvar(std::string name, T& var, std::string help = "", std::function<void(void)> callback = nullptr);		// Creates a CVar and stores it, while returns a reference to the variable
 	template<typename T> T& get_cvar(std::string name);																						// Returns the reference of the corresponding CVar's variable
 	template<typename T> void set_cvar(std::string name, T& var);																			// Sets the corresponding CVar's variable's value
@@ -26,7 +26,7 @@ public:
 };
 
 // Tries to find the corresponding CVar
-CVarBase* CVarContainer::find(std::string name, bool throw_exception) {
+ConsoleVariableBase* CVarContainer::find(std::string name, bool throw_exception) {
 	if (variables.find(name) == variables.end()) {				// If not found
 		if (throw_exception) {
 			throw "CVar does not exist!";						// Throw exception if flag is true
@@ -51,7 +51,7 @@ template<typename T> T& CVarContainer::create_cvar(std::string name, T& var, std
 
 // Returns the reference of the corresponding CVar's variable
 template<typename T> T& CVarContainer::get_cvar(std::string name) {
-	CVarBase* cvarnode = find(name, false);						// Try to find CVar
+	ConsoleVariableBase* cvarnode = find(name, false);						// Try to find CVar
 	if (cvarnode != NULL) {										// If found
 		CVar<T>* cvar = (CVar<T>*)cvarnode;						// Get it's value
 		return cvar->get_var();									// And return with it
@@ -62,7 +62,7 @@ template<typename T> T& CVarContainer::get_cvar(std::string name) {
 
 // Sets the corresponding CVar's variable's value
 template<typename T> void CVarContainer::set_cvar(std::string name, T& var) {
-	CVarBase* cvarnode = find(name, false);						// Try to find CVar
+	ConsoleVariableBase* cvarnode = find(name, false);						// Try to find CVar
 	if (cvarnode != NULL) {										// If found
 		CVar<T>* cvar = (CVar<T>*)cvarnode;						// Get it's value
 		cvar->get_var() = var;									// And set it to the new value
@@ -73,7 +73,7 @@ template<typename T> void CVarContainer::set_cvar(std::string name, T& var) {
 
 // Sets the corresponding CVar's variable's value that was read from the console
 void CVarContainer::set_cvar(std::string name, std::string value) {
-	CVarBase* cvarnode = find(name, false);						// Try to find CVar
+	ConsoleVariableBase* cvarnode = find(name, false);						// Try to find CVar
 	if (cvarnode != NULL) {										// If found
 		std::istringstream is(value);
 		is >> *cvarnode;										// Set it's value that was read from console
@@ -84,7 +84,7 @@ void CVarContainer::set_cvar(std::string name, std::string value) {
 
 // Attaches a variable to a CVar
 template<typename T> void CVarContainer::attach_cvar(std::string name, T* var, std::string help, std::function<void(void)> callback) {
-	CVarBase* cvarnode = find(name, false);						// Try to find CVar
+	ConsoleVariableBase* cvarnode = find(name, false);						// Try to find CVar
 	if (cvarnode != NULL) {										// If found
 		CVar<T>* cvar = (CVar<T>*)cvarnode;						// Get it's value
 		cvar->set_var_p(var);									// Set the pointer that points to the new data

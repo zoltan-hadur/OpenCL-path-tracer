@@ -121,7 +121,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Color.h" />
     <ClInclude Include="CVar.h" />
-    <ClInclude Include="CVarBase.h" />
+    <ClInclude Include="ConsoleVariableBase.h" />
     <ClInclude Include="CVarContainer.h" />
     <ClInclude Include="EnumHelper.h" />
     <ClInclude Include="RayTracingMode.h" />
