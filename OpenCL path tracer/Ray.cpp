@@ -1,7 +1,7 @@
 #include "Ray.h"
 
-Ray::Ray(Vector3 o, Vector3 d)
+Ray::Ray(Vector3 position, Vector3 direction)
 {
-    pos = o;
-    dir = d;
+    _position = position;
+    _direction = direction;
 }
