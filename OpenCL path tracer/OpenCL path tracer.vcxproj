@@ -108,6 +108,7 @@
   <ItemGroup>
     <ClCompile Include="Bitmap.cpp" />
     <ClCompile Include="Color.cpp" />
+    <ClCompile Include="ConsoleVariableBase.cpp" />
     <ClCompile Include="Ray.cpp" />
     <ClCompile Include="Stopwatch.cpp" />
     <ClCompile Include="TextureInfo.cpp" />
