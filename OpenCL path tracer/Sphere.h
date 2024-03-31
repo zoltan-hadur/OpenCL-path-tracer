@@ -1,7 +1,9 @@
 #pragma once
 
+#include <format>
 #include <CL\opencl.hpp>
 #include "GLConsole.h"
+#include "ConsoleVariable.h"
 #include "Vector3.h"
 
 #pragma pack(1)
@@ -30,10 +32,10 @@ Sphere::Sphere(Vector3 pos, Vector3 ori, cl_float r, cl_uint mati, cl_uint texi)
 
 void Sphere::console_add() {
 	static unsigned int id = 0;
-	GLConsole::cvars.attach_cvar("app.objects.spheres[" + std::to_string(id) + "].pos", &pos);
-	GLConsole::cvars.attach_cvar("app.objects.spheres[" + std::to_string(id) + "].ori", &ori);
-	GLConsole::cvars.attach_cvar("app.objects.spheres[" + std::to_string(id) + "].r", &r);
-	GLConsole::cvars.attach_cvar("app.objects.spheres[" + std::to_string(id) + "].mati", &mati);
-	GLConsole::cvars.attach_cvar("app.objects.spheres[" + std::to_string(id) + "].texi", &texi);
+	GLConsole::cvars.Add(ConsoleVariable(&pos, std::format("app.objects.spheres[{}].pos", id)));
+    GLConsole::cvars.Add(ConsoleVariable(&ori, std::format("app.objects.spheres[{}].ori", id)));
+    GLConsole::cvars.Add(ConsoleVariable(&r, std::format("app.objects.spheres[{}].r", id)));
+    GLConsole::cvars.Add(ConsoleVariable(&mati, std::format("app.objects.spheres[{}].mati", id)));
+    GLConsole::cvars.Add(ConsoleVariable(&texi, std::format("app.objects.spheres[{}].texi", id)));
 	id++;
 }

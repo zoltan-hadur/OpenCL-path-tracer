@@ -27,7 +27,7 @@ void onInitialization() {
 	scene.init(screen_width, screen_height);
 	console.init();
 	console.print_help();
-	max_fps = 30; GLConsole::cvars.attach_cvar<float>("app.max_fps", &max_fps, "Determines the maximum allowed frames per second. Interval: [30, infty).");
+	max_fps = 30; GLConsole::cvars.Add(ConsoleVariable(&max_fps, "app.max_fps", "Determines the maximum allowed frames per second. Interval: [30, infty)."));
 
 	const int lamp = scene.add_material(new Material(Vector3(0.0, 0.0, 0.0), Vector3(0.0, 0.0, 0.0), Vector3(8, 6, 4) * 1, 0, 0, 0));
 	const int d_red = scene.add_material(new Material(Vector3(1.0, 0.3, 0.3), Vector3(0.04, 0.04, 0.04), Vector3(0, 0, 0), 2, 1, 1));

@@ -7,6 +7,11 @@ ConsoleVariableBase::ConsoleVariableBase(std::string name, std::string descripti
     _callback = callback;
 }
 
+std::string ConsoleVariableBase::Name() const
+{
+    return _name;
+}
+
 std::ostream& operator<<(std::ostream& os, ConsoleVariableBase const& node)
 {
     return node.Print(os);

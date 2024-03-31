@@ -14,7 +14,7 @@ private:
     T* _value;
 
 public:
-    ConsoleVariable(std::string name, T* value, std::string description, std::function<void(void)> callback = nullptr) :
+    ConsoleVariable(T* value, std::string name, std::string description = "", std::function<void(void)> callback = nullptr) :
         ConsoleVariableBase(name, description, callback)
     {
         _value = value;

@@ -121,24 +121,35 @@ void GLConsole::init() {
 	watch_render.Start();
 	watch_command.Start();
 
-	animl_rolling = 0.33f;						cvars.attach_cvar<float>("console.animations.rolling", &animl_rolling, "Time needed to roll down/up the console window in seconds. Interval: [0, infty).", std::bind(&GLConsole::animl_rolling_changed, this));
-	animl_interface = 0.25f;					cvars.attach_cvar<float>("console.animations.interface", &animl_interface, "Time needed for the console interface to appear/disappear in seconds. Interval: (0, infty).", std::bind(&GLConsole::animl_interface_changed, this));
-	animl_cursor = 1.0f;						cvars.attach_cvar<float>("console.animations.cursor", &animl_cursor, "Frequency of the cursor's blinking in Hz. Interval: [0.1, infty).");
+	animl_rolling = 0.33f;
+    cvars.Add(ConsoleVariable(&animl_rolling, "console.animations.rolling", "Time needed to roll down/up the console window in seconds. Interval: [0, infty).", std::bind(&GLConsole::animl_rolling_changed, this)));
+	animl_interface = 0.25f;
+    cvars.Add(ConsoleVariable(&animl_interface, "console.animations.interface", "Time needed for the console interface to appear/disappear in seconds. Interval: (0, infty).", std::bind(&GLConsole::animl_interface_changed, this)));
+	animl_cursor = 1.0f;
+    cvars.Add(ConsoleVariable(&animl_cursor, "console.animations.cursor", "Frequency of the cursor's blinking in Hz. Interval: [0.1, infty)."));
 	acc_rolling = 0.0f;
 	acc_interface = 0.0f;
 	acc_cursor = 0.0f;
-	overlap = 0.68f;							cvars.attach_cvar<float>("console.overlap", &overlap, "How much percent the console window takes from the screen. Interval: [0.2, 1].");
-	scroll_lines = 1;							cvars.attach_cvar<int>("console.buffers.scroll_lines", &scroll_lines, "Number of lines scrolled. Interval: [1, infty).");
-	color_background = Color(0, 0.5f, 1, 0.68f);		cvars.attach_cvar<Color>("console.colors.background", &color_background, "Color of the console window in RGBA. Interval: [0, 1].");
-	color_interface = Color(1, 1, 1);			cvars.attach_cvar<Color>("console.colors.interface", &color_interface, "Color of the console interface in RGBA. Interval: [0, 1].");
-	color_text = Color(1, 1, 1);				cvars.attach_cvar<Color>("console.colors.text", &color_text, "Color of the text in RGBA. Interval: [0, 1].");
-	color_text_selection = Color(1, 0, 0);		cvars.attach_cvar<Color>("console.colors.text_selection", &color_text_selection, "Color of the selected text in RGBA. Interval: [0, 1].");
+	overlap = 0.68f;
+    cvars.Add(ConsoleVariable(&overlap, "console.overlap", "How much percent the console window takes from the screen. Interval: [0.2, 1]."));
+	scroll_lines = 1;
+    cvars.Add(ConsoleVariable(&scroll_lines, "console.buffers.scroll_lines", "Number of lines scrolled. Interval: [1, infty)."));
+	color_background = Color(0, 0.5f, 1, 0.68f);
+    cvars.Add(ConsoleVariable(&color_background, "console.colors.background", "Color of the console window in RGBA. Interval: [0, 1]."));
+	color_interface = Color(1, 1, 1);
+    cvars.Add(ConsoleVariable(&color_interface, "console.colors.interface", "Color of the console interface in RGBA. Interval: [0, 1]."));
+	color_text = Color(1, 1, 1);
+    cvars.Add(ConsoleVariable(&color_text, "console.colors.text", "Color of the text in RGBA. Interval: [0, 1]."));
+	color_text_selection = Color(1, 0, 0);
+    cvars.Add(ConsoleVariable(&color_text_selection, "console.colors.text_selection", "Color of the selected text in RGBA. Interval: [0, 1]."));
 	pos_scrollbar = 0.0f;
 	pos_scroll = 0;
-	size_buffer_output = 1000;					cvars.attach_cvar<int>("console.buffers.output", &size_buffer_output, "The output buffer's size. Interval: [100, infty).");
+	size_buffer_output = 1000;
+    cvars.Add(ConsoleVariable(&size_buffer_output, "console.buffers.output", "The output buffer's size. Interval: [100, infty)."));
 	buffer_output = std::deque<std::string>();
 	pos_buffer_command = -1;
-	size_buffer_command = 50;					cvars.attach_cvar<int>("console.buffers.command", &size_buffer_command, "The command buffer's size. Interval: [10, infty).");
+	size_buffer_command = 50;
+    cvars.Add(ConsoleVariable(&size_buffer_command, "console.buffers.command", "The command buffer's size. Interval: [10, infty)."));
 	buffer_command = std::deque<std::string>();
 	pos_cursor = 0;
 	pos_selection = 0;
@@ -705,7 +716,7 @@ void GLConsole::complete_command() {
 	std::string partial = command;
 	partial.erase(std::remove(partial.begin(), partial.end(), ' '), partial.end());	// Remove spaces
 	partial = partial.substr(partial.find_last_of(';') + 1);
-	command = command + cvars.complete(partial);									// Complete the command
+	command = command + cvars.AutoComplete(partial);									// Complete the command
 	buffer_input = std::deque<unsigned char>(command.begin(), command.end());		// Write back to input buffer
 	this->cursor_jump_right();
 }
@@ -753,7 +764,7 @@ void GLConsole::process_command(std::string command) {
 	}
 
 	else if (command == "list") {												// Lists the modifiable variables with their associated value
-		cvars.print_tree(cout);
+		cvars.Print(cout);
 	}
 
 	else if (command == "cls") {												// Completly clears the screen
@@ -825,17 +836,28 @@ void GLConsole::process_command(std::string command) {
 		auto pos = command.find('=');
 		std::string name = command.substr(0, pos);								// Name of the variable
 		std::string value = command.substr(pos + 1);							// Value to be set
-		try {
-			cvars.set_cvar(name, value);										// Possibility of not existing cvar
-		} catch (char const* str) {
-			cout << str << "\n";
-		}
+        auto variable = cvars.Find(name);
+        if (variable)
+        {
+            std::istringstream is(value);
+            is >> *variable;
+        }
+        else
+        {
+            cout << "Console variable does not exist!\n";
+        }
 	}
 
-	else try {																	// Gets the value of a variable
-		ConsoleVariableBase* node = cvars.find(command);
-		cout << *node << "\n";
-	} catch (char const* str) {
-		cout << str << "\n";
-	}
+    else
+    {
+        ConsoleVariableBase* node = cvars.Find(command);
+        if (node)
+        {
+            cout << *node << "\n";
+        }
+        else
+        {
+            cout << "Console variable does not exist!\n";
+        }
+    }
 }
