@@ -123,7 +123,7 @@
     <ClInclude Include="Color.h" />
     <ClInclude Include="ConsoleVariable.h" />
     <ClInclude Include="ConsoleVariableBase.h" />
-    <ClInclude Include="CVarContainer.h" />
+    <ClInclude Include="ConsoleVariableManager.h" />
     <ClInclude Include="EnumHelper.h" />
     <ClInclude Include="RayTracingMode.h" />
     <ClInclude Include="TextureType.h" />

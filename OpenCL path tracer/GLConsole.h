@@ -12,7 +12,7 @@
 #include <sstream>
 #include <algorithm>
 #include "Stopwatch.h"
-#include "CVarContainer.h"
+#include "ConsoleVariableManager.h"
 #include "Color.h"
 
 
@@ -83,7 +83,7 @@ private:
 	void process_commands();					// Processes the commands in the commands buffer
 	void process_command(std::string command);	// Processes a single command
 public:
-	static CVarContainer cvars;					// Variables that are attached to normal variables, and vice versa modifiable from the console
+	static ConsoleVariableManager cvars;					// Variables that are attached to normal variables, and vice versa modifiable from the console
 	static std::ostringstream cout;				// Console out, works like std::cout
 
 	GLConsole();								// Does nothing. Must call init to work properly
@@ -107,7 +107,7 @@ public:
 };
 
 std::map<std::string, std::function<void(std::vector<std::string>)>> GLConsole::funcs;	// Static variables need to be defined
-CVarContainer GLConsole::cvars;										// Static variables need to be defined
+ConsoleVariableManager GLConsole::cvars;										// Static variables need to be defined
 std::ostringstream GLConsole::cout;									// Static variables need to be defined
 
 GLConsole::GLConsole() {

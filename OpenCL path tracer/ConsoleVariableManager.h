@@ -11,7 +11,7 @@
 
 // Manages CVars
 // Class is based on https://github.com/arpg/CVars
-class CVarContainer {
+class ConsoleVariableManager {
 private:
 	std::map<std::string, ConsoleVariableBase*> variables;																								// Easy search for CVars using their names
 public:
@@ -26,7 +26,7 @@ public:
 };
 
 // Tries to find the corresponding ConsoleVariable
-ConsoleVariableBase* CVarContainer::find(std::string name, bool throw_exception) {
+ConsoleVariableBase* ConsoleVariableManager::find(std::string name, bool throw_exception) {
 	if (variables.find(name) == variables.end()) {				// If not found
 		if (throw_exception) {
 			throw "ConsoleVariable does not exist!";						// Throw exception if flag is true
@@ -39,7 +39,7 @@ ConsoleVariableBase* CVarContainer::find(std::string name, bool throw_exception)
 }
 
 // Creates a ConsoleVariable and stores it, while returns a reference to the variable
-template<typename T> T& CVarContainer::create_cvar(std::string name, T& var, std::string help, std::function<void(void)> callback) {
+template<typename T> T& ConsoleVariableManager::create_cvar(std::string name, T& var, std::string help, std::function<void(void)> callback) {
 	if (find(name, false) == NULL) {							// If ConsoleVariable does not exist
 		ConsoleVariable<T>* cvar = new ConsoleVariable<T>(name, &var, help, callback);	// Create it
 		variables.insert({ name, cvar });						// Store it
@@ -50,7 +50,7 @@ template<typename T> T& CVarContainer::create_cvar(std::string name, T& var, std
 }
 
 // Returns the reference of the corresponding ConsoleVariable's variable
-template<typename T> T& CVarContainer::get_cvar(std::string name) {
+template<typename T> T& ConsoleVariableManager::get_cvar(std::string name) {
 	ConsoleVariableBase* cvarnode = find(name, false);						// Try to find ConsoleVariable
 	if (cvarnode != NULL) {										// If found
 		ConsoleVariable<T>* cvar = (ConsoleVariable<T>*)cvarnode;						// Get it's value
@@ -61,7 +61,7 @@ template<typename T> T& CVarContainer::get_cvar(std::string name) {
 }
 
 // Sets the corresponding ConsoleVariable's variable's value
-template<typename T> void CVarContainer::set_cvar(std::string name, T& var) {
+template<typename T> void ConsoleVariableManager::set_cvar(std::string name, T& var) {
 	ConsoleVariableBase* cvarnode = find(name, false);						// Try to find ConsoleVariable
 	if (cvarnode != NULL) {										// If found
 		ConsoleVariable<T>* cvar = (ConsoleVariable<T>*)cvarnode;						// Get it's value
@@ -72,7 +72,7 @@ template<typename T> void CVarContainer::set_cvar(std::string name, T& var) {
 }
 
 // Sets the corresponding ConsoleVariable's variable's value that was read from the console
-void CVarContainer::set_cvar(std::string name, std::string value) {
+void ConsoleVariableManager::set_cvar(std::string name, std::string value) {
 	ConsoleVariableBase* cvarnode = find(name, false);						// Try to find ConsoleVariable
 	if (cvarnode != NULL) {										// If found
 		std::istringstream is(value);
@@ -83,7 +83,7 @@ void CVarContainer::set_cvar(std::string name, std::string value) {
 }
 
 // Attaches a variable to a ConsoleVariable
-template<typename T> void CVarContainer::attach_cvar(std::string name, T* var, std::string help, std::function<void(void)> callback) {
+template<typename T> void ConsoleVariableManager::attach_cvar(std::string name, T* var, std::string help, std::function<void(void)> callback) {
 	ConsoleVariableBase* cvarnode = find(name, false);						// Try to find ConsoleVariable
 	if (cvarnode != NULL) {										// If found
 		ConsoleVariable<T>* cvar = (ConsoleVariable<T>*)cvarnode;						// Get it's value
@@ -95,7 +95,7 @@ template<typename T> void CVarContainer::attach_cvar(std::string name, T* var, s
 }
 
 // Prints all ConsoleVariable to the given ostream
-void CVarContainer::print_tree(std::ostringstream& cout) {
+void ConsoleVariableManager::print_tree(std::ostringstream& cout) {
 	int max_length = 0;
 	for (auto node : variables) {								// Find the longest ConsoleVariable name's length's
 		max_length = std::max(max_length, (int)node.first.length());
@@ -123,7 +123,7 @@ void CVarContainer::print_tree(std::ostringstream& cout) {
 }
 
 // Tries to complete a ConsoleVariable's name whose was partially given
-std::string CVarContainer::complete(std::string name) {
+std::string ConsoleVariableManager::complete(std::string name) {
 	for (auto node : variables) {								// Iterates through all the ConsoleVariable
 		//auto found = node.first.substr(0, name.length()).find(name, 0);					// Tries to find the partial name in the ConsoleVariable's name's
 		//if (found != std::string::npos) {						// 
