@@ -388,8 +388,8 @@ void GLConsole::draw_console(float dt)
     // Draw the cursor
     // The cursor is visible only in the first half
     glColor4f(color_interface.R, color_interface.G, color_interface.B, color_interface.A * acc_interface);
-    acc_cursor = fmod(acc_cursor + dt, animl_cursor);
-    if (acc_cursor < animl_cursor / 2)
+    acc_cursor = fmod(acc_cursor + dt, 1.0 / animl_cursor);
+    if (acc_cursor < 1.0 / animl_cursor / 2)
     {
         int x_pos = console_x + (pos_cursor % max_chars_in_line + 1) * char_width;
         int y_pos = console_y - 2 + ((input_lines.size() - 1) - pos_cursor / max_chars_in_line) * char_height;
