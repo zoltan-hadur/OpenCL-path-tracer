@@ -107,6 +107,15 @@ void onDisplay() {
 	glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // Top left is (0, 0), x goes right, y goes down
+    auto width = glutGet(GLUT_WINDOW_WIDTH);
+    auto height = glutGet(GLUT_WINDOW_HEIGHT);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0, width, 0, height, -1, 1);
+    glScalef(1, -1, 1);
+    glTranslatef(0, -height, 0);
+
 	scene.draw();
 	console.draw();
 

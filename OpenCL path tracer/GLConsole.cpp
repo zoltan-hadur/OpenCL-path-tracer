@@ -15,7 +15,7 @@ void GLConsole::init()
 {
     glWindowPos2i = (PFNGLWINDOWPOS2IPROC)glutGetProcAddress("glWindowPos2i");	// Loads the function
 
-    state = CLOSED;
+    state = State::CLOSED;
     watch_render.Start();
     watch_command.Start();
 
@@ -79,27 +79,27 @@ void GLConsole::reset()
 
 void GLConsole::open()
 {
-    if (state == CLOSED)
+    if (state == State::CLOSED)
     {					// If the console is closed,
-        state = ROLLING_DOWN;				// starts a ROLLING_DOWN->INTERFACE_APPEARING->OPENED process
+        state = State::ROLLING_DOWN;				// starts a ROLLING_DOWN->INTERFACE_APPEARING->OPENED process
     }
 }
 
 void GLConsole::close()
 {
-    if (state == OPENED)
+    if (state == State::OPENED)
     {					// If the console is opened,
-        state = INTERFACE_DISAPPEARING;		// starts an INTERFACE_DISAPPEARING->ROLLING_UP->CLOSED process
+        state = State::INTERFACE_DISAPPEARING;		// starts an INTERFACE_DISAPPEARING->ROLLING_UP->CLOSED process
     }
 }
 
 void GLConsole::toggle()
 {
-    if (state == OPENED)
+    if (state == State::OPENED)
     {					// If the console is opened,
         this->close();						// closes it
     }
-    else if (state == CLOSED)
+    else if (state == State::CLOSED)
     {			// Else if the console is closed,
         this->open();						// opens it
     }
@@ -107,22 +107,52 @@ void GLConsole::toggle()
 
 bool GLConsole::is_open()
 {
-    return state == OPENED;					// Returns true if the console is opened
+    return state == State::OPENED;					// Returns true if the console is opened
 }
 
 void GLConsole::draw()
 {
-    glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    float dt = watch_render.GetDeltaTime();// Gets the elapsed time in seconds since the last call
-    if (state == ROLLING_DOWN || state == ROLLING_UP)
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    float dt = watch_render.GetDeltaTime();
+    
+    if (state == State::ROLLING_DOWN)
     {
-        this->roll_console(dt);				// Animate opening/closing
+        acc_rolling = std::min(acc_rolling + dt, animl_rolling);
+        if (acc_rolling == animl_rolling)
+        {
+            state = State::INTERFACE_APPEARING;
+        }
     }
-    else if (state == OPENED || state == INTERFACE_APPEARING || state == INTERFACE_DISAPPEARING)
+    else if (state == State::ROLLING_UP)
+    {
+        acc_rolling = std::max(acc_rolling - dt, 0.0f);
+        if (acc_rolling == 0.0f)
+        {
+            state = State::CLOSED;
+        }
+    }
+
+    int width = glutGet(GLUT_WINDOW_WIDTH);
+    int height = glutGet(GLUT_WINDOW_HEIGHT);
+
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glTranslatef(0, -height * overlap * (1 - acc_rolling / animl_rolling), 0);
+    glColor4f(color_background.R, color_background.G, color_background.B, color_background.A);
+    glBegin(GL_QUADS);
+    glVertex2f(0, 0);
+    glVertex2f(0, height * overlap);
+    glVertex2f(width, height * overlap);
+    glVertex2f(width, 0);
+    glEnd();
+    glPopMatrix();
+
+    if (state == State::OPENED || state == State::INTERFACE_APPEARING || state == State::INTERFACE_DISAPPEARING)
     {
         this->draw_console(dt);				// Animate interface appearing/disapperaing and drawing text
     }
+    glDisable(GL_BLEND);
 }
 
 void GLConsole::process()
@@ -292,11 +322,6 @@ void GLConsole::add_function(std::string name, std::function<void(std::vector<st
     funcs.insert({ name, f });
 }
 
-void GLConsole::remove_function(std::string name)
-{
-    funcs.erase(name);
-}
-
 
 void GLConsole::animl_rolling_changed()
 {
@@ -306,36 +331,6 @@ void GLConsole::animl_rolling_changed()
 void GLConsole::animl_interface_changed()
 {
     acc_interface = animl_interface;
-}
-
-void GLConsole::roll_console(float dt)
-{
-    if (state == ROLLING_DOWN)
-    {									// If the console window is rolling down
-        acc_rolling = std::min(acc_rolling + dt, animl_rolling);	// Increment the variable
-        if (acc_rolling == animl_rolling)
-        {							// When the animation finishes
-            state = INTERFACE_APPEARING;							// Move to the next state
-        }
-    }
-    else if (state == ROLLING_UP)
-    {								// If the console window is rolling up
-        acc_rolling = std::max(acc_rolling - dt, 0.0f);				// Decrement the variable
-        if (acc_rolling == 0.0f)
-        {									// When the animation finishes
-            state = CLOSED;											// Move to the next state
-        }
-    }
-    acc_rolling = tanh(acc_rolling / animl_rolling * 2) / tanh(2) * animl_rolling;		// Non linear scale for better animation effect
-    // Draw the console's window according to the elapsed time since the start of the animation
-    glColor4f(color_background.R, color_background.G, color_background.B, color_background.A);
-    glBegin(GL_QUADS);
-    glVertex2f(-1, 1);
-    glVertex2f(1, 1);
-    glVertex2f(1, 1 - 2 * (overlap * acc_rolling / animl_rolling));	// acc_rolling == 0 -> the console window is not visible
-    glVertex2f(-1, 1 - 2 * (overlap * acc_rolling / animl_rolling));// acc_rolling == animl_rolling -> the console window is fully visible
-    glEnd();
-    acc_rolling = atanh(acc_rolling / animl_rolling * tanh(2)) / 2 * animl_rolling;		// Scaling back to linear
 }
 
 void GLConsole::draw_console(float dt)
@@ -438,20 +433,20 @@ void GLConsole::draw_console(float dt)
     glPopMatrix(); glMatrixMode(GL_PROJECTION); glPopMatrix(); glMatrixMode(GL_MODELVIEW);	// Load the previously saved matrices
 
     acc_interface = sqrt(acc_interface) * animl_interface;	// Scaling back
-    if (state == INTERFACE_APPEARING)
+    if (state == State::INTERFACE_APPEARING)
     {
         acc_interface = std::min(acc_interface + dt, animl_interface);
         if (acc_interface == animl_interface)
         {
-            state = OPENED;
+            state = State::OPENED;
         }
     }
-    else if (state == INTERFACE_DISAPPEARING)
+    else if (state == State::INTERFACE_DISAPPEARING)
     {
         acc_interface = std::max(acc_interface - dt, 0.0f);
         if (acc_interface == 0.0f)
         {
-            state = ROLLING_UP;
+            state = State::ROLLING_UP;
         }
     }
 }

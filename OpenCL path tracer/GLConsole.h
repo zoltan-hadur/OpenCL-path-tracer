@@ -23,7 +23,7 @@ class GLConsole
 {
 private:
     PFNGLWINDOWPOS2IPROC glWindowPos2i;			// Function that needs to be loaded dynamically. It's sets the raster position
-    enum State
+    enum class State
     {								// States for drawing the console window
         CLOSED, ROLLING_DOWN, INTERFACE_APPEARING, OPENED, INTERFACE_DISAPPEARING, ROLLING_UP
     };
@@ -63,7 +63,6 @@ private:
 
     void animl_rolling_changed();				// Handle when animl_rolling changes
     void animl_interface_changed();				// Handle when animl_interface changes
-    void roll_console(float dt);				// Draws the console window when it is opening (rolling down) or closing (rolling up)
     void draw_console(float dt);				// Draws the console window, interface and the text
     void draw_selection(int x, int y);			// Draws quads upon selected text in the buffer_input
     std::deque<std::string> handle_overflow(std::deque<std::string>& lines_original, int max_lines);	// Returns with a list of lines (strings) that fits into the console window
@@ -105,5 +104,4 @@ public:
     void scroll_down();							// Scroll down in the output text
     void print_help();							// Prints help
     static void add_function(std::string name, std::function<void(std::vector<std::string>)> f);	// Store the function pointer
-    static void remove_function(std::string name);								// Removes the function pointer
 };
