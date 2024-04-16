@@ -35,7 +35,7 @@ public:
     friend Vector3 operator-(float value, Vector3 vector);
     friend Vector3 operator*(float value, Vector3 vector);
     friend Vector3 operator/(float value, Vector3 vector);
-    friend std::ostream& operator<<(std::ostream& os, Vector3& vector);
+    friend std::ostream& operator<<(std::ostream& os, Vector3 const& vector);
     friend std::istream& operator>>(std::istream& is, Vector3& vector);
 
     /// <summary>

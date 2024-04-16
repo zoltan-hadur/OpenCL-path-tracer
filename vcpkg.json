@@ -1,7 +1,7 @@
 {
   "dependencies": [
-    "glew",
+    "glad",
     "opencl",
-    "freeglut"
+    "glfw3"
   ]
 }

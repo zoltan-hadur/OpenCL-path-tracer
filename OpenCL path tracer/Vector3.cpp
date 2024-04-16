@@ -140,7 +140,7 @@ Vector3 operator/(float value, Vector3 vector)
     return Vector3(value, value, value) / vector;
 }
 
-std::ostream& operator<<(std::ostream& os, Vector3& vector)
+std::ostream& operator<<(std::ostream& os, Vector3 const& vector)
 {
     return os << std::format("[{}, {}, {}]", vector.x, vector.y, vector.z);
 }

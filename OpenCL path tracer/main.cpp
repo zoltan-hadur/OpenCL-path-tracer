@@ -1,8 +1,8 @@
 #define GLUT_KEY_ESC 27
 
-#include <GL\glew.h>
-#include <GL\glext.h>
-#include <GL\freeglut.h>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+//#include <GL\glext.h>
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -10,289 +10,447 @@
 #include <utility>
 #include <chrono>
 #include <thread>
-#include "Scene.h"
-#include "GLConsole.h"
+//#include "Scene.h"
+//#include "GLConsole.h"
 #include "TextureType.h"
+#include "Stopwatch.h"
+#include "Vector2.h"
+#include "Bitmap.h"
+#include "Vertex.h"
+#include "Matrix4x4.h"
+#include <numbers>
 
-GLConsole console;
-Scene scene;
+#include "ShaderProgram.h"
+#include "VAO.h"
+#include "VBO.h"
+#include "EBO.h"
+
+//GLConsole console;
+//Scene scene;
 Stopwatch watch;
 const int screen_width = 192 * 5;
 const int screen_height = 108 * 5;
 int keys_down[256];
 float max_fps;
 
-void onInitialization() {
-	glViewport(0, 0, screen_width, screen_height);
-	scene.init(screen_width, screen_height);
-	console.init();
-	console.print_help();
-	max_fps = 30; GLConsole::cvars.Add(ConsoleVariable(&max_fps, "app.max_fps", "Determines the maximum allowed frames per second. Interval: [30, infty)."));
+void onInitialization()
+{
+    glViewport(0, 0, screen_width, screen_height);
+    //scene.init(screen_width, screen_height);
+    //console.init();
+    //console.print_help();
+    //max_fps = 30; GLConsole::cvars.Add(ConsoleVariable(&max_fps, "app.max_fps", "Determines the maximum allowed frames per second. Interval: [30, infty)."));
 
-	const int lamp = scene.add_material(new Material(Vector3(0.0, 0.0, 0.0), Vector3(0.0, 0.0, 0.0), Vector3(8, 6, 4) * 1, 0, 0, 0));
-	const int d_red = scene.add_material(new Material(Vector3(1.0, 0.3, 0.3), Vector3(0.04, 0.04, 0.04), Vector3(0, 0, 0), 2, 1, 1));
-	const int d_green = scene.add_material(new Material(Vector3(0.3, 1.0, 0.3), Vector3(0.04, 0.04, 0.04), Vector3(0, 0, 0), 2, 1, 1));
-	const int d_blue = scene.add_material(new Material(Vector3(0.3, 0.3, 1.0), Vector3(0.04, 0.04, 0.04), Vector3(0, 0, 0), 2, 1, 1));
-	const int d_white = scene.add_material(new Material(Vector3(1.0, 1.0, 1.0), Vector3(0.04, 0.04, 0.04), Vector3(0, 0, 0), 2, 1, 1));
-	const int s_red = scene.add_material(new Material(Vector3(1.0, 0.3, 0.3), Vector3(1.0, 0.3, 0.3), Vector3(0, 0, 0), 2, 0, 1));
-	const int s_green = scene.add_material(new Material(Vector3(0.3, 1.0, 0.3), Vector3(0.3, 1.0, 0.3), Vector3(0, 0, 0), 2, 0, 1));
-	const int s_blue = scene.add_material(new Material(Vector3(0.3, 0.3, 1.0), Vector3(0.3, 0.3, 1.0), Vector3(0, 0, 0), 2, 0.01, 1));
-	const int s_white = scene.add_material(new Material(Vector3(1.0, 1.0, 1.0), Vector3(1.0, 1.0, 1.0), Vector3(0, 0, 0), 2.00, 0.000, 1));
-	const int gold = scene.add_material(new Material(Vector3(0.0, 0.0, 0.0), Vector3(252, 201, 88) / 255, Vector3(0, 0, 0), 0.16, 0.0, 1));
-	const int aluminium = scene.add_material(new Material(Vector3(0.0, 0.0, 0.0), Vector3(128, 126, 121) / 255, Vector3(0, 0, 0), 0.16, 0.0, 1));
-	const int glass = scene.add_material(new Material(Vector3(0.0, 0.0, 0.0), Vector3(1, 1, 1), Vector3(0, 0, 0), 1.5, 0.0, 2));
+    //const int lamp = scene.add_material(new Material(Vector3(0.0, 0.0, 0.0), Vector3(0.0, 0.0, 0.0), Vector3(8, 6, 4) * 1, 0, 0, 0));
+    //const int d_red = scene.add_material(new Material(Vector3(1.0, 0.3, 0.3), Vector3(0.04, 0.04, 0.04), Vector3(0, 0, 0), 2, 1, 1));
+    //const int d_green = scene.add_material(new Material(Vector3(0.3, 1.0, 0.3), Vector3(0.04, 0.04, 0.04), Vector3(0, 0, 0), 2, 1, 1));
+    //const int d_blue = scene.add_material(new Material(Vector3(0.3, 0.3, 1.0), Vector3(0.04, 0.04, 0.04), Vector3(0, 0, 0), 2, 1, 1));
+    //const int d_white = scene.add_material(new Material(Vector3(1.0, 1.0, 1.0), Vector3(0.04, 0.04, 0.04), Vector3(0, 0, 0), 2, 1, 1));
+    //const int s_red = scene.add_material(new Material(Vector3(1.0, 0.3, 0.3), Vector3(1.0, 0.3, 0.3), Vector3(0, 0, 0), 2, 0, 1));
+    //const int s_green = scene.add_material(new Material(Vector3(0.3, 1.0, 0.3), Vector3(0.3, 1.0, 0.3), Vector3(0, 0, 0), 2, 0, 1));
+    //const int s_blue = scene.add_material(new Material(Vector3(0.3, 0.3, 1.0), Vector3(0.3, 0.3, 1.0), Vector3(0, 0, 0), 2, 0.01, 1));
+    //const int s_white = scene.add_material(new Material(Vector3(1.0, 1.0, 1.0), Vector3(1.0, 1.0, 1.0), Vector3(0, 0, 0), 2.00, 0.000, 1));
+    //const int gold = scene.add_material(new Material(Vector3(0.0, 0.0, 0.0), Vector3(252, 201, 88) / 255, Vector3(0, 0, 0), 0.16, 0.0, 1));
+    //const int aluminium = scene.add_material(new Material(Vector3(0.0, 0.0, 0.0), Vector3(128, 126, 121) / 255, Vector3(0, 0, 0), 0.16, 0.0, 1));
+    //const int glass = scene.add_material(new Material(Vector3(0.0, 0.0, 0.0), Vector3(1, 1, 1), Vector3(0, 0, 0), 1.5, 0.0, 2));
 
-	const int earth = scene.add_texture("textures/earth_2k.bmp");
-	const int squares = scene.add_texture("textures/squares_2k.bmp");
-	const int ball = scene.add_texture("textures/ball_14_1k.bmp");
-	const int tex_earth = scene.add_texture_info(earth, TextureType::Texture);
-	const int bump_earth = scene.add_texture_info(earth, TextureType::BumpMap);
-	const int full_earth = scene.add_texture_info(earth, TextureType::Texture | TextureType::BumpMap);
-	const int bump_squares = scene.add_texture_info(squares, TextureType::BumpMap);
-	const int full_ball = scene.add_texture_info(ball, TextureType::Texture | TextureType::BumpMap);
+    //const int earth = scene.add_texture("textures/earth_2k.bmp");
+    //const int squares = scene.add_texture("textures/squares_2k.bmp");
+    //const int ball = scene.add_texture("textures/ball_14_1k.bmp");
+    //const int tex_earth = scene.add_texture_info(earth, TextureType::Texture);
+    //const int bump_earth = scene.add_texture_info(earth, TextureType::BumpMap);
+    //const int full_earth = scene.add_texture_info(earth, TextureType::Texture | TextureType::BumpMap);
+    //const int bump_squares = scene.add_texture_info(squares, TextureType::BumpMap);
+    //const int full_ball = scene.add_texture_info(ball, TextureType::Texture | TextureType::BumpMap);
 
-	// Lamp
-	scene.add_triangle(new Triangle(Vector3(600.0f, 999.99f, 0.0f), Vector3(1000.0f, 999.99f, 0.0f), Vector3(1000.0f, 999.99f, 400.0f), lamp));
-	scene.add_triangle(new Triangle(Vector3(600.0f, 999.99f, 0.0f), Vector3(600.0f, 999.99f, 400.0f), Vector3(1000.0f, 999.99f, 400.0f), lamp));
+    //// Lamp
+    //scene.add_triangle(new Triangle(Vector3(600.0f, 999.99f, 0.0f), Vector3(1000.0f, 999.99f, 0.0f), Vector3(1000.0f, 999.99f, 400.0f), lamp));
+    //scene.add_triangle(new Triangle(Vector3(600.0f, 999.99f, 0.0f), Vector3(600.0f, 999.99f, 400.0f), Vector3(1000.0f, 999.99f, 400.0f), lamp));
 
-	//left wall
-	scene.add_triangle(new Triangle(Vector3(0.0f, 0.0f, -2000.0f), Vector3(0.0f, 0.0f, 1000.0f), Vector3(0.0f, 1000.0f, -2000.0f), d_red));
-	scene.add_triangle(new Triangle(Vector3(0.0f, 1000.0f, 1000.0f), Vector3(0.0f, 1000.0f, -2000.0f), Vector3(0.0f, 0.0f, 1000.0f), d_red));
-	//right wall
-	scene.add_triangle(new Triangle(Vector3(1600.0f, 0.0f, -2000.0f), Vector3(1600.0f, 0.0f, 1000.0f), Vector3(1600.0f, 1000.0f, -2000.0f), d_blue));
-	scene.add_triangle(new Triangle(Vector3(1600.0f, 1000.0f, 1000.0f), Vector3(1600.0f, 1000.0f, -2000.0f), Vector3(1600.0f, 0.0f, 1000.0f), d_blue));
-	//floor
-	scene.add_triangle(new Triangle(Vector3(0.0f, 0.0f, -2000.0f), Vector3(1600.0f, 0.0f, -2000.0f), Vector3(1600.0f, 0.0f, 1000.0f), d_white));
-	scene.add_triangle(new Triangle(Vector3(0.0f, 0.0f, -2000.0f), Vector3(1600.0f, 0.0f, 1000.0f), Vector3(0.0f, 0.0f, 1000.0f), d_white));
-	//ceiling
-	scene.add_triangle(new Triangle(Vector3(0.0f, 1000.0f, -2000.0f), Vector3(1600.0f, 1000.0f, -2000.0f), Vector3(1600.0f, 1000.0f, 1000.0f), d_white));
-	scene.add_triangle(new Triangle(Vector3(0.0f, 1000.0f, -2000.0f), Vector3(1600.0f, 1000.0f, 1000.0f), Vector3(0.0f, 1000.0f, 1000.0f), d_white));
-	//front wall
-	scene.add_triangle(new Triangle(Vector3(1600.0f, 0.0f, 1000.0), Vector3(0.0f, 0.0f, 1000.0f), Vector3(1600.0f, 1000.0f, 1000.0f), d_white));
-	scene.add_triangle(new Triangle(Vector3(0.0f, 0.0f, 1000.0f), Vector3(1600.0f, 1000.0f, 1000.0f), Vector3(0.0f, 1000.0f, 1000.0f), d_white));
-	//rear wall
-	scene.add_triangle(new Triangle(Vector3(0.0f, 0.0f, -2000.0f), Vector3(1600.0f, 0.0f, -2000.0f), Vector3(1600.0f, 1000.0f, -2000.0f), d_white));
-	scene.add_triangle(new Triangle(Vector3(0.0f, 0.0f, -2000.0f), Vector3(1600.0f, 1000.0f, -2000.0f), Vector3(0.0f, 1000.0f, -2000.0f), d_white));
+    ////left wall
+    //scene.add_triangle(new Triangle(Vector3(0.0f, 0.0f, -2000.0f), Vector3(0.0f, 0.0f, 1000.0f), Vector3(0.0f, 1000.0f, -2000.0f), d_red));
+    //scene.add_triangle(new Triangle(Vector3(0.0f, 1000.0f, 1000.0f), Vector3(0.0f, 1000.0f, -2000.0f), Vector3(0.0f, 0.0f, 1000.0f), d_red));
+    ////right wall
+    //scene.add_triangle(new Triangle(Vector3(1600.0f, 0.0f, -2000.0f), Vector3(1600.0f, 0.0f, 1000.0f), Vector3(1600.0f, 1000.0f, -2000.0f), d_blue));
+    //scene.add_triangle(new Triangle(Vector3(1600.0f, 1000.0f, 1000.0f), Vector3(1600.0f, 1000.0f, -2000.0f), Vector3(1600.0f, 0.0f, 1000.0f), d_blue));
+    ////floor
+    //scene.add_triangle(new Triangle(Vector3(0.0f, 0.0f, -2000.0f), Vector3(1600.0f, 0.0f, -2000.0f), Vector3(1600.0f, 0.0f, 1000.0f), d_white));
+    //scene.add_triangle(new Triangle(Vector3(0.0f, 0.0f, -2000.0f), Vector3(1600.0f, 0.0f, 1000.0f), Vector3(0.0f, 0.0f, 1000.0f), d_white));
+    ////ceiling
+    //scene.add_triangle(new Triangle(Vector3(0.0f, 1000.0f, -2000.0f), Vector3(1600.0f, 1000.0f, -2000.0f), Vector3(1600.0f, 1000.0f, 1000.0f), d_white));
+    //scene.add_triangle(new Triangle(Vector3(0.0f, 1000.0f, -2000.0f), Vector3(1600.0f, 1000.0f, 1000.0f), Vector3(0.0f, 1000.0f, 1000.0f), d_white));
+    ////front wall
+    //scene.add_triangle(new Triangle(Vector3(1600.0f, 0.0f, 1000.0), Vector3(0.0f, 0.0f, 1000.0f), Vector3(1600.0f, 1000.0f, 1000.0f), d_white));
+    //scene.add_triangle(new Triangle(Vector3(0.0f, 0.0f, 1000.0f), Vector3(1600.0f, 1000.0f, 1000.0f), Vector3(0.0f, 1000.0f, 1000.0f), d_white));
+    ////rear wall
+    //scene.add_triangle(new Triangle(Vector3(0.0f, 0.0f, -2000.0f), Vector3(1600.0f, 0.0f, -2000.0f), Vector3(1600.0f, 1000.0f, -2000.0f), d_white));
+    //scene.add_triangle(new Triangle(Vector3(0.0f, 0.0f, -2000.0f), Vector3(1600.0f, 1000.0f, -2000.0f), Vector3(0.0f, 1000.0f, -2000.0f), d_white));
 
 
-	////scene.add_sphere(new Sphere(Vector3(500, 100, 400), Vector3(0, 0, 0), 100, s_blue));
-	//scene.add_sphere(new Sphere(Vector3(400, 200, 700), Vector3(0, 0, 0), 200, s_green));
-	////scene.add_sphere(new Sphere(Vector3(1450, 150, 850), Vector3(0, 0, 0), 150, s_red));
-	////scene.add_sphere(new Sphere(Vector3(800, 200, 500), Vector3(0, 0, 0), 200, gold));
-	//scene.add_sphere(new Sphere(Vector3(1200, 200, 200), Vector3(0, 0, 0), 200, glass));
+    //////scene.add_sphere(new Sphere(Vector3(500, 100, 400), Vector3(0, 0, 0), 100, s_blue));
+    ////scene.add_sphere(new Sphere(Vector3(400, 200, 700), Vector3(0, 0, 0), 200, s_green));
+    //////scene.add_sphere(new Sphere(Vector3(1450, 150, 850), Vector3(0, 0, 0), 150, s_red));
+    //////scene.add_sphere(new Sphere(Vector3(800, 200, 500), Vector3(0, 0, 0), 200, gold));
+    ////scene.add_sphere(new Sphere(Vector3(1200, 200, 200), Vector3(0, 0, 0), 200, glass));
 
-	//scene.add_sphere(new Sphere(Vector3(150, 150, -100), Vector3(90, 0, 0), 150, glass, full_ball));
+    ////scene.add_sphere(new Sphere(Vector3(150, 150, -100), Vector3(90, 0, 0), 150, glass, full_ball));
 
-	////scene.add_sphere(new Sphere(Vector3(900, 100, -200), Vector3(0, 0, 0), 100, glass));
-	//scene.add_sphere(new Sphere(Vector3(500 - 1, 150, 500), Vector3(180, 0, 0), 150, aluminium, bump_squares));
-	//scene.add_sphere(new Sphere(Vector3(800, 150, 450), Vector3(180, 0, 0), 150, gold, bump_earth));
-	//scene.add_sphere(new Sphere(Vector3(1100 + 1, 150, 400), Vector3(180, 0, 0), 150, s_white, full_earth));
+    //////scene.add_sphere(new Sphere(Vector3(900, 100, -200), Vector3(0, 0, 0), 100, glass));
+    ////scene.add_sphere(new Sphere(Vector3(500 - 1, 150, 500), Vector3(180, 0, 0), 150, aluminium, bump_squares));
+    ////scene.add_sphere(new Sphere(Vector3(800, 150, 450), Vector3(180, 0, 0), 150, gold, bump_earth));
+    ////scene.add_sphere(new Sphere(Vector3(1100 + 1, 150, 400), Vector3(180, 0, 0), 150, s_white, full_earth));
 
-	float R = 150;
-	float r = R / 2;
-	//scene.add_sphere(new Sphere(Vector3(800, 1000, 500), Vector3(0, 0, 0), 100, lamp));
-	//scene.add_sphere(new Sphere(Vector3(800, r, 500), Vector3(0, 0, 0), r, lamp));
+    //float R = 150;
+    //float r = R / 2;
+    ////scene.add_sphere(new Sphere(Vector3(800, 1000, 500), Vector3(0, 0, 0), 100, lamp));
+    ////scene.add_sphere(new Sphere(Vector3(800, r, 500), Vector3(0, 0, 0), r, lamp));
 
-	scene.add_sphere(new Sphere(Vector3(800 - R - 1, R, 500 - R - 1), Vector3(180, 0, 0), R, gold, bump_earth));
-	scene.add_sphere(new Sphere(Vector3(800 + R + 1, R, 500 - R - 1), Vector3(180, 0, 0), R, gold, full_earth));
-	scene.add_sphere(new Sphere(Vector3(800 - R - 1, R, 500 + R + 1), Vector3(180, 0, 0), R, d_green, bump_earth));
-	scene.add_sphere(new Sphere(Vector3(800 + R + 1, R, 500 + R + 1), Vector3(180, 0, 0), R, aluminium, bump_squares));
-	scene.add_sphere(new Sphere(Vector3(800, R + sqrt(2)*R, 500), Vector3(45, 0, 0), R, s_white, full_ball));
+    //scene.add_sphere(new Sphere(Vector3(800 - R - 1, R, 500 - R - 1), Vector3(180, 0, 0), R, gold, bump_earth));
+    //scene.add_sphere(new Sphere(Vector3(800 + R + 1, R, 500 - R - 1), Vector3(180, 0, 0), R, gold, full_earth));
+    //scene.add_sphere(new Sphere(Vector3(800 - R - 1, R, 500 + R + 1), Vector3(180, 0, 0), R, d_green, bump_earth));
+    //scene.add_sphere(new Sphere(Vector3(800 + R + 1, R, 500 + R + 1), Vector3(180, 0, 0), R, aluminium, bump_squares));
+    //scene.add_sphere(new Sphere(Vector3(800, R + sqrt(2)*R, 500), Vector3(45, 0, 0), R, s_white, full_ball));
 
-	scene.commit();
-	watch.Start();
+    //scene.commit();
+    watch.Start();
 }
 
-void onDisplay() {
-	glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+void onDisplay()
+{
+    glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Top left is (0, 0), x goes right, y goes down
-    auto width = glutGet(GLUT_WINDOW_WIDTH);
-    auto height = glutGet(GLUT_WINDOW_HEIGHT);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0, width, 0, height, -1, 1);
-    glScalef(1, -1, 1);
-    glTranslatef(0, -height, 0);
+    //auto width = glutGet(GLUT_WINDOW_WIDTH);
+    //auto height = glutGet(GLUT_WINDOW_HEIGHT);
+    //glMatrixMode(GL_PROJECTION);
+    //glLoadIdentity();
+    //glOrtho(0, width, 0, height, -1, 1);
+    //glScalef(1, -1, 1);
+    //glTranslatef(0, -height, 0);
 
-	scene.draw();
-	console.draw();
+    //scene.draw();
+    //console.draw();
 
-	glutSwapBuffers();
+    //glutSwapBuffers();
 }
 
-void onKeyboard(unsigned char key, int x, int y) {
-	int modifier = glutGetModifiers();
-	if (modifier & GLUT_ACTIVE_SHIFT) {
-		console.shift_pressed();
-	} else {
-		console.shift_released();
-	}
-	if (key == GLUT_KEY_ESC) {
-		glutLeaveFullScreen();
-		glutDestroyWindow(1);
-		exit(EXIT_SUCCESS);
-	}
-	if (console.is_open()) {
-		console.on_keyboard(key);
-	} else {
-		switch (key) {
-			case ' ':
-				glutFullScreenToggle();
-				break;
-			case 't':
-				scene.next_tone_map();
-				break;
-			case 'm':
-				scene.next_mode();
-				break;
-			case 'f':
-				scene.next_filter();
-				break;
-			case '+':
-				scene.inc_depth();
-				break;
-			case '-':
-				scene.dec_depth();
-				break;
-			default:
-				keys_down[key] = true;
-				break;
-		}
-	}
+void onKeyboard(unsigned char key, int x, int y)
+{
+    //int modifier = glutGetModifiers();
+    //if (modifier & GLUT_ACTIVE_SHIFT)
+    //{
+    //    //console.shift_pressed();
+    //}
+    //else
+    //{
+    //    //console.shift_released();
+    //}
+    //if (key == GLUT_KEY_ESC)
+    //{
+    //    glutLeaveFullScreen();
+    //    glutDestroyWindow(1);
+    //    exit(EXIT_SUCCESS);
+    //}
+    //if (console.is_open())
+    //{
+    //    console.on_keyboard(key);
+    //}
+    //else
+    //{
+    //    switch (key)
+    //    {
+    //        case ' ':
+    //            glutFullScreenToggle();
+    //            break;
+    //        case 't':
+    //            scene.next_tone_map();
+    //            break;
+    //        case 'm':
+    //            scene.next_mode();
+    //            break;
+    //        case 'f':
+    //            scene.next_filter();
+    //            break;
+    //        case '+':
+    //            scene.inc_depth();
+    //            break;
+    //        case '-':
+    //            scene.dec_depth();
+    //            break;
+    //        default:
+    //            keys_down[key] = true;
+    //            break;
+    //    }
+    //}
 }
 
-void onKeyboardUp(unsigned char key, int x, int y) {
-	keys_down[key] = false;
+void onKeyboardUp(unsigned char key, int x, int y)
+{
+    keys_down[key] = false;
 }
 
-void onSpecial(int key, int x, int y) {
-	int modifier = glutGetModifiers();
-	if (modifier & GLUT_ACTIVE_SHIFT) {
-		console.shift_pressed();
-	} else {
-		console.shift_released();
-	}
+void onSpecial(int key, int x, int y)
+{
+    //int modifier = glutGetModifiers();
+    //if (modifier & GLUT_ACTIVE_SHIFT)
+    //{
+    //    console.shift_pressed();
+    //}
+    //else
+    //{
+    //    console.shift_released();
+    //}
 
-	if (key == GLUT_KEY_F1) {
-		console.toggle();
-	} else {
-		if (console.is_open()) {
-			console.on_special(key);
-		} else {
-			switch (key) {
+    //if (key == GLUT_KEY_F1)
+    //{
+    //    console.toggle();
+    //}
+    //else
+    //{
+    //    if (console.is_open())
+    //    {
+    //        console.on_special(key);
+    //    }
+    //    else
+    //    {
+    //        switch (key)
+    //        {
 
-			}
-		}
-	}
+    //        }
+    //    }
+    //}
 }
 
-void onSpecialUp(int key, int x, int y) {
-	int modifier = glutGetModifiers();
-	if (modifier & GLUT_ACTIVE_SHIFT) {
-		console.shift_pressed();
-	} else {
-		console.shift_released();
-	}
+void onSpecialUp(int key, int x, int y)
+{
+    //int modifier = glutGetModifiers();
+    //if (modifier & GLUT_ACTIVE_SHIFT)
+    //{
+    //    //console.shift_pressed();
+    //}
+    //else
+    //{
+    //    //console.shift_released();
+    //}
 }
 
 int last_x, last_y;
-void onMouse(int button, int state, int x, int y) {
-	if ((button == 3) || (button == 4)) {	// Mouse wheel event
-		if (state == GLUT_UP) return;
-		if (console.is_open()) {
-			(button == 3) ? console.scroll_up() : console.scroll_down();
-		}
-	} else {	// Normal click event
-		last_x = x; last_y = y;
-		//if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
-		//	float X = (float)x;
-		//	X = X / glutGet(GLUT_WINDOW_WIDTH)*screen_width;
-		//	float Y = (float)(glutGet(GLUT_WINDOW_HEIGHT) - y);
-		//	Y = Y / glutGet(GLUT_WINDOW_HEIGHT)*screen_height;
-		//	//std::cout << cam.get_ray((int)X, (int)Y) << std::endl;
-		//}
-	}
+void onMouse(int button, int state, int x, int y)
+{
+    if ((button == 3) || (button == 4))
+    {	// Mouse wheel event
+        //if (state == GLUT_UP) return;
+        //if (console.is_open())
+        //{
+        //    (button == 3) ? console.scroll_up() : console.scroll_down();
+        //}
+    }
+    else
+    {	// Normal click event
+        last_x = x; last_y = y;
+        //if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN) {
+        //	float X = (float)x;
+        //	X = X / glutGet(GLUT_WINDOW_WIDTH)*screen_width;
+        //	float Y = (float)(glutGet(GLUT_WINDOW_HEIGHT) - y);
+        //	Y = Y / glutGet(GLUT_WINDOW_HEIGHT)*screen_height;
+        //	//std::cout << cam.get_ray((int)X, (int)Y) << std::endl;
+        //}
+    }
 }
 
-void onMouseMotion(int x, int y) {
-	int dx = x - last_x;
-	int dy = y - last_y;
-	scene.get_camera().rotate(dy*0.10f, dx*0.10f);
-	last_x = x;
-	last_y = y;
+void onMouseMotion(int x, int y)
+{
+    int dx = x - last_x;
+    int dy = y - last_y;
+    //scene.get_camera().rotate(dy * 0.10f, dx * 0.10f);
+    last_x = x;
+    last_y = y;
 }
 
 int frames = 0;
 float wait_time = 0;
 float time_elapsed = 0;
 float acc = 0;
-void onIdle() {
-	float dt = watch.GetDeltaTime();
-	time_elapsed = time_elapsed + dt;
-	acc = acc + dt;
+void onIdle()
+{
+    float dt = watch.GetDeltaTime();
+    time_elapsed = time_elapsed + dt;
+    acc = acc + dt;
 
-	if (keys_down['w']) {
-		scene.get_camera().translate_forward(dt * 1000);
-	}
-	if (keys_down['s']) {
-		scene.get_camera().translate_forward(-dt * 1000);
-	}
-	if (keys_down['d']) {
-		scene.get_camera().translate_right(dt * 1000);
-	}
-	if (keys_down['a']) {
-		scene.get_camera().translate_right(-dt * 1000);
-	}
-	if (keys_down['q']) {
-		scene.get_camera().translate_up(dt * 1000);
-	}
-	if (keys_down['y']) {
-		scene.get_camera().translate_up(-dt * 1000);
-	}
+    //if (keys_down['w'])
+    //{
+    //    scene.get_camera().translate_forward(dt * 1000);
+    //}
+    //if (keys_down['s'])
+    //{
+    //    scene.get_camera().translate_forward(-dt * 1000);
+    //}
+    //if (keys_down['d'])
+    //{
+    //    scene.get_camera().translate_right(dt * 1000);
+    //}
+    //if (keys_down['a'])
+    //{
+    //    scene.get_camera().translate_right(-dt * 1000);
+    //}
+    //if (keys_down['q'])
+    //{
+    //    scene.get_camera().translate_up(dt * 1000);
+    //}
+    //if (keys_down['y'])
+    //{
+    //    scene.get_camera().translate_up(-dt * 1000);
+    //}
 
-	scene.render();
-	console.process();
+    //scene.render();
+    //console.process();
 
-	if (frames >= 1) {
-		wait_time = std::max((1.0f - (time_elapsed * max_fps / 1 - max_fps * wait_time)) / max_fps, 0.0f);
-		frames = 0;
-		time_elapsed = 0;
-	}
-	if (acc > wait_time) {
-		glutPostRedisplay();
-		frames++;
-		acc = 0;
-	}
+    if (frames >= 1)
+    {
+        wait_time = std::max((1.0f - (time_elapsed * max_fps / 1 - max_fps * wait_time)) / max_fps, 0.0f);
+        frames = 0;
+        time_elapsed = 0;
+    }
+    if (acc > wait_time)
+    {
+        //glutPostRedisplay();
+        frames++;
+        acc = 0;
+    }
 }
 
-int main(int argc, char **argv) {
-	glutInit(&argc, argv);
-	glutInitWindowSize(screen_width, screen_height);
-	glutInitWindowPosition(100, 100);
-	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
+int main(int argc, char** argv)
+{
+    //auto matrix1 = Matrix4x4(
+    //    { {
+    //        { 15, 97, 65, 43 },
+    //        { 87, 12, 96, 45 },
+    //        { 85, 26, 27, 17 },
+    //        { 39, 86, 98, 45 }
+    //    } });
+    //auto matrix2 = Matrix4x4(
+    //    { {
+    //        { 45, 67, 76, 85 },
+    //        { 21, 54, 36, 29 },
+    //        { 85, 48, 86, 52 },
+    //        { 53, 38, 17, 16 }
+    //    } });
+    //auto result = matrix1 * matrix2;
 
-	glutCreateWindow("OpenCL path tracer");
-  glewInit();
+    //auto matrix = Matrix4x4();
+    //auto vector = Vector3(1, 2, 3);
+    //auto result2 = matrix * vector;
 
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
+    //auto mx = Matrix4x4::Rotate(Vector3(1, 0, 0), std::numbers::pi / 2);
+    //auto my = Matrix4x4::Rotate(Vector3(0, 1, 0), std::numbers::pi / 2);
+    //auto mz = Matrix4x4::Rotate(Vector3(0, 0, 1), std::numbers::pi / 2);
 
-	onInitialization();
+    glfwInit();
 
-	glutDisplayFunc(onDisplay);
-	glutMouseFunc(onMouse);
-	glutMotionFunc(onMouseMotion);
-	glutIdleFunc(onIdle);
-	glutKeyboardFunc(onKeyboard);
-	glutKeyboardUpFunc(onKeyboardUp);
-	glutSpecialFunc(onSpecial);
-	glutSpecialUpFunc(onSpecialUp);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	glutMainLoop();
+    auto window = glfwCreateWindow(screen_width, screen_height, "OpenCL path tracer", nullptr, nullptr);
+    if (!window)
+    {
+        std::cout << "Failed to create GLFW window" << std::endl;
+        glfwTerminate();
+        return -1;
+    }
+    glfwMakeContextCurrent(window);
 
-	return 0;
+    gladLoadGL();
+
+    glViewport(0, 0, screen_width, screen_height);
+
+    // Vertices coordinates
+    auto vertices = std::vector<Vertex>
+    {
+        { {   0,   0 }, { 0.0f, 0.0f } },   // Bottom left
+        { {   0, 108 * 2 }, { 0.0f, 1.0f } },   // Top left
+        { { 192 * 2, 108 * 2 }, { 1.0f, 1.0f } },   // Top right
+        { { 192 * 2,   0 }, { 1.0f, 0.0f } }    // Bottom right
+    };
+
+    // Indices for vertices order
+    auto indices = std::vector<GLuint>
+    {
+        0, 2, 1,    // Upper triangle
+        0, 3, 2     // Lower triangle
+    };
+
+    auto shaderProgram = ShaderProgram("default.vert", "default.frag");
+    auto vao1 = VAO();
+    vao1.Bind();
+
+    auto vbo1 = VBO(vertices);
+    auto ebo1 = EBO(indices);
+
+    vao1.LinkAttrib(vbo1, 0, 4, GL_FLOAT, sizeof(float) * 4, (void*)0);
+    vao1.LinkAttrib(vbo1, 1, 4, GL_FLOAT, sizeof(float) * 4, (void*)(sizeof(float) * 2));
+    vao1.Unbind();
+    vbo1.Unbind();
+    ebo1.Unbind();
+
+    GLuint texture;
+    glGenTextures(1, &texture);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    auto bitmap = Bitmap::Read("rendered/image_0.bmp");
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bitmap.Width(), bitmap.Height(), 0, GL_BGR, GL_UNSIGNED_BYTE, bitmap.Bytes().data());
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    auto texture0Location = glGetUniformLocation(shaderProgram.Id(), "texture0");
+    shaderProgram.Activate();
+    glUniform1i(texture0Location, 0);
+
+    auto transformLocation = glGetUniformLocation(shaderProgram.Id(), "transform");
+
+    watch.Start();
+    while (!glfwWindowShouldClose(window))
+    {
+        glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        shaderProgram.Activate();
+
+        auto ortho = Matrix4x4::OrthoProjection(0, screen_width, 0, screen_height, -1, 1);
+        auto scale = Matrix4x4::Scale({ 1, -1, 1 });
+        auto translate = Matrix4x4::Translate({ 0, -screen_height, 0 });
+        auto projection = ortho * scale * translate;
+
+        auto s = Matrix4x4::Scale({ 1, -1, 1 });
+        auto t = Matrix4x4::Translate({ -192, -108, 0 });
+        auto r = Matrix4x4::Rotate({ 0, 0, 1 }, watch.GetElapsedTime());
+        // translate to center, then flip, then rotate, then translate back
+        auto model = Matrix4x4::Translate({ 192, 108, 0 }) * r * Matrix4x4::Scale({ 1, -1, 1 }) * t;
+
+        auto matrix = projection * model;
+
+        glUniformMatrix4fv(transformLocation, 1, GL_TRUE, matrix.Data());
+        //shaderProgram.SetColor(Color(std::fabs(std::sinf(watch.GetElapsedTime())), 0, 0));
+        glBindTexture(GL_TEXTURE_2D, texture);
+        vao1.Bind();
+        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+
+    glDeleteTextures(1, &texture);
+    vao1.Delete();
+    vbo1.Delete();
+    ebo1.Delete();
+    shaderProgram.Delete();
+
+    glfwDestroyWindow(window);
+    glfwTerminate();
+    return 0;
 }
