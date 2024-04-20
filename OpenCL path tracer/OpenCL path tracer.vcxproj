@@ -119,6 +119,7 @@
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="ShaderProgram.cpp" />
     <ClCompile Include="Stopwatch.cpp" />
+    <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TextureInfo.cpp" />
     <ClCompile Include="TextureType.cpp" />
     <ClCompile Include="Triangle.cpp" />
@@ -143,6 +144,7 @@
     <ClInclude Include="RayTracingMode.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="ShaderProgram.h" />
+    <ClInclude Include="Texture.h" />
     <ClInclude Include="TextureType.h" />
     <ClInclude Include="ToneMap.h" />
     <ClInclude Include="VAO.h" />

@@ -13,6 +13,7 @@ private:
     GLint _projectionMatrixLocation;
     GLint _modelMatrixLocation;
     GLint _colorLocation;
+    GLint _texture0Location;
 
     Matrix4x4 _modelMatrix;
 

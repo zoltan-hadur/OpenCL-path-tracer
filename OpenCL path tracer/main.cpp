@@ -19,6 +19,7 @@
 #include "Vertex.h"
 #include "Matrix4x4.h"
 #include <numbers>
+#include "Texture.h"
 
 #include "ShaderProgram.h"
 #include "VAO.h"
@@ -357,37 +358,22 @@ int main(int argc, char** argv)
         2, 3, 0
     };
 
+    auto texture = Texture(Bitmap::Read("rendered/image_0.bmp"));
+
     auto shaderProgram = ShaderProgram("default.vert", "default.frag");
     auto vao1 = VAO();
     vao1.Bind();
 
     auto vbo1 = VBO(vertices);
+    vbo1.Bind();
     auto ebo1 = EBO(indices);
+    ebo1.Bind();
 
     vao1.LinkAttrib(vbo1, 0, 4, GL_FLOAT, sizeof(float) * 4, (void*)0);
     vao1.LinkAttrib(vbo1, 1, 4, GL_FLOAT, sizeof(float) * 4, (void*)(sizeof(float) * 2));
     vao1.Unbind();
     vbo1.Unbind();
     ebo1.Unbind();
-
-    GLuint texture;
-    glGenTextures(1, &texture);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    auto bitmap = Bitmap::Read("rendered/image_0.bmp");
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bitmap.Width(), bitmap.Height(), 0, GL_BGR, GL_UNSIGNED_BYTE, bitmap.Bytes().data());
-    glGenerateMipmap(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    auto texture0Location = glGetUniformLocation(shaderProgram.Id(), "texture0");
-    shaderProgram.Activate();
-    glUniform1i(texture0Location, 0);
-
-    auto transformLocation = glGetUniformLocation(shaderProgram.Id(), "transform");
 
     watch.Start();
     while (!glfwWindowShouldClose(window))
@@ -400,15 +386,17 @@ int main(int argc, char** argv)
         shaderProgram.ModelMatrix(Matrix4x4::IdentityMatrix().Scale({2, 2, 2}).Translate({100, 50, 0}));
 
         //shaderProgram.Color(Color(std::fabs(std::sinf(watch.GetElapsedTime())), 0, 0));
-        glBindTexture(GL_TEXTURE_2D, texture);
+        texture.Bind();
         vao1.Bind();
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+        texture.Unbind();
+        vao1.Unbind();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    glDeleteTextures(1, &texture);
+    texture.Delete();
     vao1.Delete();
     vbo1.Delete();
     ebo1.Delete();
