@@ -27,7 +27,11 @@ ShaderProgram::ShaderProgram(std::filesystem::path vertexShaderPath, std::filesy
     vertexShader.Delete();
     fragmentShader.Delete();
 
+    _projectionMatrixLocation = glGetUniformLocation(_id, "projectionMatrix");
+    _modelMatrixLocation = glGetUniformLocation(_id, "modelMatrix");
     _colorLocation = glGetUniformLocation(_id, "color");
+
+    _modelMatrix = Matrix4x4::IdentityMatrix();
 }
 
 GLuint ShaderProgram::Id() const
@@ -35,7 +39,23 @@ GLuint ShaderProgram::Id() const
     return _id;
 }
 
-void ShaderProgram::SetColor(Color const& color) const
+void ShaderProgram::ProjectionMatrix(Matrix4x4 const& projection) const
+{
+    glUniformMatrix4fv(_projectionMatrixLocation, 1, GL_TRUE, projection.Data());
+}
+
+Matrix4x4 const& ShaderProgram::ModelMatrix() const
+{
+    return _modelMatrix;
+}
+
+void ShaderProgram::ModelMatrix(Matrix4x4 const& model)
+{
+    _modelMatrix = model;
+    glUniformMatrix4fv(_modelMatrixLocation, 1, GL_TRUE, _modelMatrix.Data());
+}
+
+void ShaderProgram::Color(class Color const& color) const
 {
     glUniform4f(_colorLocation, color.R, color.G, color.B, color.A);
 }

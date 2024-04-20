@@ -1,15 +1,5 @@
 #include "Matrix4x4.h"
 
-Matrix4x4::Matrix4x4()
-{
-    _values = { {
-        { 1, 0, 0, 0 },
-        { 0, 1, 0, 0 },
-        { 0, 0, 1, 0 },
-        { 0, 0, 0, 1 }
-    } };
-}
-
 Matrix4x4::Matrix4x4(std::array<std::array<float, 4>, 4> values)
 {
     _values = std::move(values);
@@ -18,6 +8,21 @@ Matrix4x4::Matrix4x4(std::array<std::array<float, 4>, 4> values)
 float const* Matrix4x4::Data() const
 {
     return &_values[0][0];
+}
+
+Matrix4x4 Matrix4x4::Scale(Vector3 const& scale) const
+{
+    return ScaleMatrix(scale) * (*this);
+}
+
+Matrix4x4 Matrix4x4::Translate(Vector3 const& translate) const
+{
+    return TranslateMatrix(translate) * (*this);
+}
+
+Matrix4x4 Matrix4x4::Rotate(Vector3 const& axis, float theta) const
+{
+    return RotateMatrix(axis, theta) * (*this);
 }
 
 Matrix4x4 Matrix4x4::operator*(Matrix4x4 const& matrix) const
@@ -58,7 +63,17 @@ Vector3 Matrix4x4::operator*(Vector2 const& vector) const
     return (*this) * Vector3(vector.x, vector.y, 0);
 }
 
-Matrix4x4 Matrix4x4::Scale(Vector3 const& scale)
+Matrix4x4 Matrix4x4::IdentityMatrix()
+{
+    return Matrix4x4({ {
+        { 1, 0, 0, 0 },
+        { 0, 1, 0, 0 },
+        { 0, 0, 1, 0 },
+        { 0, 0, 0, 1 }
+    } });
+}
+
+Matrix4x4 Matrix4x4::ScaleMatrix(Vector3 const& scale)
 {
     return Matrix4x4({ {
         { scale.x,       0,       0, 0 },
@@ -68,7 +83,7 @@ Matrix4x4 Matrix4x4::Scale(Vector3 const& scale)
     } });
 }
 
-Matrix4x4 Matrix4x4::Translate(Vector3 const& translate)
+Matrix4x4 Matrix4x4::TranslateMatrix(Vector3 const& translate)
 {
     return Matrix4x4({ {
         { 1, 0, 0, translate.x },
@@ -78,7 +93,7 @@ Matrix4x4 Matrix4x4::Translate(Vector3 const& translate)
     } });
 }
 
-Matrix4x4 Matrix4x4::Rotate(Vector3 const& axis, float theta)
+Matrix4x4 Matrix4x4::RotateMatrix(Vector3 const& axis, float theta)
 {
     auto sint = std::sinf(theta);
     auto cost = std::cosf(theta);
@@ -93,9 +108,9 @@ Matrix4x4 Matrix4x4::Rotate(Vector3 const& axis, float theta)
     } });
 }
 
-Matrix4x4 Matrix4x4::OrthoProjection(float left, float right, float bottom, float top, float near, float far)
+Matrix4x4 Matrix4x4::OrthoProjectionMatrix(float left, float right, float bottom, float top, float near, float far)
 {
-    auto s = Scale(Vector3(2.0f / (right - left), 2.0f / (top - bottom), 2.0f / (far - near)));
-    auto t = Translate(Vector3(-(right + left) / (right - left), -(top + bottom) / (top - bottom), -(far + near) / (far - near)));
+    auto s = ScaleMatrix(Vector3(2.0f / (right - left), 2.0f / (top - bottom), 2.0f / (far - near)));
+    auto t = TranslateMatrix(Vector3(-(right + left) / (right - left), -(top + bottom) / (top - bottom), -(far + near) / (far - near)));
     return t * s;
 }

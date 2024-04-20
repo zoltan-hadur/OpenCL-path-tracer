@@ -322,30 +322,6 @@ void onIdle()
 
 int main(int argc, char** argv)
 {
-    //auto matrix1 = Matrix4x4(
-    //    { {
-    //        { 15, 97, 65, 43 },
-    //        { 87, 12, 96, 45 },
-    //        { 85, 26, 27, 17 },
-    //        { 39, 86, 98, 45 }
-    //    } });
-    //auto matrix2 = Matrix4x4(
-    //    { {
-    //        { 45, 67, 76, 85 },
-    //        { 21, 54, 36, 29 },
-    //        { 85, 48, 86, 52 },
-    //        { 53, 38, 17, 16 }
-    //    } });
-    //auto result = matrix1 * matrix2;
-
-    //auto matrix = Matrix4x4();
-    //auto vector = Vector3(1, 2, 3);
-    //auto result2 = matrix * vector;
-
-    //auto mx = Matrix4x4::Rotate(Vector3(1, 0, 0), std::numbers::pi / 2);
-    //auto my = Matrix4x4::Rotate(Vector3(0, 1, 0), std::numbers::pi / 2);
-    //auto mz = Matrix4x4::Rotate(Vector3(0, 0, 1), std::numbers::pi / 2);
-
     glfwInit();
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -368,17 +344,17 @@ int main(int argc, char** argv)
     // Vertices coordinates
     auto vertices = std::vector<Vertex>
     {
-        { {   0,   0 }, { 0.0f, 0.0f } },   // Bottom left
-        { {   0, 108 * 2 }, { 0.0f, 1.0f } },   // Top left
-        { { 192 * 2, 108 * 2 }, { 1.0f, 1.0f } },   // Top right
-        { { 192 * 2,   0 }, { 1.0f, 0.0f } }    // Bottom right
+        { {       0,       0 }, { 0.0f, 1.0f } },
+        { {       0, 108 * 2 }, { 0.0f, 0.0f } },
+        { { 192 * 2, 108 * 2 }, { 1.0f, 0.0f } },
+        { { 192 * 2,       0 }, { 1.0f, 1.0f } }
     };
 
     // Indices for vertices order
     auto indices = std::vector<GLuint>
     {
-        0, 2, 1,    // Upper triangle
-        0, 3, 2     // Lower triangle
+        0, 1, 2,
+        2, 3, 0
     };
 
     auto shaderProgram = ShaderProgram("default.vert", "default.frag");
@@ -420,22 +396,10 @@ int main(int argc, char** argv)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         shaderProgram.Activate();
+        shaderProgram.ProjectionMatrix(Matrix4x4::OrthoProjectionMatrix(0, screen_width, screen_height, 0, -1, 1));
+        shaderProgram.ModelMatrix(Matrix4x4::IdentityMatrix().Scale({2, 2, 2}).Translate({100, 50, 0}));
 
-        auto ortho = Matrix4x4::OrthoProjection(0, screen_width, 0, screen_height, -1, 1);
-        auto scale = Matrix4x4::Scale({ 1, -1, 1 });
-        auto translate = Matrix4x4::Translate({ 0, -screen_height, 0 });
-        auto projection = ortho * scale * translate;
-
-        auto s = Matrix4x4::Scale({ 1, -1, 1 });
-        auto t = Matrix4x4::Translate({ -192, -108, 0 });
-        auto r = Matrix4x4::Rotate({ 0, 0, 1 }, watch.GetElapsedTime());
-        // translate to center, then flip, then rotate, then translate back
-        auto model = Matrix4x4::Translate({ 192, 108, 0 }) * r * Matrix4x4::Scale({ 1, -1, 1 }) * t;
-
-        auto matrix = projection * model;
-
-        glUniformMatrix4fv(transformLocation, 1, GL_TRUE, matrix.Data());
-        //shaderProgram.SetColor(Color(std::fabs(std::sinf(watch.GetElapsedTime())), 0, 0));
+        //shaderProgram.Color(Color(std::fabs(std::sinf(watch.GetElapsedTime())), 0, 0));
         glBindTexture(GL_TEXTURE_2D, texture);
         vao1.Bind();
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
