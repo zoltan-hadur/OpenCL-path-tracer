@@ -71,8 +71,12 @@
       <AdditionalDependencies>OpenCL.lib;glfw3dll.lib;OpenGL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>
-      </Command>
+      <Command>@echo off
+SETLOCAL ENABLEDELAYEDEXPANSION
+set bin=$(SolutionDir)vcpkg_installed\x64-windows\bin
+(for %%p in (%bin%\*.dll) do (
+  xcopy /f /y "%%p" "$(OutDir)"
+))</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -98,8 +102,12 @@
       <AdditionalDependencies>OpenCL.lib;glfw3dll.lib;OpenGL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>
-      </Command>
+      <Command>@echo off
+SETLOCAL ENABLEDELAYEDEXPANSION
+set bin=$(SolutionDir)vcpkg_installed\x64-windows\bin
+(for %%p in (%bin%\*.dll) do (
+  xcopy /f /y "%%p" "$(OutDir)"
+))</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
