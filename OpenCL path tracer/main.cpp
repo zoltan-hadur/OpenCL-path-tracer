@@ -20,7 +20,12 @@
 #include "Matrix4x4.h"
 #include <numbers>
 #include "Texture.h"
+#include <ft2build.h>
+#include FT_FREETYPE_H  
 
+#include "Font.h"
+#include "FileHelper.h"
+#include <map>
 #include "ShaderProgram.h"
 #include "VAO.h"
 #include "VBO.h"
@@ -375,6 +380,9 @@ int main(int argc, char** argv)
     vbo1.Unbind();
     ebo1.Unbind();
 
+    // C:/Windows/Fonts/cour.ttf
+    auto font = Font("C:/Windows/Fonts/cour.ttf", 16);
+
     watch.Start();
     while (!glfwWindowShouldClose(window))
     {
@@ -383,18 +391,41 @@ int main(int argc, char** argv)
 
         shaderProgram.Activate();
         shaderProgram.ProjectionMatrix(Matrix4x4::OrthoProjectionMatrix(0, screen_width, screen_height, 0, -1, 1));
-        shaderProgram.ModelMatrix(Matrix4x4::IdentityMatrix().Scale({2, 2, 2}).Translate({100, 50, 0}));
 
-        //shaderProgram.Color(Color(std::fabs(std::sinf(watch.GetElapsedTime())), 0, 0));
+        shaderProgram.Mode(Mode::Texture);
+        shaderProgram.ModelMatrix(Matrix4x4::IdentityMatrix().Scale({ 2, 2, 2 }).Translate({ 100, 50, 0 }));
         texture.Bind();
         vao1.Bind();
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
         texture.Unbind();
         vao1.Unbind();
 
+        // The quick brown fox jumps over the lazy dog
+
+        shaderProgram.ModelMatrix(Matrix4x4::IdentityMatrix().Translate({ 100, 50, 0 }));
+        shaderProgram.Mode(Mode::Text);
+        shaderProgram.Color(Color(1, 1, 1));
+
+        font.Bind();
+        for (auto c : "The quick brown fox jumps over the lazy dog")
+        {
+            if (c == '\0')
+            {
+                continue;
+            }
+            font.Draw(c);
+
+            shaderProgram.ModelMatrix(shaderProgram.ModelMatrix().Translate({ 10, 0, 0 }));
+        }
+        font.Unbind();
+
         glfwSwapBuffers(window);
         glfwPollEvents();
+
+        _sleep(10);
     }
+
+    font.Delete();
 
     texture.Delete();
     vao1.Delete();

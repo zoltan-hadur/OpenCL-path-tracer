@@ -31,6 +31,7 @@ ShaderProgram::ShaderProgram(std::filesystem::path vertexShaderPath, std::filesy
     _modelMatrixLocation = glGetUniformLocation(_id, "modelMatrix");
     _colorLocation = glGetUniformLocation(_id, "color");
     _texture0Location = glGetUniformLocation(_id, "texture0");
+    _modeLocation = glGetUniformLocation(_id, "mode");
 
     _modelMatrix = Matrix4x4::IdentityMatrix();
 }
@@ -59,6 +60,11 @@ void ShaderProgram::ModelMatrix(Matrix4x4 const& model)
 void ShaderProgram::Color(class Color const& color) const
 {
     glUniform4f(_colorLocation, color.R, color.G, color.B, color.A);
+}
+
+void ShaderProgram::Mode(enum class Mode mode) const
+{
+    glUniform1i(_modeLocation, static_cast<std::underlying_type<enum class Mode>::type>(mode));
 }
 
 void ShaderProgram::Activate() const

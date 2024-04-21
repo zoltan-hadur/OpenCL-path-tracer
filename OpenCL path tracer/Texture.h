@@ -6,10 +6,9 @@
 class Texture
 {
 private:
-    GLuint _id = 0;
+    GLuint _id;
 
 public:
-    Texture() = default;
     Texture(Bitmap const& bitmap);
     Texture(GLint internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels);
 
