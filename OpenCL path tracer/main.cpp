@@ -410,27 +410,43 @@ int main(int argc, char** argv)
         shaderProgram.Color(Color(1, 1, 1));
 
         font.Bind();
-        for (int i = 0; i < 5; ++i)
+        float w = 0;
+        std::string str = "The quick brown fox jumps over the lazy dog\r\n"
+                          "The quick brown fox jumps over the lazy dog\r\n"
+                          "The quick brown fox jumps over the lazy dog\r\n"
+                          "The quick brown fox jumps over the lazy dog\r\n"
+                          "The quick brown fox jumps over the lazy dog";
+        for (auto c : str)
         {
-            for (auto c : "The quick brown fox jumps over the lazy dog")
+            if (c == '\0')
             {
-                if (c == '\0')
-                {
-                    continue;
-                }
-                auto advance = font.Draw(c);
+                continue;
+            }
 
+            if (c != '\r' && c != '\n')
+            {
+                auto advance = font.Draw(c);
+                w = w + advance;
                 shaderProgram.ModelMatrix(shaderProgram.ModelMatrix().Translate({ advance, 0, 0 }));
             }
-            shaderProgram.ModelMatrix(Matrix4x4::IdentityMatrix().Translate({ 0, 0 + font.Height() * (i + 1), 0}));
+
+            if (c == '\r')
+            {
+                shaderProgram.ModelMatrix(shaderProgram.ModelMatrix().Translate({ -w, 0, 0 }));
+                w = 0;
+            }
+            else if (c == '\n')
+            {
+                shaderProgram.ModelMatrix(shaderProgram.ModelMatrix().Translate({ 0, font.Height(), 0 }));
+            }
         }
         font.Unbind();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
 
-        _sleep(10);
-        //std::cout << cntr++ / watch.GetElapsedTime() << std::endl;
+        //_sleep(10);
+        std::cout << cntr++ / watch.GetElapsedTime() << std::endl;
     }
 
     font.Delete();
