@@ -4,6 +4,7 @@
 #include <glad/glad.h>
 #include "Texture.h"
 #include "Vector2.h"
+#include <utility>
 
 Font::Font(std::filesystem::path fontPath, uint8_t height)
 {
@@ -15,20 +16,28 @@ Font::Font(std::filesystem::path fontPath, uint8_t height)
     FT_Load_Char(face, ' ', FT_LOAD_RENDER);
     _height = face->size->metrics.height / 64.0f;
 
+    // https://stackoverflow.com/questions/62374506/how-do-i-align-glyphs-along-the-baseline-with-freetype
+    auto maxAscent = 0;
+    for (unsigned char c = 32; c <= 126; c++)
+    {
+        FT_Load_Char(face, c, FT_LOAD_RENDER);
+        maxAscent = std::max(maxAscent, face->glyph->bitmap_top);
+    }
+
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     for (unsigned char c = 32; c <= 126; c++)
     {
         FT_Load_Char(face, c, FT_LOAD_RENDER);
         auto size = Vector2(face->glyph->bitmap.width, face->glyph->bitmap.rows);
         auto bearing = Vector2(face->glyph->bitmap_left, face->glyph->bitmap_top);
-        auto t = 0.84f * _height - bearing.y;
+        auto yOffset = maxAscent - bearing.y;
         _characters.insert({ c, Character(
             std::make_unique<Texture>(GL_RED, face->glyph->bitmap.width, face->glyph->bitmap.rows, GL_RED, GL_UNSIGNED_BYTE, face->glyph->bitmap.buffer),
             {
-                { { bearing.x         ,          t }, { 0.0f, 0.0f } },
-                { { bearing.x         , size.y + t }, { 0.0f, 1.0f } },
-                { { bearing.x + size.x, size.y + t }, { 1.0f, 1.0f } },
-                { { bearing.x + size.x,          t }, { 1.0f, 0.0f } }
+                { { bearing.x         ,          yOffset }, { 0.0f, 0.0f } },
+                { { bearing.x         , size.y + yOffset }, { 0.0f, 1.0f } },
+                { { bearing.x + size.x, size.y + yOffset }, { 1.0f, 1.0f } },
+                { { bearing.x + size.x,          yOffset }, { 1.0f, 0.0f } }
             },
             face->glyph->advance.x / 64.0f
         ) });
@@ -64,7 +73,12 @@ Font::Font(std::filesystem::path fontPath, uint8_t height)
     _ebo->Unbind();
 }
 
-void Font::Draw(char c) const
+float Font::Height() const
+{
+    return _height;
+}
+
+float Font::Draw(char c) const
 {
     auto const& character = _characters.at(c);
     _vbo->Bind();
@@ -72,6 +86,42 @@ void Font::Draw(char c) const
     _vbo->Unbind();
     character.Texture().Bind();
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    return character.Advance();
+}
+
+Vector2 Font::MeasureText(std::string const& text) const
+{
+    auto size = Vector2();
+    auto cursor = Vector2();
+    if (text.length() > 0)
+    {
+        size.y = _height;
+    }
+    for (auto const& c : text)
+    {
+        auto const& character = _characters.at(c);
+        switch (c)
+        {
+            case '\r':
+            {
+                cursor.x = 0;
+                break;
+            }
+            case '\n':
+            {
+                cursor.y = cursor.y + _height;
+                size.y = cursor.y + _height;
+                break;
+            }
+            default:
+            {
+                cursor.x = cursor.x + character.Advance();
+                size.x = std::max(size.x, cursor.x);
+                break;
+            }
+        }
+    }
+    return size;
 }
 
 void Font::Bind() const

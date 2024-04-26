@@ -7,6 +7,7 @@
 #include "VAO.h"
 #include "VBO.h"
 #include "EBO.h"
+#include "Vector2.h"
 
 class Font
 {
@@ -20,7 +21,10 @@ private:
 public:
     Font(std::filesystem::path fontPath, uint8_t height);
 
-    void Draw(char c) const;
+    float Height() const;
+
+    float Draw(char c) const;
+    Vector2 MeasureText(std::string const& text) const;
 
     void Bind() const;
     void Unbind() const;

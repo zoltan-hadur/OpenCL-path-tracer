@@ -383,7 +383,10 @@ int main(int argc, char** argv)
     // C:/Windows/Fonts/cour.ttf
     auto font = Font("C:/Windows/Fonts/cour.ttf", 16);
 
+    auto size = font.MeasureText("The quick brown fox jumps over the lazy dog");
+
     watch.Start();
+    int cntr = 0;
     while (!glfwWindowShouldClose(window))
     {
         glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
@@ -402,20 +405,24 @@ int main(int argc, char** argv)
 
         // The quick brown fox jumps over the lazy dog
 
-        shaderProgram.ModelMatrix(Matrix4x4::IdentityMatrix().Translate({ 100, 50, 0 }));
+        shaderProgram.ModelMatrix(Matrix4x4::IdentityMatrix().Translate({ 0, 0, 0 }));
         shaderProgram.Mode(Mode::Text);
         shaderProgram.Color(Color(1, 1, 1));
 
         font.Bind();
-        for (auto c : "The quick brown fox jumps over the lazy dog")
+        for (int i = 0; i < 5; ++i)
         {
-            if (c == '\0')
+            for (auto c : "The quick brown fox jumps over the lazy dog")
             {
-                continue;
-            }
-            font.Draw(c);
+                if (c == '\0')
+                {
+                    continue;
+                }
+                auto advance = font.Draw(c);
 
-            shaderProgram.ModelMatrix(shaderProgram.ModelMatrix().Translate({ 10, 0, 0 }));
+                shaderProgram.ModelMatrix(shaderProgram.ModelMatrix().Translate({ advance, 0, 0 }));
+            }
+            shaderProgram.ModelMatrix(Matrix4x4::IdentityMatrix().Translate({ 0, 0 + font.Height() * (i + 1), 0}));
         }
         font.Unbind();
 
@@ -423,6 +430,7 @@ int main(int argc, char** argv)
         glfwPollEvents();
 
         _sleep(10);
+        //std::cout << cntr++ / watch.GetElapsedTime() << std::endl;
     }
 
     font.Delete();
