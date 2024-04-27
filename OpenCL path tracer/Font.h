@@ -8,12 +8,14 @@
 #include "VBO.h"
 #include "EBO.h"
 #include "Vector2.h"
+#include "Texture.h"
 
 class Font
 {
 private:
     float _height;
     std::map<char, Character> _characters;
+    std::unique_ptr<Texture> _texture;
     std::unique_ptr<VAO> _vao;
     std::unique_ptr<VBO> _vbo;
     std::unique_ptr<EBO> _ebo;

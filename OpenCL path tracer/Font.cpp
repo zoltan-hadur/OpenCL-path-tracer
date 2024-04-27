@@ -18,30 +18,39 @@ Font::Font(std::filesystem::path fontPath, uint8_t height)
 
     // https://stackoverflow.com/questions/62374506/how-do-i-align-glyphs-along-the-baseline-with-freetype
     auto maxAscent = 0;
+    auto textureWidth = 0;
     for (unsigned char c = 32; c <= 126; c++)
     {
         FT_Load_Char(face, c, FT_LOAD_RENDER);
         maxAscent = std::max(maxAscent, face->glyph->bitmap_top);
+        textureWidth = textureWidth + face->glyph->advance.x / 64;
     }
+    auto textureHeight = ((face->size->metrics.ascender - face->size->metrics.descender) / 64);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    _texture = std::make_unique<Texture>(GL_RED, textureWidth, textureHeight, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+    _texture->Bind();
+    auto pos = 0.0f;
     for (unsigned char c = 32; c <= 126; c++)
     {
         FT_Load_Char(face, c, FT_LOAD_RENDER);
         auto size = Vector2(face->glyph->bitmap.width, face->glyph->bitmap.rows);
         auto bearing = Vector2(face->glyph->bitmap_left, face->glyph->bitmap_top);
         auto yOffset = maxAscent - bearing.y;
+        auto advance = face->glyph->advance.x / 64.0f;
         _characters.insert({ c, Character(
-            std::make_unique<Texture>(GL_RED, face->glyph->bitmap.width, face->glyph->bitmap.rows, GL_RED, GL_UNSIGNED_BYTE, face->glyph->bitmap.buffer),
             {
-                { { bearing.x         ,          yOffset }, { 0.0f, 0.0f } },
-                { { bearing.x         , size.y + yOffset }, { 0.0f, 1.0f } },
-                { { bearing.x + size.x, size.y + yOffset }, { 1.0f, 1.0f } },
-                { { bearing.x + size.x,          yOffset }, { 1.0f, 0.0f } }
+                { { bearing.x         ,          yOffset }, {  pos           / textureWidth,                   0.0f } },
+                { { bearing.x         , size.y + yOffset }, {  pos           / textureWidth, size.y / textureHeight } },
+                { { bearing.x + size.x, size.y + yOffset }, { (pos + size.x) / textureWidth, size.y / textureHeight } },
+                { { bearing.x + size.x,          yOffset }, { (pos + size.x) / textureWidth,                   0.0f } }
             },
-            face->glyph->advance.x / 64.0f
+            advance
         ) });
+        _texture->UpdateTexture(pos, 0, face->glyph->bitmap.width, face->glyph->bitmap.rows, GL_RED, GL_UNSIGNED_BYTE, face->glyph->bitmap.buffer);
+        pos = pos + advance;
     }
+    _texture->Unbind();
 
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
@@ -84,7 +93,6 @@ float Font::Draw(char c) const
     _vbo->Bind();
     _vbo->UpdateVertices(character.Vertices());
     _vbo->Unbind();
-    character.Texture().Bind();
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     return character.Advance();
 }
@@ -127,6 +135,7 @@ Vector2 Font::MeasureText(std::string const& text) const
 void Font::Bind() const
 {
     _vao->Bind();
+    _texture->Bind();
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
@@ -134,16 +143,13 @@ void Font::Bind() const
 void Font::Unbind() const
 {
     _vao->Unbind();
+    _texture->Unbind();
     glDisable(GL_BLEND);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void Font::Delete() const
 {
-    for (auto const& [letter, character] : _characters)
-    {
-        character.Delete();
-    }
     _vao->Delete();
     _vbo->Delete();
     _ebo->Delete();
