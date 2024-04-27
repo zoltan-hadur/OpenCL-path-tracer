@@ -7,10 +7,10 @@
 class Matrix4x4
 {
 private:
-    std::array<std::array<float, 4>, 4> _values;
+    float _values[4][4];
 
 public:
-    Matrix4x4() = default;
+    Matrix4x4();
     Matrix4x4(std::array<std::array<float, 4>, 4> values);
 
     float const* Data() const;

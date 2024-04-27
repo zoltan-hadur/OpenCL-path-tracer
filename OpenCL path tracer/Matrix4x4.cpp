@@ -1,8 +1,14 @@
 #include "Matrix4x4.h"
+#include <immintrin.h>
+
+Matrix4x4::Matrix4x4()
+{
+    memset(_values, 0, sizeof(float) * 16);
+}
 
 Matrix4x4::Matrix4x4(std::array<std::array<float, 4>, 4> values)
 {
-    _values = std::move(values);
+    memcpy(_values, values.data(), sizeof(float) * 16);
 }
 
 float const* Matrix4x4::Data() const
@@ -30,14 +36,18 @@ Matrix4x4 Matrix4x4::operator*(Matrix4x4 const& matrix) const
     auto result = Matrix4x4();
     for (int i = 0; i < 4; ++i)
     {
-        for (int j = 0; j < 4; ++j)
+        for (int k = 0; k < 4; ++k)
         {
-            float sum = 0;
-            for (int k = 0; k < 4; ++k)
-            {
-                sum = sum + _values[i][k] * matrix._values[k][j];
-            }
-            result._values[i][j] = sum;
+            _mm_store_ps(
+                &result._values[i][0],
+                _mm_add_ps(
+                    _mm_load_ps(&result._values[i][0]),
+                    _mm_mul_ps(
+                        _mm_load_ps1(&_values[i][k]),
+                        _mm_load_ps(&matrix._values[k][0])
+                    )
+                )
+            );
         }
     }
     return result;
