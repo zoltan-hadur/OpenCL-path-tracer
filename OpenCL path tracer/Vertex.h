@@ -11,4 +11,7 @@ private:
 public:
     Vertex(Vector2 position);
     Vertex(Vector2 position, Vector2 textureCoordinate);
+
+    Vector2 const& Position() const;
+    Vector2 const& TextureCoordinate() const;
 };

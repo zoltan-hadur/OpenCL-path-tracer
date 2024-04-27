@@ -387,6 +387,38 @@ int main(int argc, char** argv)
 
     watch.Start();
     int cntr = 0;
+
+    std::string str = "The quick brown fox jumps over the lazy dog\r\n"
+                      "The quick brown fox jumps over the lazy dog\r\n"
+                      "The quick brown fox jumps over the lazy dog\r\n"
+                      "The quick brown fox jumps over the lazy dog\r\n"
+                      "The quick brown fox jumps over the lazy dog\r\n"
+                      "The quick brown fox jumps over the lazy dog\r\n"
+                      "The quick brown fox jumps over the lazy dog\r\n"
+                      "The quick brown fox jumps over the lazy dog\r\n"
+                      "The quick brown fox jumps over the lazy dog\r\n"
+                      "The quick brown fox jumps over the lazy dog\r\n"
+                      "The quick brown fox jumps over the lazy dog\r\n"
+                      "The quick brown fox jumps over the lazy dog\r\n"
+                      "The quick brown fox jumps over the lazy dog\r\n"
+                      "The quick brown fox jumps over the lazy dog\r\n"
+                      "The quick brown fox jumps over the lazy dog\r\n"
+                      "The quick brown fox jumps over the lazy dog\r\n"
+                      "The quick brown fox jumps over the lazy dog\r\n"
+                      "The quick brown fox jumps over the lazy dog\r\n"
+                      "The quick brown fox jumps over the lazy dog\r\n"
+                      "The quick brown fox jumps over the lazy dog\r\n"
+                      "The quick brown fox jumps over the lazy dog\r\n"
+                      "The quick brown fox jumps over the lazy dog\r\n"
+                      "The quick brown fox jumps over the lazy dog\r\n"
+                      "The quick brown fox jumps over the lazy dog\r\n"
+                      "The quick brown fox jumps over the lazy dog\r\n"
+                      "The quick brown fox jumps over the lazy dog\r\n"
+                      "The quick brown fox jumps over the lazy dog";
+    font.Bind();
+    font.UpdateText(str);
+    font.Unbind();
+
     while (!glfwWindowShouldClose(window))
     {
         glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
@@ -405,41 +437,11 @@ int main(int argc, char** argv)
 
         // The quick brown fox jumps over the lazy dog
 
-        shaderProgram.ModelMatrix(Matrix4x4::IdentityMatrix().Translate({ 0, 0, 0 }));
+        shaderProgram.ModelMatrix(Matrix4x4::IdentityMatrix().Rotate({ 0,0,1 }, watch.GetElapsedTime() / 5).Translate({ 300, 200, 0 }));
         shaderProgram.Mode(Mode::Text);
         shaderProgram.Color(Color(1, 1, 1));
-
         font.Bind();
-        float w = 0;
-        std::string str = "The quick brown fox jumps over the lazy dog\r\n"
-                          "The quick brown fox jumps over the lazy dog\r\n"
-                          "The quick brown fox jumps over the lazy dog\r\n"
-                          "The quick brown fox jumps over the lazy dog\r\n"
-                          "The quick brown fox jumps over the lazy dog";
-        for (auto c : str)
-        {
-            if (c == '\0')
-            {
-                continue;
-            }
-
-            if (c != '\r' && c != '\n')
-            {
-                auto advance = font.Draw(c);
-                w = w + advance;
-                shaderProgram.ModelMatrix(shaderProgram.ModelMatrix().Translate({ advance, 0, 0 }));
-            }
-
-            if (c == '\r')
-            {
-                shaderProgram.ModelMatrix(shaderProgram.ModelMatrix().Translate({ -w, 0, 0 }));
-                w = 0;
-            }
-            else if (c == '\n')
-            {
-                shaderProgram.ModelMatrix(shaderProgram.ModelMatrix().Translate({ 0, font.Height(), 0 }));
-            }
-        }
+        font.DrawText();
         font.Unbind();
 
         glfwSwapBuffers(window);

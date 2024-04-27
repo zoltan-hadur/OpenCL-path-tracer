@@ -19,13 +19,15 @@ private:
     std::unique_ptr<VAO> _vao;
     std::unique_ptr<VBO> _vbo;
     std::unique_ptr<EBO> _ebo;
+    size_t _indicesSize;
 
 public:
     Font(std::filesystem::path fontPath, uint8_t height);
 
     float Height() const;
 
-    float Draw(char c) const;
+    void DrawText() const;
+    void UpdateText(std::string const& text);
     Vector2 MeasureText(std::string const& text) const;
 
     void Bind() const;

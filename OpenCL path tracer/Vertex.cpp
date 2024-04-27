@@ -9,3 +9,13 @@ Vertex::Vertex(Vector2 position, Vector2 textureCoordinate) : _position(position
 {
 
 }
+
+Vector2 const& Vertex::Position() const
+{
+    return _position;
+}
+
+Vector2 const& Vertex::TextureCoordinate() const
+{
+    return _textureCoordinate;
+}
