@@ -12,7 +12,7 @@ GLuint VAO::Id() const
     return _id;
 }
 
-void VAO::LinkAttrib(VBO const& vbo, GLuint layout, GLuint numberOfComponents, GLenum type, GLsizeiptr stride, void* offset) const
+void VAO::LinkAttrib(VBO const& vbo, GLuint layout, GLuint numberOfComponents, GLenum type, GLsizei stride, void* offset) const
 {
     vbo.Bind();
     glVertexAttribPointer(layout, numberOfComponents, type, GL_FALSE, stride, offset);
