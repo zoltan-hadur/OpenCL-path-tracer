@@ -30,6 +30,7 @@
 #include "VAO.h"
 #include "VBO.h"
 #include "EBO.h"
+#include "Text.h"
 
 //GLConsole console;
 //Scene scene;
@@ -380,20 +381,15 @@ int main(int argc, char** argv)
     vbo1.Unbind();
     ebo1.Unbind();
 
-    // C:/Windows/Fonts/cour.ttf
-    auto font = Font("C:/Windows/Fonts/cour.ttf", 16);
-
-    auto size = font.MeasureText("The quick brown fox jumps over the lazy dog");
-
     watch.Start();
     int cntr = 0;
 
     std::string str = "The quick brown fox jumps over the lazy dog\r\n"
                       "The quick brown fox jumps over the lazy dog\r\n"
                       "The quick brown fox jumps over the lazy dog\r\n"
-                      "The quick brown fox jumps over the lazy dog\r\n"
-                      "The quick brown fox jumps over the lazy dog\r\n"
-                      "The quick brown fox jumps over the lazy dog\r\n"
+                      "\tThe quick brown fox jumps over the lazy dog\r\n"
+                      "\tThe quick brown fox jumps over the lazy dog\r\n"
+                      "\tThe quick brown fox jumps over the lazy dog\r\n"
                       "The quick brown fox jumps over the lazy dog\r\n"
                       "The quick brown fox jumps over the lazy dog\r\n"
                       "The quick brown fox jumps over the lazy dog\r\n"
@@ -415,9 +411,12 @@ int main(int argc, char** argv)
                       "The quick brown fox jumps over the lazy dog\r\n"
                       "The quick brown fox jumps over the lazy dog\r\n"
                       "The quick brown fox jumps over the lazy dog";
-    font.Bind();
-    font.UpdateText(str);
-    font.Unbind();
+
+    // C:/Windows/Fonts/cour.ttf
+    auto font = std::make_shared<Font>("C:/Windows/Fonts/cour.ttf", 16);
+    auto size = font->MeasureTextSize("The quick brown fox jumps over the lazy dog");
+
+    auto text = Text(font, str, Color(1, 1, 1));
 
     while (!glfwWindowShouldClose(window))
     {
@@ -438,11 +437,9 @@ int main(int argc, char** argv)
         // The quick brown fox jumps over the lazy dog
 
         shaderProgram.ModelMatrix(Matrix4x4::IdentityMatrix().Rotate({ 0,0,1 }, watch.GetElapsedTime() / 5).Translate({ 300, 200, 0 }));
-        shaderProgram.Mode(Mode::Text);
-        shaderProgram.Color(Color(1, 1, 1));
-        font.Bind();
-        font.DrawText();
-        font.Unbind();
+        text.Bind();
+        text.Draw(shaderProgram);
+        text.Unbind();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -450,8 +447,6 @@ int main(int argc, char** argv)
         //_sleep(10);
         std::cout << cntr++ / watch.GetElapsedTime() << std::endl;
     }
-
-    font.Delete();
 
     texture.Delete();
     vao1.Delete();
