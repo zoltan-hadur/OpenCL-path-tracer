@@ -2,7 +2,8 @@
 
 #include <string>
 #include <functional>
-#include <iostream>
+
+#include <iosfwd>
 
 // Base class for heterogeneous collection
 // Class is based on https://github.com/arpg/CVars

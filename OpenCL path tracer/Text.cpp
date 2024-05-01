@@ -1,5 +1,15 @@
 #include "Text.h"
 
+#include "Font.h"
+#include "Character.h"
+#include "VAO.h"
+#include "VBO.h"
+#include "EBO.h"
+#include "ShaderProgram.h"
+#include "ShaderMode.h"
+#include "Vector2.h"
+#include "Vertex.h"
+
 Text::Text(std::shared_ptr<Font> font, std::string text, class Color color)
 {
     _font = font;
@@ -94,7 +104,7 @@ void Text::Color(class Color color)
 
 void Text::Draw(ShaderProgram const& shaderProgram) const
 {
-    shaderProgram.Mode(Mode::Text);
+    shaderProgram.Mode(ShaderMode::Text);
     shaderProgram.Color(_color);
     glDrawElements(GL_TRIANGLES, _indicesSize, GL_UNSIGNED_INT, 0);
 }

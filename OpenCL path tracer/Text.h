@@ -1,13 +1,15 @@
 #pragma once
 
 #include <memory>
-#include "Font.h"
-#include "VAO.h"
-#include "VBO.h"
-#include "EBO.h"
 #include <string>
+
 #include "Color.h"
-#include "ShaderProgram.h"
+
+class Font;
+class VAO;
+class VBO;
+class EBO;
+class ShaderProgram;
 
 class Text
 {

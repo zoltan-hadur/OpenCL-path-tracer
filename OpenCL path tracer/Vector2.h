@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Vector3.h"
+class Vector3;
+#include <iosfwd>
 
 class Vector2
 {

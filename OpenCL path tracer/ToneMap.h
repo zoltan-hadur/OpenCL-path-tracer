@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #pragma pack(1)
 enum class ToneMap : uint8_t
 {

@@ -1,7 +1,8 @@
 #pragma once
 
 #include <glad/glad.h>
-#include "Bitmap.h"
+
+class Bitmap;
 
 class Texture
 {

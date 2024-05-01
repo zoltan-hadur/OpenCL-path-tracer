@@ -1,10 +1,13 @@
 #pragma once
 
-#include <filesystem>
 #include <map>
-#include "Character.h"
 #include <memory>
-#include "Texture.h"
+#include <filesystem>
+#include <string>
+
+class Character;
+class Texture;
+class Vector2;
 
 class Font
 {

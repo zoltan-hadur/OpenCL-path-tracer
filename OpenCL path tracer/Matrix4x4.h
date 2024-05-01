@@ -1,8 +1,9 @@
 #pragma once
 
 #include <array>
-#include "Vector3.h"
-#include "Vector2.h"
+
+class Vector2;
+class Vector3;
 
 class Matrix4x4
 {

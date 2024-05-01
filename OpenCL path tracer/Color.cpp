@@ -1,6 +1,7 @@
 #include "Color.h"
 
 #include <format>
+#include <iostream>
 
 Color::Color(float R, float G, float B, float A) : R(R), G(G), B(B), A(A)
 {

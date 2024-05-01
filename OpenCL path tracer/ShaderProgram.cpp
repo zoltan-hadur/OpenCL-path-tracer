@@ -1,5 +1,9 @@
 #include "ShaderProgram.h"
+
 #include "Shader.h"
+#include "Color.h"
+#include "ShaderMode.h"
+
 #include <iostream>
 
 ShaderProgram::ShaderProgram(std::filesystem::path vertexShaderPath, std::filesystem::path fragmentShaderPath)
@@ -62,7 +66,7 @@ void ShaderProgram::Color(class Color const& color) const
     glUniform4f(_colorLocation, color.R, color.G, color.B, color.A);
 }
 
-void ShaderProgram::Mode(enum class Mode mode) const
+void ShaderProgram::Mode(ShaderMode mode) const
 {
     glUniform1i(_modeLocation, static_cast<std::underlying_type<enum class Mode>::type>(mode));
 }

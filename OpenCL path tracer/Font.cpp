@@ -1,9 +1,13 @@
 #include "Font.h"
+
+#include "Texture.h"
+#include "Vector2.h"
+#include "Character.h"
+#include "Vertex.h"
+
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include <glad/glad.h>
-#include "Texture.h"
-#include "Vector2.h"
 #include <utility>
 
 Font::Font(std::filesystem::path fontPath, uint8_t height)

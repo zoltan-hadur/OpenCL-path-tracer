@@ -1,5 +1,7 @@
 #include "Shader.h"
+
 #include "FileHelper.h"
+
 #include <iostream>
 
 Shader::Shader(std::filesystem::path shaderPath, GLenum shaderType)

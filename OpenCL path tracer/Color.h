@@ -1,6 +1,6 @@
 #pragma once
 
-#include <iostream>
+#include <iosfwd>
 
 #pragma pack(1)
 __declspec(align(16))

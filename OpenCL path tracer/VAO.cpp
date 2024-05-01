@@ -1,5 +1,7 @@
 #include "VAO.h"
 
+#include "VBO.h"
+
 VAO::VAO()
 {
     glGenVertexArrays(1, &_id);

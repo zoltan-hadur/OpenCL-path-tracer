@@ -1,7 +1,10 @@
 #include "Vector2.h"
 
+#include "Vector3.h"
+
 #include <numbers>
 #include <format>
+#include <iostream>
 
 Vector2::Vector2() : Vector2(0, 0)
 {

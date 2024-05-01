@@ -1,5 +1,7 @@
 #include "Character.h"
 
+#include "Vertex.h"
+
 Character::Character(std::vector<Vertex> vertices, float advance) : _vertices(std::move(vertices)), _advance(advance)
 {
 

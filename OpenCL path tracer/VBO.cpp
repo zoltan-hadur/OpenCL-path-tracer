@@ -1,5 +1,9 @@
 #include "VBO.h"
 
+#include "Vertex.h"
+
+#include <stdexcept>
+
 VBO::VBO(std::vector<Vertex> const& vertices)
 {
     glGenBuffers(1, &_id);

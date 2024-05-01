@@ -1,14 +1,14 @@
 #pragma once
 
-#include <format>
-#include <functional>
 #include <map>
 #include <string>
-#include <sstream>
-#include <ostream>
-#include <algorithm>
+#include <memory>
+#include <stdexcept>
+#include <format>
+
 #include "ConsoleVariableBase.h"
 #include "ConsoleVariable.h"
+#include <iosfwd>
 
 // Manages CVars
 // Class is based on https://github.com/arpg/CVars

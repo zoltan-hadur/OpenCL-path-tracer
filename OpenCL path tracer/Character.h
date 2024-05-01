@@ -1,8 +1,8 @@
 #pragma once
 
 #include <vector>
-#include "Vertex.h"
-#include <memory>
+
+class Vertex;
 
 class Character
 {

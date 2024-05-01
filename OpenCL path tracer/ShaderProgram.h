@@ -2,15 +2,11 @@
 
 #include <glad/glad.h>
 #include <filesystem>
-#include "Color.h"
+
 #include "Matrix4x4.h"
 
-enum class Mode
-{
-    Color = 0,
-    Texture = 1,
-    Text = 2
-};
+class Color;
+enum class ShaderMode;
 
 class ShaderProgram
 {
@@ -35,7 +31,7 @@ public:
     void ModelMatrix(Matrix4x4 const& matrix);
     void Color(Color const& color) const;
 
-    void Mode(Mode mode) const;
+    void Mode(ShaderMode mode) const;
 
     void Activate() const;
     void Delete() const;

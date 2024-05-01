@@ -1,5 +1,10 @@
 #include "Matrix4x4.h"
+
+#include "Vector2.h"
+#include "Vector3.h"
+
 #include <immintrin.h>
+#include <cmath>
 
 Matrix4x4::Matrix4x4()
 {
@@ -99,7 +104,7 @@ Matrix4x4 Matrix4x4::TranslateMatrix(Vector3 const& translate)
         { 1, 0, 0, translate.x },
         { 0, 1, 0, translate.y },
         { 0, 0, 1, translate.z },
-        { 0, 0, 0, 1 }
+        { 0, 0, 0,           1 }
     } });
 }
 

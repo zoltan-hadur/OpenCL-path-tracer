@@ -2,35 +2,21 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-//#include <GL\glext.h>
 #include <iostream>
-#include <sstream>
-#include <fstream>
-#include <vector>
-#include <utility>
-#include <chrono>
-#include <thread>
-//#include "Scene.h"
-//#include "GLConsole.h"
-#include "TextureType.h"
 #include "Stopwatch.h"
-#include "Vector2.h"
+#include "Vector3.h"
 #include "Bitmap.h"
 #include "Vertex.h"
 #include "Matrix4x4.h"
-#include <numbers>
 #include "Texture.h"
-#include <ft2build.h>
-#include FT_FREETYPE_H  
-
+#include "Character.h"
 #include "Font.h"
-#include "FileHelper.h"
-#include <map>
 #include "ShaderProgram.h"
 #include "VAO.h"
 #include "VBO.h"
 #include "EBO.h"
 #include "Text.h"
+#include "ShaderMode.h"
 
 //GLConsole console;
 //Scene scene;
@@ -426,7 +412,7 @@ int main(int argc, char** argv)
         shaderProgram.Activate();
         shaderProgram.ProjectionMatrix(Matrix4x4::OrthoProjectionMatrix(0, screen_width, screen_height, 0, -1, 1));
 
-        shaderProgram.Mode(Mode::Texture);
+        shaderProgram.Mode(ShaderMode::Texture);
         shaderProgram.ModelMatrix(Matrix4x4::IdentityMatrix().Scale({ 2, 2, 2 }).Translate({ 100, 50, 0 }));
         texture.Bind();
         vao1.Bind();

@@ -1,5 +1,7 @@
 #include "Texture.h"
 
+#include "Bitmap.h"
+
 Texture::Texture(Bitmap const& bitmap) : Texture(GL_RGBA, bitmap.Width(), bitmap.Height(), GL_BGR, GL_UNSIGNED_BYTE, bitmap.Bytes().data())
 {
 
