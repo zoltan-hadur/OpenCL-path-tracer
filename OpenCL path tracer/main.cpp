@@ -416,7 +416,7 @@ int main(int argc, char** argv)
         shaderProgram.ModelMatrix(Matrix4x4::IdentityMatrix().Scale({ 2, 2, 2 }).Translate({ 100, 50, 0 }));
         texture.Bind();
         vao1.Bind();
-        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, 0);
         texture.Unbind();
         vao1.Unbind();
 

@@ -106,7 +106,7 @@ void Text::Draw(ShaderProgram const& shaderProgram) const
 {
     shaderProgram.Mode(ShaderMode::Text);
     shaderProgram.Color(_color);
-    glDrawElements(GL_TRIANGLES, _indicesSize, GL_UNSIGNED_INT, 0);
+    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(_indicesSize), GL_UNSIGNED_INT, 0);
 }
 
 void Text::Bind() const

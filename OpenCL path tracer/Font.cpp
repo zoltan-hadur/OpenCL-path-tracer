@@ -34,22 +34,22 @@ Font::Font(std::filesystem::path fontPath, uint8_t height)
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     _texture = std::make_unique<Texture>(GL_RED, textureWidth, textureHeight, GL_RED, GL_UNSIGNED_BYTE, nullptr);
     _texture->Bind();
-    auto pos = 0.0f;
+    auto pos = 0;
     for (unsigned char c = 32; c <= 126; c++)
     {
         FT_Load_Char(face, c, FT_LOAD_RENDER);
-        auto size = Vector2(face->glyph->bitmap.width, face->glyph->bitmap.rows);
-        auto bearing = Vector2(face->glyph->bitmap_left, face->glyph->bitmap_top);
+        auto size = Vector2(static_cast<float>(face->glyph->bitmap.width), static_cast<float>(face->glyph->bitmap.rows));
+        auto bearing = Vector2(static_cast<float>(face->glyph->bitmap_left), static_cast<float>(face->glyph->bitmap_top));
         auto yOffset = maxAscent - bearing.y;
-        auto advance = face->glyph->advance.x / 64.0f;
+        auto advance = face->glyph->advance.x / 64;
         _characters.insert({ c, Character(
             {
-                { { bearing.x         ,          yOffset }, {  pos           / textureWidth,                   0.0f } },
-                { { bearing.x         , size.y + yOffset }, {  pos           / textureWidth, size.y / textureHeight } },
-                { { bearing.x + size.x, size.y + yOffset }, { (pos + size.x) / textureWidth, size.y / textureHeight } },
-                { { bearing.x + size.x,          yOffset }, { (pos + size.x) / textureWidth,                   0.0f } }
+                { { bearing.x         ,          yOffset }, {  static_cast<float>(pos)           / textureWidth,                   0.0f } },
+                { { bearing.x         , size.y + yOffset }, {  static_cast<float>(pos) / textureWidth, size.y / textureHeight } },
+                { { bearing.x + size.x, size.y + yOffset }, { (static_cast<float>(pos) + size.x) / textureWidth, size.y / textureHeight } },
+                { { bearing.x + size.x,          yOffset }, { (static_cast<float>(pos) + size.x) / textureWidth,                   0.0f } }
             },
-            advance
+            static_cast<float>(advance)
         ) });
         _texture->UpdateTexture(pos, 0, face->glyph->bitmap.width, face->glyph->bitmap.rows, GL_RED, GL_UNSIGNED_BYTE, face->glyph->bitmap.buffer);
         pos = pos + advance;
