@@ -25,6 +25,11 @@ GLuint Texture::Id() const
     return _id;
 }
 
+Texture::~Texture()
+{
+    glDeleteTextures(1, &_id);
+}
+
 void Texture::UpdateTexture(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels) const
 {
     glTexSubImage2D(GL_TEXTURE_2D, 0, xoffset, yoffset, width, height, format, type, pixels);
@@ -38,9 +43,4 @@ void Texture::Bind() const
 void Texture::Unbind() const
 {
     glBindTexture(GL_TEXTURE_2D, 0);
-}
-
-void Texture::Delete() const
-{
-    glDeleteTextures(1, &_id);
 }

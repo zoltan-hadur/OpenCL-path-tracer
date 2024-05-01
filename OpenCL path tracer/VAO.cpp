@@ -7,6 +7,11 @@ VAO::VAO()
     glGenVertexArrays(1, &_id);
 }
 
+VAO::~VAO()
+{
+    glDeleteVertexArrays(1, &_id);
+}
+
 GLuint VAO::Id() const
 {
     return _id;
@@ -28,9 +33,4 @@ void VAO::Bind() const
 void VAO::Unbind() const
 {
     glBindVertexArray(0);
-}
-
-void VAO::Delete() const
-{
-    glDeleteVertexArrays(1, &_id);
 }

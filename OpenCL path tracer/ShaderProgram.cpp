@@ -28,9 +28,6 @@ ShaderProgram::ShaderProgram(std::filesystem::path vertexShaderPath, std::filesy
         std::cout << std::format("Shader linking failed:\r\n{}", log) << std::endl;
     }
 
-    vertexShader.Delete();
-    fragmentShader.Delete();
-
     _projectionMatrixLocation = glGetUniformLocation(_id, "projectionMatrix");
     _modelMatrixLocation = glGetUniformLocation(_id, "modelMatrix");
     _colorLocation = glGetUniformLocation(_id, "color");
@@ -38,6 +35,11 @@ ShaderProgram::ShaderProgram(std::filesystem::path vertexShaderPath, std::filesy
     _modeLocation = glGetUniformLocation(_id, "mode");
 
     _modelMatrix = Matrix4x4::IdentityMatrix();
+}
+
+ShaderProgram::~ShaderProgram()
+{
+    glDeleteProgram(_id);
 }
 
 GLuint ShaderProgram::Id() const
@@ -75,9 +77,4 @@ void ShaderProgram::Activate() const
 {
     glUseProgram(_id);
     glUniform1i(_texture0Location, 0);
-}
-
-void ShaderProgram::Delete() const
-{
-    glDeleteProgram(_id);
 }

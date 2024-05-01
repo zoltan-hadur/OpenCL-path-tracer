@@ -11,6 +11,7 @@ private:
 
 public:
     EBO(std::vector<GLuint> const& indices);
+    ~EBO();
 
     GLuint Id() const;
 
@@ -19,5 +20,4 @@ public:
 
     void Bind() const;
     void Unbind() const;
-    void Delete() const;
 };

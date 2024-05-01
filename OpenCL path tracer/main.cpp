@@ -434,12 +434,6 @@ int main(int argc, char** argv)
         std::cout << cntr++ / watch.GetElapsedTime() << std::endl;
     }
 
-    texture.Delete();
-    vao1.Delete();
-    vbo1.Delete();
-    ebo1.Delete();
-    shaderProgram.Delete();
-
     glfwDestroyWindow(window);
     glfwTerminate();
     return 0;

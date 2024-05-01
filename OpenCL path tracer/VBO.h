@@ -13,6 +13,7 @@ private:
 
 public:
     VBO(std::vector<Vertex> const& vertices);
+    ~VBO();
 
     GLuint Id() const;
 
@@ -21,5 +22,4 @@ public:
 
     void Bind() const;
     void Unbind() const;
-    void Delete() const;
 };

@@ -23,6 +23,7 @@ private:
 
 public:
     ShaderProgram(std::filesystem::path vertexShaderPath, std::filesystem::path fragmentShaderPath);
+    ~ShaderProgram();
 
     GLuint Id() const;
 
@@ -34,5 +35,4 @@ public:
     void Mode(ShaderMode mode) const;
 
     void Activate() const;
-    void Delete() const;
 };

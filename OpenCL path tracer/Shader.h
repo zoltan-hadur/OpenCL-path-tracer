@@ -10,7 +10,7 @@ private:
 
 public:
     Shader(std::filesystem::path shaderPath, GLenum shaderType);
+    ~Shader();
 
     GLuint Id() const;
-    void Delete() const;
 };

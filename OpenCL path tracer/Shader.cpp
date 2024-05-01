@@ -25,12 +25,12 @@ Shader::Shader(std::filesystem::path shaderPath, GLenum shaderType)
     }
 }
 
+Shader::~Shader()
+{
+    glDeleteShader(_id);
+}
+
 GLuint Shader::Id() const
 {
     return _id;
-}
-
-void Shader::Delete() const
-{
-    glDeleteShader(_id);
 }
