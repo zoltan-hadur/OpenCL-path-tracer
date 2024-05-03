@@ -19,7 +19,7 @@ namespace OpenCL_PathTracer
         ConsoleVariableBase(std::string name, std::string description, std::function<void(void)> callback);
 
     public:
-        std::string Name() const;
+        std::string const& GetName() const;
 
         virtual std::ostream& Print(std::ostream& os, bool onlyValue = false) const = 0;
         virtual std::istream& Read(std::istream& is) = 0;

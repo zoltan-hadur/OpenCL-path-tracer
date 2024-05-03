@@ -358,7 +358,7 @@ int main(int argc, char** argv)
     auto shaderProgram = ShaderProgram("default.vert", "default.frag");
     if (!shaderProgram.IsLinkingSuccessful())
     {
-        std::cout << shaderProgram.LinkingLog() << std::endl;
+        std::cout << shaderProgram.GetLinkingLog() << std::endl;
     }
     auto vao1 = VAO();
     vao1.Bind();
@@ -368,8 +368,8 @@ int main(int argc, char** argv)
     auto ebo1 = EBO(indices);
     ebo1.Bind();
 
-    vao1.LinkAttrib(vbo1, 0, 4, GL_FLOAT, sizeof(float) * 4, (void*)0);
-    vao1.LinkAttrib(vbo1, 1, 4, GL_FLOAT, sizeof(float) * 4, (void*)(sizeof(float) * 2));
+    vao1.LinkAttribute(vbo1, 0, 4, GL_FLOAT, sizeof(float) * 4, (void*)0);
+    vao1.LinkAttribute(vbo1, 1, 4, GL_FLOAT, sizeof(float) * 4, (void*)(sizeof(float) * 2));
     vao1.Unbind();
     vbo1.Unbind();
     ebo1.Unbind();
@@ -417,10 +417,10 @@ int main(int argc, char** argv)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         shaderProgram.Activate();
-        shaderProgram.ProjectionMatrix(Matrix4x4::OrthoProjectionMatrix(0, screen_width, screen_height, 0, -1, 1));
+        shaderProgram.SetProjectionMatrix(Matrix4x4::OrthoProjectionMatrix(0, screen_width, screen_height, 0, -1, 1));
 
-        shaderProgram.Mode(ShaderMode::Texture);
-        shaderProgram.ModelMatrix(Matrix4x4::IdentityMatrix().Scale({ 2, 2, 2 }).Translate({ 100, 50, 0 }));
+        shaderProgram.SetMode(ShaderMode::Texture);
+        shaderProgram.SetModelMatrix(Matrix4x4::IdentityMatrix().Scale({ 2, 2, 2 }).Translate({ 100, 50, 0 }));
         texture.Bind();
         vao1.Bind();
         glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, 0);

@@ -3,9 +3,10 @@
 #include <fstream>
 #include <sstream>
 
-using namespace OpenCL_PathTracer;
-
-std::string FileHelper::ReadAllText(std::filesystem::path path)
+namespace OpenCL_PathTracer
 {
-    return (std::stringstream() << std::ifstream(path).rdbuf()).str();
+    std::string FileHelper::ReadAllText(std::filesystem::path path)
+    {
+        return (std::stringstream() << std::ifstream(path).rdbuf()).str();
+    }
 }

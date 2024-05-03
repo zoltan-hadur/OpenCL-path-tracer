@@ -24,8 +24,8 @@ namespace OpenCL_PathTracer
         public:
             Font(std::filesystem::path fontPath, uint8_t height);
 
-            float Height() const;
-            std::shared_ptr<Texture> Texture();
+            float GetHeight() const;
+            std::shared_ptr<Texture> GetTexture();
 
             Vector2 MeasureTextSize(std::string const& text) const;
             Character const& GetCharacter(char c) const;

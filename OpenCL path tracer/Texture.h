@@ -20,7 +20,7 @@ namespace OpenCL_PathTracer
             Texture(GLint internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels);
             ~Texture();
 
-            GLuint Id() const;
+            GLuint GetId() const;
             void UpdateTexture(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels);
 
             void Bind() const;

@@ -19,7 +19,7 @@ namespace OpenCL_PathTracer
             VBO(std::vector<Vertex> const& vertices);
             ~VBO();
 
-            GLuint Id() const;
+            GLuint GetId() const;
 
             void UpdateVertices(std::vector<Vertex> const& vertices);
             void ReplaceVertices(std::vector<Vertex> const& vertices);

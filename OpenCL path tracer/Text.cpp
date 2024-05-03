@@ -11,76 +11,79 @@
 #include "Vertex.h"
 #include "Color.h"
 
-using namespace OpenCL_PathTracer;
-using namespace OpenCL_PathTracer::GL_Stuff;
-
-Text::Text(std::shared_ptr<Font> font, std::string value, Color color) : Component(ShaderMode::Text, Color(1, 1, 1), font->Texture())
+namespace OpenCL_PathTracer
 {
-    _font = font;
-    Bind();
-    SetValue(value);
-    Unbind();
-}
-
-std::string const& Text::GetValue() const
-{
-    return _value;
-}
-
-void Text::SetValue(std::string value)
-{
-    _value = value;
-
-    auto cursor = Vector2();
-    auto vertices = std::vector<Vertex>();
-    auto indices = std::vector<GLuint>();
-    auto defaultIndices = std::vector<GLuint>
+    namespace GL_Stuff
     {
-        0, 1, 2,
-        2, 3, 0
-    };
-    auto count = 0;
-    for (auto c : _value)
-    {
-        switch (c)
+        Text::Text(std::shared_ptr<Font> font, std::string value, Color color) : Component(ShaderMode::Text, Color(1, 1, 1), font->GetTexture())
         {
-            case '\0':
+            _font = font;
+            Bind();
+            SetValue(value);
+            Unbind();
+        }
+
+        std::string const& Text::GetValue() const
+        {
+            return _value;
+        }
+
+        void Text::SetValue(std::string value)
+        {
+            _value = value;
+
+            auto cursor = Vector2();
+            auto vertices = std::vector<Vertex>();
+            auto indices = std::vector<GLuint>();
+            auto defaultIndices = std::vector<GLuint>
             {
-                continue;
-            }
-            case '\r':
+                0, 1, 2,
+                2, 3, 0
+            };
+            auto count = 0;
+            for (auto c : _value)
             {
-                cursor.x = 0;
-                break;
-            }
-            case '\n':
-            {
-                cursor.y = cursor.y + _font->Height();
-                break;
-            }
-            case '\t':
-            {
-                // 1 tab = 2 spaces
-                cursor.x = cursor.x + _font->GetCharacter(' ').Advance() * 2;
-                break;
-            }
-            default:
-            {
-                auto const& character = _font->GetCharacter(c);
-                for (auto const& vertex : character.Vertices())
+                switch (c)
                 {
-                    vertices.push_back({ vertex.Position() + cursor, vertex.TextureCoordinate() });
+                    case '\0':
+                    {
+                        continue;
+                    }
+                    case '\r':
+                    {
+                        cursor.x = 0;
+                        break;
+                    }
+                    case '\n':
+                    {
+                        cursor.y = cursor.y + _font->GetHeight();
+                        break;
+                    }
+                    case '\t':
+                    {
+                        // 1 tab = 2 spaces
+                        cursor.x = cursor.x + _font->GetCharacter(' ').GetAdvance() * 2;
+                        break;
+                    }
+                    default:
+                    {
+                        auto const& character = _font->GetCharacter(c);
+                        for (auto const& vertex : character.GetVertices())
+                        {
+                            vertices.push_back({ vertex.GetPosition() + cursor, vertex.GetTextureCoordinate() });
+                        }
+                        for (auto index : defaultIndices)
+                        {
+                            indices.push_back(index + count * 4);
+                        }
+                        count++;
+                        cursor.x = cursor.x + character.GetAdvance();
+                        break;
+                    }
                 }
-                for (auto index : defaultIndices)
-                {
-                    indices.push_back(index + count * 4);
-                }
-                count++;
-                cursor.x = cursor.x + character.Advance();
-                break;
             }
+
+            ReplaceData(vertices, indices);
         }
     }
-
-    ReplaceData(vertices, indices);
 }

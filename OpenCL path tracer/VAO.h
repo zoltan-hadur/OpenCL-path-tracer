@@ -17,9 +17,9 @@ namespace OpenCL_PathTracer
             VAO();
             ~VAO();
 
-            GLuint Id() const;
+            GLuint GetId() const;
 
-            void LinkAttrib(VBO const& vbo, GLuint layout, GLuint numberOfComponents, GLenum type, GLsizei stride, void* offset) const;
+            void LinkAttribute(VBO const& vbo, GLuint layout, GLuint numberOfComponents, GLenum type, GLsizei stride, void* offset) const;
             void Bind() const;
             void Unbind() const;
         };

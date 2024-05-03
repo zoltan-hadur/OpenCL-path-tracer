@@ -11,14 +11,16 @@ namespace OpenCL_PathTracer
         std::chrono::steady_clock::time_point _lastTime;
         float _timeToLive;
         bool _isRunning;
+
     public:
         Stopwatch();
+
+        bool IsRunning();
+        float GetDeltaTime();
+        float GetElapsedTime();
 
         void Start(float timeToLive = 0);
         void Stop();
         bool TryStop();
-        bool IsRunning();
-        float GetDeltaTime();
-        float GetElapsedTime();
     };
 }

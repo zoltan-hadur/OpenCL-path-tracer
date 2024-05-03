@@ -2,22 +2,23 @@
 
 #include <stdexcept>
 
-using namespace OpenCL_PathTracer::GL_Stuff;
-
-void Freezable::ThrowIfFrozen() const
+namespace OpenCL_PathTracer::GL_Stuff
 {
-    if (_isFrozen)
+    void Freezable::ThrowIfFrozen() const
     {
-        throw std::runtime_error("Object is frozen!");
+        if (_isFrozen)
+        {
+            throw std::runtime_error("Object is frozen!");
+        }
     }
-}
 
-void Freezable::Freeze()
-{
-    _isFrozen = true;
-}
+    void Freezable::Freeze()
+    {
+        _isFrozen = true;
+    }
 
-bool Freezable::IsFrozen() const
-{
-    return _isFrozen;
+    bool Freezable::IsFrozen() const
+    {
+        return _isFrozen;
+    }
 }

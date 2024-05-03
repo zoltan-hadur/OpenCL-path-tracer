@@ -32,16 +32,16 @@ namespace OpenCL_PathTracer
             ShaderProgram(std::filesystem::path vertexShaderPath, std::filesystem::path fragmentShaderPath);
             ~ShaderProgram();
 
-            GLuint Id() const;
+            GLuint GetId() const;
             bool IsLinkingSuccessful() const;
-            std::string const& LinkingLog() const;
+            std::string const& GetLinkingLog() const;
 
-            void ProjectionMatrix(Matrix4x4 const& matrix);
-            Matrix4x4 const& ModelMatrix() const;
-            void ModelMatrix(Matrix4x4 const& matrix);
-            void Color(Color const& color);
+            void SetProjectionMatrix(Matrix4x4 const& matrix);
+            Matrix4x4 const& GetModelMatrix() const;
+            void SetModelMatrix(Matrix4x4 const& matrix);
+            void SetColor(Color const& color);
 
-            void Mode(ShaderMode mode);
+            void SetMode(ShaderMode mode);
 
             void Activate() const;
         };

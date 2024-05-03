@@ -18,9 +18,9 @@ namespace OpenCL_PathTracer
     public:
         Bitmap(int width, int height, std::vector<uint8_t> bytes);
 
-        int Width() const;
-        int Height() const;
-        std::vector<uint8_t> const& Bytes() const;
+        int GetWidth() const;
+        int GetHeight() const;
+        std::vector<uint8_t> const& GetData() const;
 
         static Bitmap Read(std::filesystem::path path);
         void Write(std::filesystem::path path) const;

@@ -16,8 +16,8 @@ namespace OpenCL_PathTracer
             Vertex(Vector2 position);
             Vertex(Vector2 position, Vector2 textureCoordinate);
 
-            Vector2 const& Position() const;
-            Vector2 const& TextureCoordinate() const;
+            Vector2 const& GetPosition() const;
+            Vector2 const& GetTextureCoordinate() const;
         };
     }
 }

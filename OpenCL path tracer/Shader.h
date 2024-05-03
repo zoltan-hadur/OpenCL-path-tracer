@@ -19,9 +19,9 @@ namespace OpenCL_PathTracer
             Shader(std::filesystem::path shaderPath, GLenum shaderType);
             ~Shader();
 
-            GLuint Id() const;
+            GLuint GetId() const;
             bool IsCompilationSuccessful() const;
-            std::string const& CompilationLog() const;
+            std::string const& GetCompilationLog() const;
         };
     }
 }

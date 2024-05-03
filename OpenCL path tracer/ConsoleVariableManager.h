@@ -23,12 +23,12 @@ namespace OpenCL_PathTracer
         template<typename T>
         void Add(ConsoleVariable<T> variable)
         {
-            if (Find(variable.Name()))
+            if (Find(variable.GetName()))
             {
-                throw std::runtime_error(std::format("Console variable \"{}\" already exists!", variable.Name()));
+                throw std::runtime_error(std::format("Console variable \"{}\" already exists!", variable.GetName()));
             }
 
-            _variables[variable.Name()] = std::make_unique<ConsoleVariable<T>>(variable);
+            _variables[variable.GetName()] = std::make_unique<ConsoleVariable<T>>(variable);
         }
         ConsoleVariableBase* Find(std::string name) const;
         void Print(std::ostream& os) const;

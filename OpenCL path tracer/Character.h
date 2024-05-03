@@ -17,8 +17,8 @@ namespace OpenCL_PathTracer
         public:
             Character(std::vector<Vertex> vertices, float advance);
 
-            std::vector<Vertex> const& Vertices() const;
-            float Advance() const;
+            std::vector<Vertex> const& GetVertices() const;
+            float GetAdvance() const;
         };
     }
 }

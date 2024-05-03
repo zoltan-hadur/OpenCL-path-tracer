@@ -16,7 +16,7 @@ namespace OpenCL_PathTracer
         Matrix4x4();
         Matrix4x4(std::array<std::array<float, 4>, 4> values);
 
-        float const* Data() const;
+        float const* GetData() const;
 
         Matrix4x4 Scale(Vector3 const& scale) const;
         Matrix4x4 Translate(Vector3 const& translate) const;

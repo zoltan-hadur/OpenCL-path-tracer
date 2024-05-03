@@ -17,7 +17,7 @@ namespace OpenCL_PathTracer
             EBO(std::vector<GLuint> const& indices);
             ~EBO();
 
-            GLuint Id() const;
+            GLuint GetId() const;
             std::size_t GetSize() const;
 
             void UpdateIndices(std::vector<GLuint> const& indices);

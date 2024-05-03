@@ -2,19 +2,23 @@
 
 #include "Vertex.h"
 
-using namespace OpenCL_PathTracer::GL_Stuff;
-
-Character::Character(std::vector<Vertex> vertices, float advance) : _vertices(std::move(vertices)), _advance(advance)
+namespace OpenCL_PathTracer
 {
+    namespace GL_Stuff
+    {
+        Character::Character(std::vector<Vertex> vertices, float advance) : _vertices(std::move(vertices)), _advance(advance)
+        {
 
-}
+        }
 
-std::vector<Vertex> const& Character::Vertices() const
-{
-    return _vertices;
-}
+        std::vector<Vertex> const& Character::GetVertices() const
+        {
+            return _vertices;
+        }
 
-float Character::Advance() const
-{
-    return _advance;
+        float Character::GetAdvance() const
+        {
+            return _advance;
+        }
+    }
 }
