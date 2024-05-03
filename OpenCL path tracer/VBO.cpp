@@ -24,7 +24,7 @@ GLuint VBO::Id() const
     return _id;
 }
 
-void VBO::UpdateVertices(std::vector<Vertex> const& vertices) const
+void VBO::UpdateVertices(std::vector<Vertex> const& vertices)
 {
     if (vertices.size() != _size)
     {

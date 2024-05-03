@@ -1,0 +1,23 @@
+#include "Freezable.h"
+
+#include <stdexcept>
+
+using namespace OpenCL_PathTracer::GL_Stuff;
+
+void Freezable::ThrowIfFrozen() const
+{
+    if (_isFrozen)
+    {
+        throw std::runtime_error("Object is frozen!");
+    }
+}
+
+void Freezable::Freeze()
+{
+    _isFrozen = true;
+}
+
+bool Freezable::IsFrozen() const
+{
+    return _isFrozen;
+}

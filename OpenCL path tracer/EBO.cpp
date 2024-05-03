@@ -22,7 +22,12 @@ GLuint EBO::Id() const
     return _id;
 }
 
-void EBO::UpdateIndices(std::vector<GLuint> const& indices) const
+std::size_t EBO::GetSize() const
+{
+    return _size;
+}
+
+void EBO::UpdateIndices(std::vector<GLuint> const& indices)
 {
     if (indices.size() != _size)
     {

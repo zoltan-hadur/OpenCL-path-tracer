@@ -427,9 +427,6 @@ int main(int argc, char** argv)
         texture.Unbind();
         vao1.Unbind();
 
-        // The quick brown fox jumps over the lazy dog
-
-        shaderProgram.ModelMatrix(Matrix4x4::IdentityMatrix().Rotate({ 0,0,1 }, watch.GetElapsedTime() / 5).Translate({ 300, 200, 0 }));
         text.Bind();
         text.Draw(shaderProgram);
         text.Unbind();

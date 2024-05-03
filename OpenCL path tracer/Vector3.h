@@ -4,6 +4,8 @@
 
 namespace OpenCL_PathTracer
 {
+    class Vector2;
+
 #pragma pack(1)
     __declspec(align(16))
     class Vector3
@@ -15,6 +17,7 @@ namespace OpenCL_PathTracer
     private:
         float w = 0;
     public:
+        Vector3(Vector2 xy, float z = 0);
         Vector3(float x = 0, float y = 0, float z = 0);
 
         float Sum() const;

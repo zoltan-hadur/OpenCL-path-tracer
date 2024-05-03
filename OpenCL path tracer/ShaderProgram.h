@@ -36,12 +36,12 @@ namespace OpenCL_PathTracer
             bool IsLinkingSuccessful() const;
             std::string const& LinkingLog() const;
 
-            void ProjectionMatrix(Matrix4x4 const& matrix) const;
+            void ProjectionMatrix(Matrix4x4 const& matrix);
             Matrix4x4 const& ModelMatrix() const;
             void ModelMatrix(Matrix4x4 const& matrix);
-            void Color(Color const& color) const;
+            void Color(Color const& color);
 
-            void Mode(ShaderMode mode) const;
+            void Mode(ShaderMode mode);
 
             void Activate() const;
         };

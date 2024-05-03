@@ -73,7 +73,7 @@ std::string const& ShaderProgram::LinkingLog() const
     return _linkingLog;
 }
 
-void ShaderProgram::ProjectionMatrix(Matrix4x4 const& projection) const
+void ShaderProgram::ProjectionMatrix(Matrix4x4 const& projection)
 {
     glUniformMatrix4fv(_projectionMatrixLocation, 1, GL_TRUE, projection.Data());
 }
@@ -89,12 +89,12 @@ void ShaderProgram::ModelMatrix(Matrix4x4 const& model)
     glUniformMatrix4fv(_modelMatrixLocation, 1, GL_TRUE, _modelMatrix.Data());
 }
 
-void ShaderProgram::Color(class Color const& color) const
+void ShaderProgram::Color(class Color const& color)
 {
     glUniform4f(_colorLocation, color.R, color.G, color.B, color.A);
 }
 
-void ShaderProgram::Mode(ShaderMode mode) const
+void ShaderProgram::Mode(ShaderMode mode)
 {
     glUniform1i(_modeLocation, static_cast<std::underlying_type<enum class Mode>::type>(mode));
 }

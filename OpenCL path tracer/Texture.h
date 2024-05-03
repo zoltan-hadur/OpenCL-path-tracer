@@ -2,13 +2,15 @@
 
 #include <glad/glad.h>
 
+#include "Freezable.h"
+
 namespace OpenCL_PathTracer
 {
     class Bitmap;
 
     namespace GL_Stuff
     {
-        class Texture
+        class Texture : public Freezable
         {
         private:
             GLuint _id;
@@ -19,7 +21,7 @@ namespace OpenCL_PathTracer
             ~Texture();
 
             GLuint Id() const;
-            void UpdateTexture(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels) const;
+            void UpdateTexture(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels);
 
             void Bind() const;
             void Unbind() const;

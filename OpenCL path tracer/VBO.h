@@ -21,7 +21,7 @@ namespace OpenCL_PathTracer
 
             GLuint Id() const;
 
-            void UpdateVertices(std::vector<Vertex> const& vertices) const;
+            void UpdateVertices(std::vector<Vertex> const& vertices);
             void ReplaceVertices(std::vector<Vertex> const& vertices);
 
             void Bind() const;

@@ -32,17 +32,21 @@ Texture::~Texture()
     glDeleteTextures(1, &_id);
 }
 
-void Texture::UpdateTexture(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels) const
+void Texture::UpdateTexture(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels)
 {
+    ThrowIfFrozen();
     glTexSubImage2D(GL_TEXTURE_2D, 0, xoffset, yoffset, width, height, format, type, pixels);
 }
 
 void Texture::Bind() const
 {
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBindTexture(GL_TEXTURE_2D, _id);
 }
 
 void Texture::Unbind() const
 {
+    glDisable(GL_BLEND);
     glBindTexture(GL_TEXTURE_2D, 0);
 }

@@ -19,18 +19,16 @@ namespace OpenCL_PathTracer
         private:
             float _height;
             std::map<char, Character> _characters;
-            std::unique_ptr<Texture> _texture;
+            std::shared_ptr<Texture> _texture;
 
         public:
             Font(std::filesystem::path fontPath, uint8_t height);
 
             float Height() const;
+            std::shared_ptr<Texture> Texture();
 
             Vector2 MeasureTextSize(std::string const& text) const;
             Character const& GetCharacter(char c) const;
-
-            void Bind() const;
-            void Unbind() const;
         };
     }
 }

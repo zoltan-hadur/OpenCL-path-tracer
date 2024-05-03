@@ -9,33 +9,25 @@
 #include "ShaderMode.h"
 #include "Vector2.h"
 #include "Vertex.h"
+#include "Color.h"
 
 using namespace OpenCL_PathTracer;
 using namespace OpenCL_PathTracer::GL_Stuff;
 
-Text::Text(std::shared_ptr<Font> font, std::string text, class Color color)
+Text::Text(std::shared_ptr<Font> font, std::string value, Color color) : Component(ShaderMode::Text, Color(1, 1, 1), font->Texture())
 {
     _font = font;
-    _vao = std::make_unique<VAO>();
-    _vbo = std::make_unique<VBO>(std::vector<Vertex>());
-    _ebo = std::make_unique<EBO>(std::vector<GLuint>());
     Bind();
-
-    Value(text);
-    _color = color;
-
-    _vao->LinkAttrib(*_vbo, 0, 4, GL_FLOAT, sizeof(float) * 4, (void*)0);
-    _vao->LinkAttrib(*_vbo, 1, 4, GL_FLOAT, sizeof(float) * 4, (void*)(sizeof(float) * 2));
-    
+    SetValue(value);
     Unbind();
 }
 
-std::string const& Text::Value() const
+std::string const& Text::GetValue() const
 {
     return _value;
 }
 
-void Text::Value(std::string value)
+void Text::SetValue(std::string value)
 {
     _value = value;
 
@@ -90,40 +82,5 @@ void Text::Value(std::string value)
         }
     }
 
-    _vbo->ReplaceVertices(vertices);
-    _ebo->ReplaceIndices(indices);
-    _indicesSize = indices.size();
-}
-
-Color const& Text::Color() const
-{
-    return _color;
-}
-
-void Text::Color(class Color color)
-{
-    _color = std::move(color);
-}
-
-void Text::Draw(ShaderProgram const& shaderProgram) const
-{
-    shaderProgram.Mode(ShaderMode::Text);
-    shaderProgram.Color(_color);
-    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(_indicesSize), GL_UNSIGNED_INT, 0);
-}
-
-void Text::Bind() const
-{
-    _font->Bind();
-    _vao->Bind();
-    _vbo->Bind();
-    _ebo->Bind();
-}
-
-void Text::Unbind() const
-{
-    _font->Unbind();
-    _vao->Unbind();
-    _vbo->Unbind();
-    _ebo->Unbind();
+    ReplaceData(vertices, indices);
 }

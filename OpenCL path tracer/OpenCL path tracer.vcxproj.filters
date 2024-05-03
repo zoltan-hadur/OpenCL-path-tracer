@@ -106,6 +106,12 @@
     <ClCompile Include="Character.cpp">
       <Filter>Source Files\GL_Stuff</Filter>
     </ClCompile>
+    <ClCompile Include="Freezable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Component.cpp">
+      <Filter>Source Files\GL_Stuff</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Ray.h">
@@ -193,6 +199,12 @@
       <Filter>Header Files\GL_Stuff</Filter>
     </ClInclude>
     <ClInclude Include="EBO.h">
+      <Filter>Header Files\GL_Stuff</Filter>
+    </ClInclude>
+    <ClInclude Include="Component.h">
+      <Filter>Header Files\GL_Stuff</Filter>
+    </ClInclude>
+    <ClInclude Include="Freezable.h">
       <Filter>Header Files\GL_Stuff</Filter>
     </ClInclude>
   </ItemGroup>

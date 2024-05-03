@@ -35,7 +35,7 @@ Font::Font(std::filesystem::path fontPath, uint8_t height)
     auto textureHeight = ((face->size->metrics.ascender - face->size->metrics.descender) / 64);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    _texture = std::make_unique<Texture>(GL_RED, textureWidth, textureHeight, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+    _texture = std::make_unique<class Texture>(GL_RED, textureWidth, textureHeight, GL_RED, GL_UNSIGNED_BYTE, nullptr);
     _texture->Bind();
     auto pos = 0;
     for (unsigned char c = 32; c <= 126; c++)
@@ -58,6 +58,7 @@ Font::Font(std::filesystem::path fontPath, uint8_t height)
         pos = pos + advance;
     }
     _texture->Unbind();
+    _texture->Freeze();
 
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
@@ -66,6 +67,11 @@ Font::Font(std::filesystem::path fontPath, uint8_t height)
 float Font::Height() const
 {
     return _height;
+}
+
+std::shared_ptr<Texture> Font::Texture()
+{
+    return _texture;
 }
 
 Vector2 Font::MeasureTextSize(std::string const& text) const
@@ -106,17 +112,4 @@ Vector2 Font::MeasureTextSize(std::string const& text) const
 Character const& Font::GetCharacter(char c) const
 {
     return _characters.at(c);
-}
-
-void Font::Bind() const
-{
-    _texture->Bind();
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-}
-
-void Font::Unbind() const
-{
-    _texture->Unbind();
-    glDisable(GL_BLEND);
 }
