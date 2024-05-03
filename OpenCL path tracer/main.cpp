@@ -353,6 +353,10 @@ int main(int argc, char** argv)
     auto texture = Texture(Bitmap::Read("rendered/image_0.bmp"));
 
     auto shaderProgram = ShaderProgram("default.vert", "default.frag");
+    if (!shaderProgram.IsLinkingSuccessful())
+    {
+        std::cout << shaderProgram.LinkingLog() << std::endl;
+    }
     auto vao1 = VAO();
     vao1.Bind();
 

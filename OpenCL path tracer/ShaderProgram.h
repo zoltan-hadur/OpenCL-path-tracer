@@ -12,6 +12,8 @@ class ShaderProgram
 {
 private:
     GLuint _id;
+    bool _isLinkingSuccessful;
+    std::string _linkingLog;
 
     GLint _projectionMatrixLocation;
     GLint _modelMatrixLocation;
@@ -26,6 +28,8 @@ public:
     ~ShaderProgram();
 
     GLuint Id() const;
+    bool IsLinkingSuccessful() const;
+    std::string const& LinkingLog() const;
 
     void ProjectionMatrix(Matrix4x4 const& matrix) const;
     Matrix4x4 const& ModelMatrix() const;

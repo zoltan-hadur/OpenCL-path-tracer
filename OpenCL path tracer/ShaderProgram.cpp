@@ -4,12 +4,23 @@
 #include "Color.h"
 #include "ShaderMode.h"
 
-#include <iostream>
+#include <format>
+#include <sstream>
 
 ShaderProgram::ShaderProgram(std::filesystem::path vertexShaderPath, std::filesystem::path fragmentShaderPath)
 {
+    auto ss = std::stringstream();
+
     auto vertexShader = Shader(vertexShaderPath, GL_VERTEX_SHADER);
+    if (!vertexShader.IsCompilationSuccessful())
+    {
+        ss << std::format("VertexShader compilation failed:\r\n{}", vertexShader.CompilationLog());
+    }
     auto fragmentShader = Shader(fragmentShaderPath, GL_FRAGMENT_SHADER);
+    if (!fragmentShader.IsCompilationSuccessful())
+    {
+        ss << std::format("FragmentShader compilation failed:\r\n{}", fragmentShader.CompilationLog());
+    }
 
     _id = glCreateProgram();
     glAttachShader(_id, vertexShader.Id());
@@ -18,15 +29,17 @@ ShaderProgram::ShaderProgram(std::filesystem::path vertexShaderPath, std::filesy
 
     int isSuccess;
     glGetProgramiv(_id, GL_LINK_STATUS, &isSuccess);
-    if (isSuccess != GL_TRUE)
+    _isLinkingSuccessful = isSuccess == GL_TRUE;
+    if (!_isLinkingSuccessful)
     {
         GLint logLength = 0;
         glGetShaderiv(_id, GL_INFO_LOG_LENGTH, &logLength);
         std::string log;
-        log.resize(logLength);
+        log.resize(std::max(logLength - 1, 0));
         glGetShaderInfoLog(_id, logLength, NULL, log.data());
-        std::cout << std::format("Shader linking failed:\r\n{}", log) << std::endl;
+        ss << std::format("ShaderProgram linking failed:\r\n{}", log);
     }
+    _linkingLog = ss.str();
 
     _projectionMatrixLocation = glGetUniformLocation(_id, "projectionMatrix");
     _modelMatrixLocation = glGetUniformLocation(_id, "modelMatrix");
@@ -45,6 +58,16 @@ ShaderProgram::~ShaderProgram()
 GLuint ShaderProgram::Id() const
 {
     return _id;
+}
+
+bool ShaderProgram::IsLinkingSuccessful() const
+{
+    return _isLinkingSuccessful;
+}
+
+std::string const& ShaderProgram::LinkingLog() const
+{
+    return _linkingLog;
 }
 
 void ShaderProgram::ProjectionMatrix(Matrix4x4 const& projection) const
