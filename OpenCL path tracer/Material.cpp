@@ -1,5 +1,7 @@
 #include "Material.h"
 
+using namespace OpenCL_PathTracer;
+
 Material::Material(Vector3 kd, Vector3 ks, Vector3 emission, float n, float glossiness, uint32_t type)
 {
     _kd = kd;

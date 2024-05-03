@@ -1,5 +1,7 @@
 #include "TextureInfo.h"
 
+using namespace OpenCL_PathTracer;
+
 TextureInfo::TextureInfo(float textureWidth, float textureHeight, uint32_t textureIndex, TextureType textureType)
 {
     _textureWidth = textureWidth;

@@ -2,21 +2,27 @@
 
 #include <glad/glad.h>
 
-class Bitmap;
-
-class Texture
+namespace OpenCL_PathTracer
 {
-private:
-    GLuint _id;
+    class Bitmap;
 
-public:
-    Texture(Bitmap const& bitmap);
-    Texture(GLint internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels);
-    ~Texture();
+    namespace GL_Stuff
+    {
+        class Texture
+        {
+        private:
+            GLuint _id;
 
-    GLuint Id() const;
-    void UpdateTexture(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels) const;
+        public:
+            Texture(Bitmap const& bitmap);
+            Texture(GLint internalformat, GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels);
+            ~Texture();
 
-    void Bind() const;
-    void Unbind() const;
-};
+            GLuint Id() const;
+            void UpdateTexture(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels) const;
+
+            void Bind() const;
+            void Unbind() const;
+        };
+    }
+}

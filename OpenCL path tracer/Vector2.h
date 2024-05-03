@@ -1,38 +1,42 @@
 #pragma once
 
-class Vector3;
 #include <iosfwd>
 
-class Vector2
+namespace OpenCL_PathTracer
 {
-public:
-    float x;
-    float y;
+    class Vector3;
 
-    Vector2();
-    Vector2(float x, float y);
+    class Vector2
+    {
+    public:
+        float x;
+        float y;
 
-    float Sum() const;
-    float Length() const;
-    Vector2 Normalize() const;
-    float Dot(Vector2 vector) const;
-    Vector3 Cross(Vector2 vector) const;
-    Vector2 operator+(Vector2 vector) const;
-    Vector2 operator+(float value) const;
-    Vector2 operator-(Vector2 vector) const;
-    Vector2 operator-(float value) const;
-    Vector2 operator-() const;
-    Vector2 operator*(Vector2 vector) const;
-    Vector2 operator*(float value) const;
-    Vector2 operator/(Vector2 vector) const;
-    Vector2 operator/(float value) const;
-    float& operator[](int index);
-    float const& operator[](int index) const;
-    friend Vector2 operator+(float value, Vector2 vector);
-    friend Vector2 operator-(float value, Vector2 vector);
-    friend Vector2 operator*(float value, Vector2 vector);
-    friend Vector2 operator/(float value, Vector2 vector);
-    friend std::ostream& operator<<(std::ostream& os, Vector2 const& vector);
-    friend std::istream& operator>>(std::istream& is, Vector2& vector);
-    static Vector2 Rotate(Vector2 v, float theta);
-};
+        Vector2();
+        Vector2(float x, float y);
+
+        float Sum() const;
+        float Length() const;
+        Vector2 Normalize() const;
+        float Dot(Vector2 vector) const;
+        Vector3 Cross(Vector2 vector) const;
+        Vector2 operator+(Vector2 vector) const;
+        Vector2 operator+(float value) const;
+        Vector2 operator-(Vector2 vector) const;
+        Vector2 operator-(float value) const;
+        Vector2 operator-() const;
+        Vector2 operator*(Vector2 vector) const;
+        Vector2 operator*(float value) const;
+        Vector2 operator/(Vector2 vector) const;
+        Vector2 operator/(float value) const;
+        float& operator[](int index);
+        float const& operator[](int index) const;
+        friend Vector2 operator+(float value, Vector2 vector);
+        friend Vector2 operator-(float value, Vector2 vector);
+        friend Vector2 operator*(float value, Vector2 vector);
+        friend Vector2 operator/(float value, Vector2 vector);
+        friend std::ostream& operator<<(std::ostream& os, Vector2 const& vector);
+        friend std::istream& operator>>(std::istream& is, Vector2& vector);
+        static Vector2 Rotate(Vector2 v, float theta);
+    };
+}

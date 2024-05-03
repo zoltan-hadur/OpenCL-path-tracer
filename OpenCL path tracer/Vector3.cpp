@@ -4,6 +4,8 @@
 #include <format>
 #include <iostream>
 
+using namespace OpenCL_PathTracer;
+
 Vector3::Vector3(float x, float y, float z) : x(x), y(y), z(z)
 {
 

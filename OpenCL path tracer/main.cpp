@@ -18,6 +18,9 @@
 #include "Text.h"
 #include "ShaderMode.h"
 
+using namespace OpenCL_PathTracer;
+using namespace OpenCL_PathTracer::GL_Stuff;
+
 //GLConsole console;
 //Scene scene;
 Stopwatch watch;

@@ -3,6 +3,8 @@
 #include <format>
 #include <iostream>
 
+using namespace OpenCL_PathTracer;
+
 Color::Color(float R, float G, float B, float A) : R(R), G(G), B(B), A(A)
 {
 

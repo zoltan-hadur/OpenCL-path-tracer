@@ -6,6 +6,8 @@
 #include <format>
 #include <iostream>
 
+using namespace OpenCL_PathTracer;
+
 Vector2::Vector2() : Vector2(0, 0)
 {
 

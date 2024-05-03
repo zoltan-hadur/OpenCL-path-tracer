@@ -4,16 +4,19 @@
 
 #include "TextureType.h"
 
-#pragma pack(1)
-__declspec(align(4))
-class TextureInfo
+namespace OpenCL_PathTracer
 {
-private:
-    float _textureWidth;
-    float _textureHeight;
-    uint32_t _textureIndex;
-    TextureType _textureType;
-public:
-    TextureInfo(float textureWidth, float textureHeight, uint32_t textureIndex, TextureType textureType);
-};
+#pragma pack(1)
+    __declspec(align(4))
+    class TextureInfo
+    {
+    private:
+        float _textureWidth;
+        float _textureHeight;
+        uint32_t _textureIndex;
+        TextureType _textureType;
+    public:
+        TextureInfo(float textureWidth, float textureHeight, uint32_t textureIndex, TextureType textureType);
+    };
 #pragma pack()
+}

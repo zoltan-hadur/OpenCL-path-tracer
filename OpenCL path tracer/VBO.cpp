@@ -4,6 +4,8 @@
 
 #include <stdexcept>
 
+using namespace OpenCL_PathTracer::GL_Stuff;
+
 VBO::VBO(std::vector<Vertex> const& vertices)
 {
     glGenBuffers(1, &_id);

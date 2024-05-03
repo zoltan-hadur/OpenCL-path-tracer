@@ -10,6 +10,9 @@
 #include <glad/glad.h>
 #include <utility>
 
+using namespace OpenCL_PathTracer;
+using namespace OpenCL_PathTracer::GL_Stuff;
+
 Font::Font(std::filesystem::path fontPath, uint8_t height)
 {
     FT_Library ft;

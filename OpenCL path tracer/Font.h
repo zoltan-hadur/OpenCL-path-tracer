@@ -5,25 +5,32 @@
 #include <filesystem>
 #include <string>
 
-class Character;
-class Texture;
-class Vector2;
-
-class Font
+namespace OpenCL_PathTracer
 {
-private:
-    float _height;
-    std::map<char, Character> _characters;
-    std::unique_ptr<Texture> _texture;
+    class Vector2;
 
-public:
-    Font(std::filesystem::path fontPath, uint8_t height);
+    namespace GL_Stuff
+    {
+        class Character;
+        class Texture;
 
-    float Height() const;
+        class Font
+        {
+        private:
+            float _height;
+            std::map<char, Character> _characters;
+            std::unique_ptr<Texture> _texture;
 
-    Vector2 MeasureTextSize(std::string const& text) const;
-    Character const& GetCharacter(char c) const;
+        public:
+            Font(std::filesystem::path fontPath, uint8_t height);
 
-    void Bind() const;
-    void Unbind() const;
-};
+            float Height() const;
+
+            Vector2 MeasureTextSize(std::string const& text) const;
+            Character const& GetCharacter(char c) const;
+
+            void Bind() const;
+            void Unbind() const;
+        };
+    }
+}

@@ -7,6 +7,9 @@
 #include <format>
 #include <sstream>
 
+using namespace OpenCL_PathTracer;
+using namespace OpenCL_PathTracer::GL_Stuff;
+
 ShaderProgram::ShaderProgram(std::filesystem::path vertexShaderPath, std::filesystem::path fragmentShaderPath)
 {
     auto ss = std::stringstream();

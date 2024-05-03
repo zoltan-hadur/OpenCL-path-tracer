@@ -1,5 +1,7 @@
 #include "ConsoleVariableBase.h"
 
+using namespace OpenCL_PathTracer;
+
 ConsoleVariableBase::ConsoleVariableBase(std::string name, std::string description, std::function<void(void)> callback)
 {
     _name = name;

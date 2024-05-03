@@ -3,8 +3,11 @@
 #include <string>
 #include <filesystem>
 
-class FileHelper
+namespace OpenCL_PathTracer
 {
-public:
-    static std::string ReadAllText(std::filesystem::path path);
-};
+    class FileHelper
+    {
+    public:
+        static std::string ReadAllText(std::filesystem::path path);
+    };
+}

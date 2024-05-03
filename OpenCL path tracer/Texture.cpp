@@ -2,6 +2,8 @@
 
 #include "Bitmap.h"
 
+using namespace OpenCL_PathTracer::GL_Stuff;
+
 Texture::Texture(Bitmap const& bitmap) : Texture(GL_RGBA, bitmap.Width(), bitmap.Height(), GL_BGR, GL_UNSIGNED_BYTE, bitmap.Bytes().data())
 {
 

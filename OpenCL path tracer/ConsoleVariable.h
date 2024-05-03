@@ -6,59 +6,62 @@
 
 #include "ConsoleVariableBase.h"
 
-// Stores any type of data, that can be printed to the console, and can be set from the console
-// Class is based on https://github.com/arpg/CVars
-template<typename T> class ConsoleVariable : public ConsoleVariableBase
+namespace OpenCL_PathTracer
 {
-private:
-    T* _value;
-
-public:
-    ConsoleVariable(T* value, std::string name, std::string description = "", std::function<void(void)> callback = nullptr) :
-        ConsoleVariableBase(name, description, callback)
+    // Stores any type of data, that can be printed to the console, and can be set from the console
+    // Class is based on https://github.com/arpg/CVars
+    template<typename T> class ConsoleVariable : public ConsoleVariableBase
     {
-        _value = value;
-    }
+    private:
+        T* _value;
 
-    T& Value()
-    {
-        return *_value;
-    }
-
-    void Attach(T* value)
-    {
-        _value = value;
-    }
-
-    void SetCallback(std::function<void(void)> callback)
-    {
-        _callback = callback;
-    }
-
-    std::ostream& Print(std::ostream& os, bool onlyValue) const override
-    {
-        if (onlyValue)
+    public:
+        ConsoleVariable(T* value, std::string name, std::string description = "", std::function<void(void)> callback = nullptr) :
+            ConsoleVariableBase(name, description, callback)
         {
-            os << *_value;
+            _value = value;
         }
-        else
+
+        T& Value()
         {
-            os << _name << " = " << *_value;
-            if (!_description.empty())
+            return *_value;
+        }
+
+        void Attach(T* value)
+        {
+            _value = value;
+        }
+
+        void SetCallback(std::function<void(void)> callback)
+        {
+            _callback = callback;
+        }
+
+        std::ostream& Print(std::ostream& os, bool onlyValue) const override
+        {
+            if (onlyValue)
             {
-                os << "   |" << _description << "|";
+                os << *_value;
             }
+            else
+            {
+                os << _name << " = " << *_value;
+                if (!_description.empty())
+                {
+                    os << "   |" << _description << "|";
+                }
+            }
+            return os;
         }
-        return os;
-    }
 
-    std::istream& Read(std::istream& is) override
-    {
-        is >> *_value;
-        if (_callback)
+        std::istream& Read(std::istream& is) override
         {
-            _callback();
+            is >> *_value;
+            if (_callback)
+            {
+                _callback();
+            }
+            return is;
         }
-        return is;
-    }
-};
+    };
+}

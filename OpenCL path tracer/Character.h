@@ -2,17 +2,23 @@
 
 #include <vector>
 
-class Vertex;
-
-class Character
+namespace OpenCL_PathTracer
 {
-private:
-    std::vector<Vertex> _vertices;
-    float _advance;
+    namespace GL_Stuff
+    {
+        class Vertex;
 
-public:
-    Character(std::vector<Vertex> vertices, float advance);
+        class Character
+        {
+        private:
+            std::vector<Vertex> _vertices;
+            float _advance;
 
-    std::vector<Vertex> const& Vertices() const;
-    float Advance() const;
-};
+        public:
+            Character(std::vector<Vertex> vertices, float advance);
+
+            std::vector<Vertex> const& Vertices() const;
+            float Advance() const;
+        };
+    }
+}

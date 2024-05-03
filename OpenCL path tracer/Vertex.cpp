@@ -1,5 +1,8 @@
 #include "Vertex.h"
 
+using namespace OpenCL_PathTracer;
+using namespace OpenCL_PathTracer::GL_Stuff;
+
 Vertex::Vertex(Vector2 position) : Vertex(position, Vector2())
 {
 

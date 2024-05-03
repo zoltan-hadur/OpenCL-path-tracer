@@ -2,6 +2,8 @@
 
 #include "VBO.h"
 
+using namespace OpenCL_PathTracer::GL_Stuff;
+
 VAO::VAO()
 {
     glGenVertexArrays(1, &_id);

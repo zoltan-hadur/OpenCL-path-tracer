@@ -10,6 +10,9 @@
 #include "Vector2.h"
 #include "Vertex.h"
 
+using namespace OpenCL_PathTracer;
+using namespace OpenCL_PathTracer::GL_Stuff;
+
 Text::Text(std::shared_ptr<Font> font, std::string text, class Color color)
 {
     _font = font;

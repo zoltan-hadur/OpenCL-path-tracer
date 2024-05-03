@@ -5,38 +5,45 @@
 
 #include "Matrix4x4.h"
 
-class Color;
-enum class ShaderMode;
-
-class ShaderProgram
+namespace OpenCL_PathTracer
 {
-private:
-    GLuint _id;
-    bool _isLinkingSuccessful;
-    std::string _linkingLog;
+    class Color;
 
-    GLint _projectionMatrixLocation;
-    GLint _modelMatrixLocation;
-    GLint _colorLocation;
-    GLint _texture0Location;
-    GLint _modeLocation;
+    namespace GL_Stuff
+    {
+        enum class ShaderMode;
 
-    Matrix4x4 _modelMatrix;
+        class ShaderProgram
+        {
+        private:
+            GLuint _id;
+            bool _isLinkingSuccessful;
+            std::string _linkingLog;
 
-public:
-    ShaderProgram(std::filesystem::path vertexShaderPath, std::filesystem::path fragmentShaderPath);
-    ~ShaderProgram();
+            GLint _projectionMatrixLocation;
+            GLint _modelMatrixLocation;
+            GLint _colorLocation;
+            GLint _texture0Location;
+            GLint _modeLocation;
 
-    GLuint Id() const;
-    bool IsLinkingSuccessful() const;
-    std::string const& LinkingLog() const;
+            Matrix4x4 _modelMatrix;
 
-    void ProjectionMatrix(Matrix4x4 const& matrix) const;
-    Matrix4x4 const& ModelMatrix() const;
-    void ModelMatrix(Matrix4x4 const& matrix);
-    void Color(Color const& color) const;
+        public:
+            ShaderProgram(std::filesystem::path vertexShaderPath, std::filesystem::path fragmentShaderPath);
+            ~ShaderProgram();
 
-    void Mode(ShaderMode mode) const;
+            GLuint Id() const;
+            bool IsLinkingSuccessful() const;
+            std::string const& LinkingLog() const;
 
-    void Activate() const;
-};
+            void ProjectionMatrix(Matrix4x4 const& matrix) const;
+            Matrix4x4 const& ModelMatrix() const;
+            void ModelMatrix(Matrix4x4 const& matrix);
+            void Color(Color const& color) const;
+
+            void Mode(ShaderMode mode) const;
+
+            void Activate() const;
+        };
+    }
+}

@@ -2,6 +2,8 @@
 
 #include <stdexcept>
 
+using namespace OpenCL_PathTracer::GL_Stuff;
+
 EBO::EBO(std::vector<GLuint>  const& indices)
 {
     glGenBuffers(1, &_id);

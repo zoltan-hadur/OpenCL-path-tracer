@@ -3,6 +3,8 @@
 #include <fstream>
 #include <format>
 
+using namespace OpenCL_PathTracer;
+
 int Bitmap::CalculatePadding(int width)
 {
     return (4 - ((width * 3) % 4)) % 4;

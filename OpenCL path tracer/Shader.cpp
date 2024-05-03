@@ -2,6 +2,8 @@
 
 #include "FileHelper.h"
 
+using namespace OpenCL_PathTracer::GL_Stuff;
+
 Shader::Shader(std::filesystem::path shaderPath, GLenum shaderType)
 {
     auto shaderSource = FileHelper::ReadAllText(shaderPath);

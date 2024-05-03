@@ -2,20 +2,26 @@
 
 #include <glad/glad.h>
 
-class VBO;
-
-class VAO
+namespace OpenCL_PathTracer
 {
-private:
-    GLuint _id;
+    namespace GL_Stuff
+    {
+        class VBO;
 
-public:
-    VAO();
-    ~VAO();
+        class VAO
+        {
+        private:
+            GLuint _id;
 
-    GLuint Id() const;
+        public:
+            VAO();
+            ~VAO();
 
-    void LinkAttrib(VBO const& vbo, GLuint layout, GLuint numberOfComponents, GLenum type, GLsizei stride, void* offset) const;
-    void Bind() const;
-    void Unbind() const;
-};
+            GLuint Id() const;
+
+            void LinkAttrib(VBO const& vbo, GLuint layout, GLuint numberOfComponents, GLenum type, GLsizei stride, void* offset) const;
+            void Bind() const;
+            void Unbind() const;
+        };
+    }
+}

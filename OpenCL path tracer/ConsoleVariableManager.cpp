@@ -1,5 +1,7 @@
 #include "ConsoleVariableManager.h"
 
+using namespace OpenCL_PathTracer;
+
 ConsoleVariableBase* ConsoleVariableManager::Find(std::string name) const
 {
     return _variables.contains(name) ? _variables.at(name).get() : nullptr;

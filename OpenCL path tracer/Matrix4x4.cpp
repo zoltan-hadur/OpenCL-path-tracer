@@ -6,6 +6,8 @@
 #include <immintrin.h>
 #include <cmath>
 
+using namespace OpenCL_PathTracer;
+
 Matrix4x4::Matrix4x4()
 {
     memset(_values, 0, sizeof(float) * 16);

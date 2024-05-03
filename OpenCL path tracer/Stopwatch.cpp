@@ -2,6 +2,8 @@
 
 #include <stdexcept>
 
+using namespace OpenCL_PathTracer;
+
 Stopwatch::Stopwatch()
 {
     _startTime = std::chrono::steady_clock::time_point::min();

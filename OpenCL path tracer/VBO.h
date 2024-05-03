@@ -3,23 +3,29 @@
 #include <glad/glad.h>
 #include <vector>
 
-class Vertex;
-
-class VBO
+namespace OpenCL_PathTracer
 {
-private:
-    GLuint _id;
-    std::size_t _size;
+    namespace GL_Stuff
+    {
+        class Vertex;
 
-public:
-    VBO(std::vector<Vertex> const& vertices);
-    ~VBO();
+        class VBO
+        {
+        private:
+            GLuint _id;
+            std::size_t _size;
 
-    GLuint Id() const;
+        public:
+            VBO(std::vector<Vertex> const& vertices);
+            ~VBO();
 
-    void UpdateVertices(std::vector<Vertex> const& vertices) const;
-    void ReplaceVertices(std::vector<Vertex> const& vertices);
+            GLuint Id() const;
 
-    void Bind() const;
-    void Unbind() const;
-};
+            void UpdateVertices(std::vector<Vertex> const& vertices) const;
+            void ReplaceVertices(std::vector<Vertex> const& vertices);
+
+            void Bind() const;
+            void Unbind() const;
+        };
+    }
+}

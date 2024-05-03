@@ -10,25 +10,28 @@
 #include "ConsoleVariable.h"
 #include <iosfwd>
 
-// Manages CVars
-// Class is based on https://github.com/arpg/CVars
-class ConsoleVariableManager
+namespace OpenCL_PathTracer
 {
-private:
-    std::map<std::string, std::unique_ptr<ConsoleVariableBase>> _variables;
-
-public:
-    template<typename T>
-    void Add(ConsoleVariable<T> variable)
+    // Manages CVars
+    // Class is based on https://github.com/arpg/CVars
+    class ConsoleVariableManager
     {
-        if (Find(variable.Name()))
-        {
-            throw std::runtime_error(std::format("Console variable \"{}\" already exists!", variable.Name()));
-        }
+    private:
+        std::map<std::string, std::unique_ptr<ConsoleVariableBase>> _variables;
 
-        _variables[variable.Name()] = std::make_unique<ConsoleVariable<T>>(variable);
-    }
-    ConsoleVariableBase* Find(std::string name) const;
-    void Print(std::ostream& os) const;
-    std::string AutoComplete(std::string partialName) const;
-};
+    public:
+        template<typename T>
+        void Add(ConsoleVariable<T> variable)
+        {
+            if (Find(variable.Name()))
+            {
+                throw std::runtime_error(std::format("Console variable \"{}\" already exists!", variable.Name()));
+            }
+
+            _variables[variable.Name()] = std::make_unique<ConsoleVariable<T>>(variable);
+        }
+        ConsoleVariableBase* Find(std::string name) const;
+        void Print(std::ostream& os) const;
+        std::string AutoComplete(std::string partialName) const;
+    };
+}
