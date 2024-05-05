@@ -8,24 +8,25 @@ uniform vec4 color;
 uniform sampler2D texture0;
 uniform int mode;
 
+const int Color = 0;
+const int Texture = 1;
+const int Text = 2;
+
 void main()
 {
   switch(mode)
   {
-    // Color
-    case 0:
+    case Color:
     {
       FragColor = color;
       break;
     }
-    // Texture
-    case 1:
+    case Texture:
     {
       FragColor = texture(texture0, textureCoordinate);
       break; 
     }
-    // Text
-    case 2:
+    case Text:
     {
       FragColor = vec4(color.rgb, color.a * texture(texture0, textureCoordinate).r);
       break;
