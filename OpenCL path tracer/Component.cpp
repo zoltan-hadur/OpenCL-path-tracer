@@ -25,8 +25,18 @@ namespace OpenCL_PathTracer
             _vbo = std::make_unique<VBO>(std::vector<Vertex>());
             _ebo = std::make_unique<EBO>(std::vector<GLuint>());
             Bind();
-
-
+            // Vertex memory layout
+            // 0x0000 Vector2 _position          float x
+            // 0x0004                            float y
+            // 0x0008 Vector2 _textureCoordinate float x
+            // 0x000C                            float y
+            // 
+            // Vertex shader layout
+            // layout (location = 0) in vec2 aPosition;
+            // layout (location = 1) in vec2 aTextureCoordinate;
+            //
+            // For layout 0, there are 2 components, each with type float. Overall, a vertex has 4 floats. Position starts at 0x0000.
+            // For layout 1, there are 2 components, each with type float. Overall, a vertex has 4 floats. TextureCoordinate starts at 0x0008 (2 * sizeof(float)).
             _vao->LinkAttribute(*_vbo, 0, 2, GL_FLOAT, sizeof(float) * 4, (void*)0);
             _vao->LinkAttribute(*_vbo, 1, 2, GL_FLOAT, sizeof(float) * 4, (void*)(sizeof(float) * 2));
             Unbind();
