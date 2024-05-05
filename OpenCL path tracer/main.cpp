@@ -17,18 +17,26 @@
 #include "EBO.h"
 #include "Text.h"
 #include "ShaderMode.h"
+#include "FlagHelper.h"
 
 using namespace OpenCL_PathTracer;
 using namespace OpenCL_PathTracer::GL_Stuff;
 
 int _width = 192 * 5;
 int _height = 108 * 5;
+GLFWmonitor* _monitor = nullptr;
+GLFWvidmode const* _videoMode = nullptr;
 GLFWwindow* _window = nullptr;
 std::unique_ptr<ShaderProgram> _shaderProgram = nullptr;
 Stopwatch _stopwatch;
 std::shared_ptr<Font> _font = nullptr;
 std::unique_ptr<Text> _fps = nullptr;
 int _frames = 0;
+bool _isFullScreen = false;
+int _windowPositionX = 0;
+int _windowPositionY = 0;
+int _windowWidth = 0;
+int _windowHeight = 0;
 
 void OnFramebufferSizeChanged(GLFWwindow* window, int width, int height)
 {
@@ -36,6 +44,33 @@ void OnFramebufferSizeChanged(GLFWwindow* window, int width, int height)
     _height = height;
     glViewport(0, 0, _width, _height);
     _shaderProgram->SetProjectionMatrix(Matrix4x4::OrthoProjectionMatrix(0, _width, _height, 0, -1, 1));
+}
+
+void OnKeyReceived(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (key == GLFW_KEY_ENTER && action == GLFW_PRESS && FlagHelper::IsFlagSet(mods, GLFW_MOD_ALT))
+    {
+        if (_isFullScreen)
+        {
+            glfwSetWindowMonitor(window, nullptr, _windowPositionX, _windowPositionY, _windowWidth, _windowHeight, 0);
+        }
+        else
+        {
+            glfwGetWindowPos(window, &_windowPositionX, &_windowPositionY);
+            glfwGetWindowSize(window, &_windowWidth, &_windowHeight);
+            glfwSetWindowMonitor(window, _monitor, 0, 0, _videoMode->width, _videoMode->height, _videoMode->refreshRate);
+        }
+        _isFullScreen = !_isFullScreen;
+    }
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    {
+        glfwSetWindowShouldClose(_window, GL_TRUE);
+    }
+}
+
+void OnCharacterReceived(GLFWwindow* window, unsigned int codepoint)
+{
+    
 }
 
 void Draw()
@@ -67,6 +102,14 @@ int main(int argc, char** argv)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+    _monitor = glfwGetPrimaryMonitor();
+    _videoMode = glfwGetVideoMode(_monitor);
+
+    glfwWindowHint(GLFW_RED_BITS, _videoMode->redBits);
+    glfwWindowHint(GLFW_GREEN_BITS, _videoMode->greenBits);
+    glfwWindowHint(GLFW_BLUE_BITS, _videoMode->blueBits);
+    glfwWindowHint(GLFW_REFRESH_RATE, _videoMode->refreshRate);
+
     _window = glfwCreateWindow(_width, _height, "OpenCL path tracer", nullptr, nullptr);
     if (!_window)
     {
@@ -77,6 +120,8 @@ int main(int argc, char** argv)
     glfwMakeContextCurrent(_window);
     gladLoadGL();
     glfwSetFramebufferSizeCallback(_window, OnFramebufferSizeChanged);
+    glfwSetKeyCallback(_window, OnKeyReceived);
+    glfwSetCharCallback(_window, OnCharacterReceived);
 
     _shaderProgram = std::make_unique<ShaderProgram>("default.vert", "default.frag");
     if (!_shaderProgram->IsLinkingSuccessful())

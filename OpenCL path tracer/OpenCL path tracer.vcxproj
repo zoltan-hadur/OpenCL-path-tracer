@@ -156,6 +156,7 @@ set bin=$(SolutionDir)vcpkg_installed\x64-windows\bin
     <ClInclude Include="EBO.h" />
     <ClInclude Include="EnumHelper.h" />
     <ClInclude Include="FileHelper.h" />
+    <ClInclude Include="FlagHelper.h" />
     <ClInclude Include="Font.h" />
     <ClInclude Include="Freezable.h" />
     <ClInclude Include="Matrix4x4.h" />
