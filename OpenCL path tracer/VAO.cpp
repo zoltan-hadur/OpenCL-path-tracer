@@ -23,10 +23,8 @@ namespace OpenCL_PathTracer
 
         void VAO::LinkAttribute(VBO const& vbo, GLuint layout, GLuint numberOfComponents, GLenum type, GLsizei stride, void* offset) const
         {
-            vbo.Bind();
             glVertexAttribPointer(layout, numberOfComponents, type, GL_FALSE, stride, offset);
             glEnableVertexAttribArray(layout);
-            vbo.Unbind();
         }
 
         void VAO::Bind() const
