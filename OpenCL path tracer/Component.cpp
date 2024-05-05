@@ -26,9 +26,9 @@ namespace OpenCL_PathTracer
             _ebo = std::make_unique<EBO>(std::vector<GLuint>());
             Bind();
 
-            _vao->LinkAttribute(*_vbo, 0, 4, GL_FLOAT, sizeof(float) * 4, (void*)0);
-            _vao->LinkAttribute(*_vbo, 1, 4, GL_FLOAT, sizeof(float) * 4, (void*)(sizeof(float) * 2));
 
+            _vao->LinkAttribute(*_vbo, 0, 2, GL_FLOAT, sizeof(float) * 4, (void*)0);
+            _vao->LinkAttribute(*_vbo, 1, 2, GL_FLOAT, sizeof(float) * 4, (void*)(sizeof(float) * 2));
             Unbind();
         }
 
