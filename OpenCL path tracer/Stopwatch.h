@@ -15,12 +15,15 @@ namespace OpenCL_PathTracer
     public:
         Stopwatch();
 
-        bool IsRunning();
+        bool IsRunning() const;
         float GetDeltaTime();
-        float GetElapsedTime();
+        float GetElapsedTime() const;
 
         void Start(float timeToLive = 0);
         void Stop();
         bool TryStop();
+        void Restart();
+
+        static Stopwatch StartNew();
     };
 }

@@ -12,7 +12,7 @@ namespace OpenCL_PathTracer
         _isRunning = false;
     }
 
-    bool Stopwatch::IsRunning()
+    bool Stopwatch::IsRunning() const
     {
         return _isRunning;
     }
@@ -30,7 +30,7 @@ namespace OpenCL_PathTracer
         return dt.count();
     }
 
-    float Stopwatch::GetElapsedTime()
+    float Stopwatch::GetElapsedTime() const
     {
         return std::chrono::duration<float>((_isRunning ? std::chrono::steady_clock::now() : _lastTime) - _startTime).count();
     }
@@ -70,5 +70,18 @@ namespace OpenCL_PathTracer
         {
             return false;
         }
+    }
+
+    void Stopwatch::Restart()
+    {
+        Stop();
+        Start();
+    }
+
+    Stopwatch Stopwatch::StartNew()
+    {
+        auto stopwatch = Stopwatch();
+        stopwatch.Start();
+        return stopwatch;
     }
 }
