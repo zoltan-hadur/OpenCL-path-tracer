@@ -410,6 +410,7 @@ int main(int argc, char** argv)
     auto size = font->MeasureTextSize("The quick brown fox jumps over the lazy dog");
 
     auto text = Text(font, str, Color(1, 1, 1));
+    auto fps = Text(font, "", Color(1, 1, 1));
 
     while (!glfwWindowShouldClose(window))
     {
@@ -431,11 +432,22 @@ int main(int argc, char** argv)
         text.Draw(shaderProgram);
         text.Unbind();
 
+        fps.Bind();
+        fps.SetPosition({ 0, screen_height - font->GetHeight() });
+        auto time = watch.GetElapsedTime();
+        if (time >= 0.5f)
+        {
+            fps.SetValue(std::to_string(cntr / time));
+            watch.Stop();
+            watch.Start();
+            cntr = 0;
+        }
+        fps.Draw(shaderProgram);
+        fps.Unbind();
+
         glfwSwapBuffers(window);
         glfwPollEvents();
-
-        //_sleep(10);
-        std::cout << cntr++ / watch.GetElapsedTime() << std::endl;
+        cntr++;
     }
 
     glfwDestroyWindow(window);
