@@ -36,7 +36,7 @@ namespace OpenCL_PathTracer
             auto textureHeight = ((face->size->metrics.ascender - face->size->metrics.descender) / 64);
 
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-            _texture = std::make_unique<class Texture>(GL_RED, textureWidth, textureHeight, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+            _texture = std::make_unique<Texture>(GL_RED, textureWidth, textureHeight, GL_RED, GL_UNSIGNED_BYTE, nullptr);
             _texture->Bind();
             auto pos = 0;
             for (unsigned char c = 32; c <= 126; c++)

@@ -20,7 +20,7 @@ namespace OpenCL_PathTracer
             std::string _value;
 
         public:
-            Text(std::shared_ptr<Font> font, std::string value, class Color color);
+            Text(std::shared_ptr<Font> font, std::string value, Color color);
 
             std::string const& GetValue() const;
             void SetValue(std::string value);

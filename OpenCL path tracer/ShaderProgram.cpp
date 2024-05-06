@@ -90,14 +90,14 @@ namespace OpenCL_PathTracer
             glUniformMatrix4fv(_modelMatrixLocation, 1, GL_TRUE, _modelMatrix.GetData());
         }
 
-        void ShaderProgram::SetColor(class Color const& color)
+        void ShaderProgram::SetColor(Color const& color)
         {
             glUniform4f(_colorLocation, color.R, color.G, color.B, color.A);
         }
 
         void ShaderProgram::SetMode(ShaderMode mode)
         {
-            glUniform1i(_modeLocation, static_cast<std::underlying_type<enum class Mode>::type>(mode));
+            glUniform1i(_modeLocation, static_cast<std::underlying_type<ShaderMode>::type>(mode));
         }
 
         void ShaderProgram::Activate() const
