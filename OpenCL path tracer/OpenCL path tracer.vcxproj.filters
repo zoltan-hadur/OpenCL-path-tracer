@@ -207,5 +207,8 @@
     <ClInclude Include="Freezable.h">
       <Filter>Header Files\GL_Stuff</Filter>
     </ClInclude>
+    <ClInclude Include="FlagHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
