@@ -2,16 +2,22 @@
 
 #include <glad/glad.h>
 
+#include "IBindable.h"
+
 namespace OpenCL_PathTracer
 {
     namespace GL_Stuff
     {
         class VBO;
 
-        class VAO
+        class VAO : public IBindable
         {
         private:
             GLuint _id;
+
+        protected:
+            virtual void OnBind() override;
+            virtual void OnUnbind() override;
 
         public:
             VAO();
@@ -19,9 +25,7 @@ namespace OpenCL_PathTracer
 
             GLuint GetId() const;
 
-            void LinkAttribute(VBO const& vbo, GLuint layout, GLuint numberOfComponents, GLenum type, GLsizei stride, void* offset) const;
-            void Bind() const;
-            void Unbind() const;
+            void LinkAttribute(VBO& vbo, GLuint layout, GLuint numberOfComponents, GLenum type, GLsizei stride, void* offset);
         };
     }
 }

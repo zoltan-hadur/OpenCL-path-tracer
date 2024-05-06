@@ -24,7 +24,6 @@ namespace OpenCL_PathTracer
             _vao = std::make_unique<VAO>();
             _vbo = std::make_unique<VBO>(std::vector<Vertex>());
             _ebo = std::make_unique<EBO>(std::vector<GLuint>());
-            Bind();
             // Vertex memory layout
             // 0x0000 Vector2 _position          float x
             // 0x0004                            float y
@@ -39,7 +38,13 @@ namespace OpenCL_PathTracer
             // For layout 1, there are 2 components, each with type float. Overall, a vertex has 4 floats. TextureCoordinate starts at 0x0008 (2 * sizeof(float)).
             _vao->LinkAttribute(*_vbo, 0, 2, GL_FLOAT, sizeof(float) * 4, (void*)0);
             _vao->LinkAttribute(*_vbo, 1, 2, GL_FLOAT, sizeof(float) * 4, (void*)(sizeof(float) * 2));
-            Unbind();
+            
+            _vao->Bind();
+            _vbo->Bind();
+            _ebo->Bind();
+            _vao->Unbind();
+            _vbo->Unbind();
+            _ebo->Unbind();
         }
 
         Vector2 const& Component::GetPosition() const
@@ -92,29 +97,18 @@ namespace OpenCL_PathTracer
                 shaderProgram.SetColor(_color);
             }
             shaderProgram.SetModelMatrix(Matrix4x4::ScaleMatrix({ _scale, 1.0f }).Translate({ _position, 0.0f }));
-            glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(_ebo->GetSize()), GL_UNSIGNED_INT, 0);
-        }
 
-        void Component::Bind() const
-        {
+            _vao->Bind();
             if (_mode == ShaderMode::Texture || _mode == ShaderMode::Text)
             {
                 _texture->Bind();
             }
-            _vao->Bind();
-            _vbo->Bind();
-            _ebo->Bind();
-        }
-
-        void Component::Unbind() const
-        {
+            glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(_ebo->GetSize()), GL_UNSIGNED_INT, 0);
+            _vao->Unbind();
             if (_mode == ShaderMode::Texture || _mode == ShaderMode::Text)
             {
                 _texture->Unbind();
             }
-            _vao->Unbind();
-            _vbo->Unbind();
-            _ebo->Unbind();
         }
     }
 }

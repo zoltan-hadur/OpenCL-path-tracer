@@ -22,6 +22,25 @@
 using namespace OpenCL_PathTracer;
 using namespace OpenCL_PathTracer::GL_Stuff;
 
+class TexturedQuad : public Component
+{
+public:
+    TexturedQuad() : Component(ShaderMode::Texture, Color(), std::make_shared<Texture>(Bitmap::Read("rendered/image_0.bmp")))
+    {
+        ReplaceData(
+            {
+            { {       0,       0 }, { 0.0f, 1.0f } },
+            { {       0, 108 * 2 }, { 0.0f, 0.0f } },
+            { { 192 * 2, 108 * 2 }, { 1.0f, 0.0f } },
+            { { 192 * 2,       0 }, { 1.0f, 1.0f } }
+            },
+            {
+                0, 1, 2,
+                2, 3, 0
+            });
+    }
+};
+
 int _width = 192 * 5;
 int _height = 108 * 5;
 GLFWmonitor* _monitor = nullptr;
@@ -37,6 +56,10 @@ int _windowPositionX = 0;
 int _windowPositionY = 0;
 int _windowWidth = 0;
 int _windowHeight = 0;
+std::unique_ptr<TexturedQuad> _quad = nullptr;
+Stopwatch _watch = Stopwatch::StartNew();
+
+void Draw();
 
 void OnFramebufferSizeChanged(GLFWwindow* window, int width, int height)
 {
@@ -44,6 +67,24 @@ void OnFramebufferSizeChanged(GLFWwindow* window, int width, int height)
     _height = height;
     glViewport(0, 0, _width, _height);
     _shaderProgram->SetProjectionMatrix(Matrix4x4::OrthoProjectionMatrix(0, _width, _height, 0, -1, 1));
+
+    Vector2 position, size;
+    if (192.0f / 108.0f < (float)_width / (float)_height)
+    {
+        size = { _height * 192.0f / 108.f, (float)_height };
+        position = { (_width - size.x) / 2.0f, 0.0f };
+    }
+    else
+    {
+        size = { (float)_width, _width / 192.0f * 108.0f };
+        position = { 0.0f, (_height - size.y) / 2.0f };
+    }
+    _quad->SetPosition(position);
+    _quad->SetScale(size / (Vector2(192, 108) * 2));
+
+    _fps->SetPosition({ 0, _height - _font->GetHeight() });
+
+    Draw();
 }
 
 void OnKeyReceived(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -78,8 +119,8 @@ void Draw()
     glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    _fps->Bind();
-    _fps->SetPosition({ 0, _height - _font->GetHeight() });
+    _quad->Draw(*_shaderProgram);
+
     auto time = _stopwatch.GetElapsedTime();
     if (time >= 0.5f)
     {
@@ -88,7 +129,6 @@ void Draw()
         _frames = 0;
     }
     _fps->Draw(*_shaderProgram);
-    _fps->Unbind();
 
     glfwSwapBuffers(_window);
     _frames++;
@@ -132,6 +172,7 @@ int main(int argc, char** argv)
 
     _font = std::make_shared<Font>("C:/Windows/Fonts/cour.ttf", 16);
     _fps = std::make_unique<Text>(_font, "", Color(1, 1, 1));
+    _quad = std::make_unique<TexturedQuad>();
 
     OnFramebufferSizeChanged(_window, _width, _height);
     _stopwatch.Start();

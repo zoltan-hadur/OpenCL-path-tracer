@@ -45,9 +45,6 @@ namespace OpenCL_PathTracer
             void UpdateData(std::vector<Vertex> const& vertices, std::vector<GLuint> const& indices);
             void ReplaceData(std::vector<Vertex> const& vertices, std::vector<GLuint> const& indices);
             void Draw(ShaderProgram& shaderProgram) const;
-
-            void Bind() const;
-            void Unbind() const;
         };
     }
 }

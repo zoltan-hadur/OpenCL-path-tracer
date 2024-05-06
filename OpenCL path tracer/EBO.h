@@ -3,15 +3,21 @@
 #include <glad/glad.h>
 #include <vector>
 
+#include "IBindable.h"
+
 namespace OpenCL_PathTracer
 {
     namespace GL_Stuff
     {
-        class EBO
+        class EBO : public IBindable
         {
         private:
             GLuint _id;
             std::size_t _size;
+
+        protected:
+            virtual void OnBind() override;
+            virtual void OnUnbind() override;
 
         public:
             EBO(std::vector<GLuint> const& indices);
@@ -22,9 +28,6 @@ namespace OpenCL_PathTracer
 
             void UpdateIndices(std::vector<GLuint> const& indices);
             void ReplaceIndices(std::vector<GLuint> const& indices);
-
-            void Bind() const;
-            void Unbind() const;
         };
     }
 }

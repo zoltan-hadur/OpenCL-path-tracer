@@ -6,6 +6,16 @@ namespace OpenCL_PathTracer
 {
     namespace GL_Stuff
     {
+        void VAO::OnBind()
+        {
+            glBindVertexArray(_id);
+        }
+
+        void VAO::OnUnbind()
+        {
+            glBindVertexArray(0);
+        }
+
         VAO::VAO()
         {
             glGenVertexArrays(1, &_id);
@@ -21,20 +31,14 @@ namespace OpenCL_PathTracer
             return _id;
         }
 
-        void VAO::LinkAttribute(VBO const& vbo, GLuint layout, GLuint numberOfComponents, GLenum type, GLsizei stride, void* offset) const
+        void VAO::LinkAttribute(VBO& vbo, GLuint layout, GLuint numberOfComponents, GLenum type, GLsizei stride, void* offset)
         {
+            Bind();
+            vbo.Bind();
             glVertexAttribPointer(layout, numberOfComponents, type, GL_FALSE, stride, offset);
             glEnableVertexAttribArray(layout);
-        }
-
-        void VAO::Bind() const
-        {
-            glBindVertexArray(_id);
-        }
-
-        void VAO::Unbind() const
-        {
-            glBindVertexArray(0);
+            Unbind();
+            vbo.Unbind();
         }
     }
 }

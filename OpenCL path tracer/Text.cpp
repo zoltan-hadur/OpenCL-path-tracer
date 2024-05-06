@@ -18,9 +18,7 @@ namespace OpenCL_PathTracer
         Text::Text(std::shared_ptr<Font> font, std::string value, Color color) : Component(ShaderMode::Text, color, font->GetTexture())
         {
             _font = font;
-            Bind();
             SetValue(value);
-            Unbind();
         }
 
         std::string const& Text::GetValue() const

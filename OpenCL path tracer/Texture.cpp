@@ -6,6 +6,19 @@ namespace OpenCL_PathTracer
 {
     namespace GL_Stuff
     {
+        void Texture::OnBind()
+        {
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glBindTexture(GL_TEXTURE_2D, _id);
+        }
+
+        void Texture::OnUnbind()
+        {
+            glDisable(GL_BLEND);
+            glBindTexture(GL_TEXTURE_2D, 0);
+        }
+
         Texture::Texture(Bitmap const& bitmap) : Texture(GL_RGBA, bitmap.GetWidth(), bitmap.GetHeight(), GL_BGR, GL_UNSIGNED_BYTE, bitmap.GetData().data())
         {
 
@@ -24,33 +37,22 @@ namespace OpenCL_PathTracer
             Unbind();
         }
 
-        GLuint Texture::GetId() const
-        {
-            return _id;
-        }
-
         Texture::~Texture()
         {
             glDeleteTextures(1, &_id);
         }
 
+        GLuint Texture::GetId() const
+        {
+            return _id;
+        }
+
         void Texture::UpdateTexture(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels)
         {
             ThrowIfFrozen();
+            Bind();
             glTexSubImage2D(GL_TEXTURE_2D, 0, xoffset, yoffset, width, height, format, type, pixels);
-        }
-
-        void Texture::Bind() const
-        {
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            glBindTexture(GL_TEXTURE_2D, _id);
-        }
-
-        void Texture::Unbind() const
-        {
-            glDisable(GL_BLEND);
-            glBindTexture(GL_TEXTURE_2D, 0);
+            Unbind();
         }
     }
 }

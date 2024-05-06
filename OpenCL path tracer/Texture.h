@@ -3,6 +3,7 @@
 #include <glad/glad.h>
 
 #include "Freezable.h"
+#include "IBindable.h"
 
 namespace OpenCL_PathTracer
 {
@@ -10,10 +11,14 @@ namespace OpenCL_PathTracer
 
     namespace GL_Stuff
     {
-        class Texture : public Freezable
+        class Texture : public Freezable, public IBindable
         {
         private:
             GLuint _id;
+
+        protected:
+            virtual void OnBind() override;
+            virtual void OnUnbind() override;
 
         public:
             Texture(Bitmap const& bitmap);
@@ -22,9 +27,6 @@ namespace OpenCL_PathTracer
 
             GLuint GetId() const;
             void UpdateTexture(GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels);
-
-            void Bind() const;
-            void Unbind() const;
         };
     }
 }
