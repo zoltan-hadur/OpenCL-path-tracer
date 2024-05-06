@@ -80,7 +80,7 @@ void OnFramebufferSizeChanged(GLFWwindow* window, int width, int height)
         position = { 0.0f, (_height - size.y) / 2.0f };
     }
     _quad->SetPosition(position);
-    _quad->SetScale(size / (Vector2(192, 108) * 2));
+    _quad->SetSize(size);
 
     _fps->SetPosition({ 0, _height - _font->GetHeight() });
 

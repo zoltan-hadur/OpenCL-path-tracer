@@ -3,6 +3,7 @@
 #include "Vertex.h"
 
 #include <stdexcept>
+#include <algorithm>
 
 namespace OpenCL_PathTracer
 {
@@ -34,12 +35,19 @@ namespace OpenCL_PathTracer
             return _id;
         }
 
+        BoundingBox const& VBO::GetBoundingBox() const
+        {
+            return _boundingBox;
+        }
+
         void VBO::UpdateVertices(std::vector<Vertex> const& vertices)
         {
             if (vertices.size() != _size)
             {
                 throw std::runtime_error("Size differs!");
             }
+            _boundingBox = BoundingBox();
+            std::ranges::for_each(vertices, [&](Vertex const& vertex) { _boundingBox.Inflate(vertex.GetPosition()); });
             Bind();
             glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vertex) * _size, vertices.data());
             Unbind();
@@ -48,6 +56,8 @@ namespace OpenCL_PathTracer
         void VBO::ReplaceVertices(std::vector<Vertex> const& vertices)
         {
             _size = vertices.size();
+            _boundingBox = BoundingBox();
+            std::ranges::for_each(vertices, [&](Vertex const& vertex) { _boundingBox.Inflate(vertex.GetPosition()); });
             Bind();
             glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
             Unbind();

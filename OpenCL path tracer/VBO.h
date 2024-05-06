@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "IBindable.h"
+#include "BoundingBox.h"
 
 namespace OpenCL_PathTracer
 {
@@ -16,6 +17,7 @@ namespace OpenCL_PathTracer
         private:
             GLuint _id;
             std::size_t _size;
+            BoundingBox _boundingBox;
 
         protected:
             virtual void OnBind() override;
@@ -26,6 +28,7 @@ namespace OpenCL_PathTracer
             ~VBO();
 
             GLuint GetId() const;
+            BoundingBox const& GetBoundingBox() const;
 
             void UpdateVertices(std::vector<Vertex> const& vertices);
             void ReplaceVertices(std::vector<Vertex> const& vertices);

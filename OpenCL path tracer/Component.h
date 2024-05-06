@@ -37,6 +37,8 @@ namespace OpenCL_PathTracer
         public:
             Vector2 const& GetPosition() const;
             void SetPosition(Vector2 position);
+            Vector2 GetSize() const;
+            void SetSize(Vector2 size);
             Vector2 const& GetScale() const;
             void SetScale(Vector2 scale);
             Color const& GetColor() const;

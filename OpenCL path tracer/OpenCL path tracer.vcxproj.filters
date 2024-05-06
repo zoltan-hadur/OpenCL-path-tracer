@@ -115,6 +115,9 @@
     <ClCompile Include="IBindable.cpp">
       <Filter>Source Files\GL_Stuff</Filter>
     </ClCompile>
+    <ClCompile Include="BoundingBox.cpp">
+      <Filter>Source Files\GL_Stuff</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Ray.h">
@@ -215,6 +218,9 @@
     </ClInclude>
     <ClInclude Include="IBindable.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BoundingBox.h">
+      <Filter>Header Files\GL_Stuff</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

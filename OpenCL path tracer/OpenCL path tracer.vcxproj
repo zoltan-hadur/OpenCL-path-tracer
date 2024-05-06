@@ -117,6 +117,7 @@ set bin=$(SolutionDir)vcpkg_installed\x64-windows\bin
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Bitmap.cpp" />
+    <ClCompile Include="BoundingBox.cpp" />
     <ClCompile Include="Character.cpp" />
     <ClCompile Include="Color.cpp" />
     <ClCompile Include="Component.cpp" />
@@ -148,6 +149,7 @@ set bin=$(SolutionDir)vcpkg_installed\x64-windows\bin
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Bitmap.h" />
+    <ClInclude Include="BoundingBox.h" />
     <ClInclude Include="Character.h" />
     <ClInclude Include="Color.h" />
     <ClInclude Include="Component.h" />

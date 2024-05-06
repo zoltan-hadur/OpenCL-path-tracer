@@ -57,6 +57,16 @@ namespace OpenCL_PathTracer
             _position = std::move(position);
         }
 
+        Vector2 Component::GetSize() const
+        {
+            return _vbo->GetBoundingBox().GetSize() * _scale;
+        }
+
+        void Component::SetSize(Vector2 size)
+        {
+            _scale = size / _vbo->GetBoundingBox().GetSize();
+        }
+
         Vector2 const& Component::GetScale() const
         {
             return _scale;
