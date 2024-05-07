@@ -47,6 +47,21 @@ namespace OpenCL_PathTracer
             _ebo->Unbind();
         }
 
+        Component::Component(Color color) : Component(ShaderMode::Color, color, nullptr)
+        {
+
+        }
+
+        Component::Component(std::shared_ptr<Texture> texture) : Component(ShaderMode::Texture, Color(), texture)
+        {
+
+        }
+
+        Component::Component(Color color, std::shared_ptr<Texture> texture) : Component(ShaderMode::Text, color, texture)
+        {
+
+        }
+
         Vector2 const& Component::GetPosition() const
         {
             return _position;
@@ -77,6 +92,11 @@ namespace OpenCL_PathTracer
             _scale = std::move(scale);
         }
 
+        ShaderMode Component::GetMode() const
+        {
+            return _mode;
+        }
+
         Color const& Component::GetColor() const
         {
             return _color;
@@ -85,6 +105,16 @@ namespace OpenCL_PathTracer
         void Component::SetColor(Color color)
         {
             _color = color;
+        }
+
+        std::shared_ptr<Texture> Component::GetTexture()
+        {
+            return _texture;
+        }
+
+        void Component::SetTexture(std::shared_ptr<Texture> texture)
+        {
+            _texture = texture;
         }
 
         void Component::UpdateData(std::vector<Vertex> const& vertices, std::vector<GLuint> const& indices)

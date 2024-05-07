@@ -31,8 +31,11 @@ namespace OpenCL_PathTracer
             std::unique_ptr<VBO> _vbo;
             std::unique_ptr<EBO> _ebo;
 
-        protected:
             Component(ShaderMode mode, Color color, std::shared_ptr<Texture> texture);
+        protected:
+            Component(Color color);
+            Component(std::shared_ptr<Texture> texture);
+            Component(Color color, std::shared_ptr<Texture> texture);
 
         public:
             Vector2 const& GetPosition() const;
@@ -41,8 +44,11 @@ namespace OpenCL_PathTracer
             void SetSize(Vector2 size);
             Vector2 const& GetScale() const;
             void SetScale(Vector2 scale);
+            ShaderMode GetMode() const;
             Color const& GetColor() const;
             void SetColor(Color color);
+            std::shared_ptr<Texture> GetTexture();
+            void SetTexture(std::shared_ptr<Texture> texture);
 
             void UpdateData(std::vector<Vertex> const& vertices, std::vector<GLuint> const& indices);
             void ReplaceData(std::vector<Vertex> const& vertices, std::vector<GLuint> const& indices);

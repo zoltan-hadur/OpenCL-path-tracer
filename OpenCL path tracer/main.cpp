@@ -25,7 +25,7 @@ using namespace OpenCL_PathTracer::GL_Stuff;
 class TexturedQuad : public Component
 {
 public:
-    TexturedQuad() : Component(ShaderMode::Texture, Color(), std::make_shared<Texture>(Bitmap::Read("rendered/image_0.bmp")))
+    TexturedQuad() : Component(std::make_shared<Texture>(Bitmap::Read("rendered/image_0.bmp")))
     {
         ReplaceData(
             {
