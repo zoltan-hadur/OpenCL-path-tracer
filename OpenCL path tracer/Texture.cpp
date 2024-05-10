@@ -8,14 +8,11 @@ namespace OpenCL_PathTracer
     {
         void Texture::OnBind()
         {
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glBindTexture(GL_TEXTURE_2D, _id);
         }
 
         void Texture::OnUnbind()
         {
-            glDisable(GL_BLEND);
             glBindTexture(GL_TEXTURE_2D, 0);
         }
 

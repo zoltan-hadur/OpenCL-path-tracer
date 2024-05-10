@@ -104,6 +104,8 @@ namespace OpenCL_PathTracer
         {
             glUseProgram(_id);
             glUniform1i(_texture0Location, 0);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         }
     }
 }
