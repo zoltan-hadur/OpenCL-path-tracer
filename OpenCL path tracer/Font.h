@@ -4,6 +4,7 @@
 #include <memory>
 #include <filesystem>
 #include <string>
+#include <set>
 
 namespace OpenCL_PathTracer
 {
@@ -18,8 +19,9 @@ namespace OpenCL_PathTracer
         {
         private:
             float _height;
-            std::map<char, Character> _characters;
+            std::map<uint32_t, Character> _characters;
             std::shared_ptr<Texture> _texture;
+            static std::set<uint32_t> _supportedCharacters;
 
         public:
             Font(std::filesystem::path fontPath, uint8_t height);
@@ -28,7 +30,7 @@ namespace OpenCL_PathTracer
             std::shared_ptr<Texture> GetTexture();
 
             Vector2 MeasureTextSize(std::string const& text) const;
-            Character const& GetCharacter(char c) const;
+            Character const& GetCharacter(uint32_t c) const;
         };
     }
 }

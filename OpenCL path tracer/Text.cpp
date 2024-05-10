@@ -10,6 +10,7 @@
 #include "Vector2.h"
 #include "Vertex.h"
 #include "Color.h"
+#include "StringHelper.h"
 
 namespace OpenCL_PathTracer
 {
@@ -39,7 +40,7 @@ namespace OpenCL_PathTracer
                 2, 3, 0
             };
             auto count = 0;
-            for (auto c : _value)
+            for (auto c : StringHelper::GetUnicodeCharacters(_value))
             {
                 switch (c)
                 {
