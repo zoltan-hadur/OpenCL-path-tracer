@@ -7,6 +7,6 @@ namespace OpenCL_PathTracer
 {
     std::string FileHelper::ReadAllText(std::filesystem::path path)
     {
-        return (std::stringstream() << std::ifstream(path).rdbuf()).str();
+        return (std::stringstream() << std::ifstream(path, std::ios::binary).rdbuf()).str();
     }
 }
