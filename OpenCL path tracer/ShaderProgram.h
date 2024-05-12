@@ -2,6 +2,7 @@
 
 #include <glad/glad.h>
 #include <filesystem>
+#include <stack>
 
 #include "Matrix4x4.h"
 
@@ -26,7 +27,9 @@ namespace OpenCL_PathTracer
             GLint _texture0Location;
             GLint _modeLocation;
 
-            Matrix4x4 _modelMatrix;
+            std::stack<Matrix4x4> _modelMatrices;
+
+            void SendTopModelMatrixToGpu();
 
         public:
             ShaderProgram(std::filesystem::path vertexShaderPath, std::filesystem::path fragmentShaderPath);
@@ -39,11 +42,13 @@ namespace OpenCL_PathTracer
             void SetProjectionMatrix(Matrix4x4 const& matrix);
             Matrix4x4 const& GetModelMatrix() const;
             void SetModelMatrix(Matrix4x4 const& matrix);
+            void PushModelMatrix(Matrix4x4 const& matrix);
+            void PopModelMatrix();
             void SetColor(Color const& color);
 
             void SetMode(ShaderMode mode);
 
-            void Activate() const;
+            void Activate();
         };
     }
 }

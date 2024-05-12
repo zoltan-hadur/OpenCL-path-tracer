@@ -136,7 +136,7 @@ namespace OpenCL_PathTracer
             {
                 shaderProgram.SetColor(_color);
             }
-            shaderProgram.SetModelMatrix(Matrix4x4::ScaleMatrix({ _scale, 1.0f }).Translate({ _position, 0.0f }));
+            shaderProgram.PushModelMatrix(Matrix4x4::ScaleMatrix({ _scale, 1.0f }).Translate({ _position, 0.0f }));
 
             _vao->Bind();
             if (_mode == ShaderMode::Texture || _mode == ShaderMode::Text)
@@ -149,6 +149,8 @@ namespace OpenCL_PathTracer
             {
                 _texture->Unbind();
             }
+
+            shaderProgram.PopModelMatrix();
         }
     }
 }

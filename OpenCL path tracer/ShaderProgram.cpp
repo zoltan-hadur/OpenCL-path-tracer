@@ -11,6 +11,11 @@ namespace OpenCL_PathTracer
 {
     namespace GL_Stuff
     {
+        void ShaderProgram::SendTopModelMatrixToGpu()
+        {
+            glUniformMatrix4fv(_modelMatrixLocation, 1, GL_TRUE, _modelMatrices.top().GetData());
+        }
+
         ShaderProgram::ShaderProgram(std::filesystem::path vertexShaderPath, std::filesystem::path fragmentShaderPath)
         {
             auto ss = std::stringstream();
@@ -51,7 +56,7 @@ namespace OpenCL_PathTracer
             _texture0Location = glGetUniformLocation(_id, "texture0");
             _modeLocation = glGetUniformLocation(_id, "mode");
 
-            _modelMatrix = Matrix4x4::IdentityMatrix();
+            _modelMatrices = std::stack<Matrix4x4>({ Matrix4x4::IdentityMatrix() });
         }
 
         ShaderProgram::~ShaderProgram()
@@ -81,13 +86,28 @@ namespace OpenCL_PathTracer
 
         Matrix4x4 const& ShaderProgram::GetModelMatrix() const
         {
-            return _modelMatrix;
+            return _modelMatrices.top();
         }
 
         void ShaderProgram::SetModelMatrix(Matrix4x4 const& model)
         {
-            _modelMatrix = model;
-            glUniformMatrix4fv(_modelMatrixLocation, 1, GL_TRUE, _modelMatrix.GetData());
+            _modelMatrices.top() = model;
+            SendTopModelMatrixToGpu();
+        }
+
+        void ShaderProgram::PushModelMatrix(Matrix4x4 const& matrix)
+        {
+            _modelMatrices.push(GetModelMatrix() * matrix);
+            SendTopModelMatrixToGpu();
+        }
+
+        void ShaderProgram::PopModelMatrix()
+        {
+            if (_modelMatrices.size() > 1)
+            {
+                _modelMatrices.pop();
+                SendTopModelMatrixToGpu();
+            }
         }
 
         void ShaderProgram::SetColor(Color const& color)
@@ -100,10 +120,12 @@ namespace OpenCL_PathTracer
             glUniform1i(_modeLocation, static_cast<std::underlying_type<ShaderMode>::type>(mode));
         }
 
-        void ShaderProgram::Activate() const
+        void ShaderProgram::Activate()
         {
             glUseProgram(_id);
             glUniform1i(_texture0Location, 0);
+            SetProjectionMatrix(Matrix4x4::IdentityMatrix());
+            SetModelMatrix(Matrix4x4::IdentityMatrix());
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         }
