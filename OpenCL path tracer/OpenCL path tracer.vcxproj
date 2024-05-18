@@ -123,6 +123,7 @@ set bin=$(SolutionDir)vcpkg_installed\x64-windows\bin
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="ConsoleVariableBase.cpp" />
     <ClCompile Include="ConsoleVariableManager.cpp" />
+    <ClCompile Include="EasingFunction.cpp" />
     <ClCompile Include="EBO.cpp" />
     <ClCompile Include="FileHelper.cpp" />
     <ClCompile Include="Font.cpp" />
@@ -150,6 +151,7 @@ set bin=$(SolutionDir)vcpkg_installed\x64-windows\bin
     <ClCompile Include="Vertex.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Animation.h" />
     <ClInclude Include="Bitmap.h" />
     <ClInclude Include="BoundingBox.h" />
     <ClInclude Include="Character.h" />
@@ -158,6 +160,7 @@ set bin=$(SolutionDir)vcpkg_installed\x64-windows\bin
     <ClInclude Include="ConsoleVariable.h" />
     <ClInclude Include="ConsoleVariableBase.h" />
     <ClInclude Include="ConsoleVariableManager.h" />
+    <ClInclude Include="EasingFunction.h" />
     <ClInclude Include="EBO.h" />
     <ClInclude Include="EnumHelper.h" />
     <ClInclude Include="FileHelper.h" />

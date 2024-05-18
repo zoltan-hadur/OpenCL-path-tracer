@@ -124,6 +124,9 @@
     <ClCompile Include="Panel.cpp">
       <Filter>Source Files\GL_Stuff</Filter>
     </ClCompile>
+    <ClCompile Include="EasingFunction.cpp">
+      <Filter>Source Files\GL_Stuff</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Ray.h">
@@ -232,6 +235,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Panel.h">
+      <Filter>Header Files\GL_Stuff</Filter>
+    </ClInclude>
+    <ClInclude Include="EasingFunction.h">
+      <Filter>Header Files\GL_Stuff</Filter>
+    </ClInclude>
+    <ClInclude Include="Animation.h">
       <Filter>Header Files\GL_Stuff</Filter>
     </ClInclude>
   </ItemGroup>
