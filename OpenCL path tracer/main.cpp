@@ -18,6 +18,11 @@
 #include "Text.h"
 #include "ShaderMode.h"
 #include "FlagHelper.h"
+#include "FileHelper.h"
+#include "StringHelper.h"
+#include "Panel.h"
+#include "Console.h"
+#include "EasingFunction.h"
 
 using namespace OpenCL_PathTracer;
 using namespace OpenCL_PathTracer::GL_Stuff;
@@ -50,6 +55,7 @@ std::unique_ptr<ShaderProgram> _shaderProgram = nullptr;
 Stopwatch _stopwatch;
 std::shared_ptr<Font> _font = nullptr;
 std::unique_ptr<Text> _fps = nullptr;
+std::unique_ptr<Console> _console = nullptr;
 int _frames = 0;
 bool _isFullScreen = false;
 int _windowPositionX = 0;
@@ -84,6 +90,8 @@ void OnFramebufferSizeChanged(GLFWwindow* window, int width, int height)
 
     _fps->SetPosition({ 0, _height - _font->GetHeight() });
 
+    _console->SetWindowSize(width, height);
+
     Draw();
 }
 
@@ -107,11 +115,15 @@ void OnKeyReceived(GLFWwindow* window, int key, int scancode, int action, int mo
     {
         glfwSetWindowShouldClose(_window, GL_TRUE);
     }
+    if (key == GLFW_KEY_F1 && action == GLFW_PRESS)
+    {
+        _console->Toggle();
+    }
 }
 
 void OnCharacterReceived(GLFWwindow* window, unsigned int codepoint)
 {
-    
+
 }
 
 void Draw()
@@ -121,10 +133,13 @@ void Draw()
 
     _quad->Draw(*_shaderProgram);
 
+    _console->Animate(_watch.GetDeltaTime());
+    _console->Draw(*_shaderProgram);
+
     auto time = _stopwatch.GetElapsedTime();
     if (time >= 0.5f)
     {
-        _fps->SetValue(std::format("{:8.2f} FPS", _frames / time));
+        _fps->SetValue(std::format("{0:8.2f} FPS", _frames / time));
         _stopwatch.Restart();
         _frames = 0;
     }
@@ -173,6 +188,7 @@ int main(int argc, char** argv)
     _font = std::make_shared<Font>("C:/Windows/Fonts/cour.ttf", 16);
     _fps = std::make_unique<Text>(_font, "", Color(1, 1, 1));
     _quad = std::make_unique<TexturedQuad>();
+    _console = std::make_unique<Console>();
 
     OnFramebufferSizeChanged(_window, _width, _height);
     _stopwatch.Start();
@@ -180,6 +196,7 @@ int main(int argc, char** argv)
     {
         Draw();
         glfwPollEvents();
+        _sleep(1);
     }
 
     glfwDestroyWindow(_window);
