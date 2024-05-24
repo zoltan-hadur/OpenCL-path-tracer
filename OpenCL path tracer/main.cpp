@@ -3,6 +3,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <chrono>
+#include <thread>
 #include "Stopwatch.h"
 #include "Vector3.h"
 #include "Bitmap.h"
@@ -72,7 +74,7 @@ void OnFramebufferSizeChanged(GLFWwindow* window, int width, int height)
     _width = width;
     _height = height;
     glViewport(0, 0, _width, _height);
-    _shaderProgram->SetProjectionMatrix(Matrix4x4::OrthoProjectionMatrix(0, _width, _height, 0, -1, 1));
+    _shaderProgram->SetProjectionMatrix(Matrix4x4::OrthoProjectionMatrix(0.0f, static_cast<float>(_width), static_cast<float>(_height), 0.0f, -1.0f, 1.0f));
 
     Vector2 position, size;
     if (192.0f / 108.0f < (float)_width / (float)_height)
@@ -196,7 +198,7 @@ int main(int argc, char** argv)
     {
         Draw();
         glfwPollEvents();
-        _sleep(1);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 
     glfwDestroyWindow(_window);

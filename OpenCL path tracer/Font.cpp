@@ -60,7 +60,7 @@ namespace OpenCL_PathTracer
                 // If glyph would be outside of texture bounds, start a new line instead
                 if (cursor.x > maxTextureSize)
                 {
-                    cursor.x = face->glyph->advance.x / 64;
+                    cursor.x = static_cast<float>(face->glyph->advance.x / 64);
                     cursor.y = cursor.y + _height;
                 }
                 textureBoundingBox.Inflate(cursor);

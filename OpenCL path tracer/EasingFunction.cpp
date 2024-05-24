@@ -1,5 +1,7 @@
 #include "EasingFunction.h"
 
+#include <stdexcept>
+
 namespace OpenCL_PathTracer
 {
     namespace GL_Stuff
@@ -26,6 +28,8 @@ namespace OpenCL_PathTracer
                     return t < 0.5f ?
                         _func(2.0f * t) / 2.0f :
                         0.5f + (1.0f - _func(2.0f * (1.0f - t))) / 2.0f;
+                default:
+                    throw std::runtime_error(std::format("Enum value '{0}' is not supported!", _mode));
             }
         }
     }
