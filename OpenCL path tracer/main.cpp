@@ -69,6 +69,18 @@ Stopwatch _watch = Stopwatch::StartNew();
 
 void Draw();
 
+void OnWindowFocusChanged(GLFWwindow* window, int focused)
+{
+    if (focused)
+    {
+        _console->Focus();
+    }
+    else
+    {
+        _console->ClearFocus();
+    }
+}
+
 void OnFramebufferSizeChanged(GLFWwindow* window, int width, int height)
 {
     if (width == 0 || height == 0) return;
@@ -101,33 +113,95 @@ void OnFramebufferSizeChanged(GLFWwindow* window, int width, int height)
 
 void OnKeyReceived(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    if (key == GLFW_KEY_ENTER && action == GLFW_PRESS && FlagHelper::IsFlagSet(mods, GLFW_MOD_ALT))
+    if (action == GLFW_PRESS ||action == GLFW_REPEAT)
     {
-        if (_isFullScreen)
+        switch (key)
         {
-            glfwSetWindowMonitor(window, nullptr, _windowPositionX, _windowPositionY, _windowWidth, _windowHeight, 0);
+            case GLFW_KEY_ENTER:
+            {
+                if (FlagHelper::IsFlagSet(mods, GLFW_MOD_ALT))
+                {
+                    if (_isFullScreen)
+                    {
+                        glfwSetWindowMonitor(window, nullptr, _windowPositionX, _windowPositionY, _windowWidth, _windowHeight, 0);
+                    }
+                    else
+                    {
+                        glfwGetWindowPos(window, &_windowPositionX, &_windowPositionY);
+                        glfwGetWindowSize(window, &_windowWidth, &_windowHeight);
+                        glfwSetWindowMonitor(window, _monitor, 0, 0, _videoMode->width, _videoMode->height, _videoMode->refreshRate);
+                    }
+                    _isFullScreen = !_isFullScreen;
+                }
+                else
+                {
+                    _console->PressEnter();
+                }
+                break;
+            }
+            case GLFW_KEY_BACKSPACE:
+            {
+                _console->PressBackspace();
+                break;
+            }
+            case GLFW_KEY_DELETE:
+            {
+                _console->PressDelete();
+                break;
+            }
+            case GLFW_KEY_LEFT:
+            {
+                _console->MoveCursor(CursorMovement::Left);
+                break;
+            }
+            case GLFW_KEY_RIGHT:
+            {
+                _console->MoveCursor(CursorMovement::Right);
+                break;
+            }
+            case GLFW_KEY_HOME:
+            {
+                _console->MoveCursor(CursorMovement::Home);
+                break;
+            }
+            case GLFW_KEY_END:
+            {
+                _console->MoveCursor(CursorMovement::End);
+                break;
+            }
+            case GLFW_KEY_F1:
+            {
+                switch (_console->GetState())
+                {
+                    case ConsoleState::Closed:
+                    {
+                        _console->Focus();
+                        _console->Open();
+                        break;
+                    }
+                    case ConsoleState::Open:
+                    {
+                        _console->ClearFocus();
+                        _console->Close();
+                        break;
+                    }
+                }
+                break;
+            }
+            case GLFW_KEY_ESCAPE:
+            {
+                glfwSetWindowShouldClose(_window, GL_TRUE);
+                break;
+            }
+            default:
+                break;
         }
-        else
-        {
-            glfwGetWindowPos(window, &_windowPositionX, &_windowPositionY);
-            glfwGetWindowSize(window, &_windowWidth, &_windowHeight);
-            glfwSetWindowMonitor(window, _monitor, 0, 0, _videoMode->width, _videoMode->height, _videoMode->refreshRate);
-        }
-        _isFullScreen = !_isFullScreen;
-    }
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-    {
-        glfwSetWindowShouldClose(_window, GL_TRUE);
-    }
-    if (key == GLFW_KEY_F1 && action == GLFW_PRESS)
-    {
-        _console->Toggle();
     }
 }
 
 void OnCharacterReceived(GLFWwindow* window, unsigned int codepoint)
 {
-
+    _console->TypeCharacter(codepoint);
 }
 
 void Draw()
@@ -178,6 +252,7 @@ int main(int argc, char** argv)
     }
     glfwMakeContextCurrent(_window);
     gladLoadGL();
+    glfwSetWindowFocusCallback(_window, OnWindowFocusChanged);
     glfwSetFramebufferSizeCallback(_window, OnFramebufferSizeChanged);
     glfwSetKeyCallback(_window, OnKeyReceived);
     glfwSetCharCallback(_window, OnCharacterReceived);
