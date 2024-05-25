@@ -14,6 +14,8 @@
 #include <stdexcept>
 #include <format>
 
+#define SQUARE 9633
+
 namespace OpenCL_PathTracer
 {
     namespace GL_Stuff
@@ -30,6 +32,7 @@ namespace OpenCL_PathTracer
                     supportedCharacters.insert(c);
                 }
                 supportedCharacters.insert(8364);   // Euro sign
+                supportedCharacters.insert(SQUARE);
                 return supportedCharacters;
             }();
 
@@ -160,7 +163,14 @@ namespace OpenCL_PathTracer
 
         Character const& Font::GetCharacter(uint32_t c) const
         {
-            return _characters.at(c);
+            if (_characters.contains(c))
+            {
+                return _characters.at(c);
+            }
+            else
+            {
+                return _characters.at(SQUARE);
+            }
         }
     }
 }
