@@ -50,6 +50,7 @@ namespace OpenCL_PathTracer
 
             void CopyBufferToText();
             void UpdateCaretPosition();
+            void ScrollTextIfNeeded();
 
             Vector2 GetBufferCursor(Vector2 const& screenCursor) const;
             Vector2 GetScreenCursor(Vector2 const& bufferCursor) const;

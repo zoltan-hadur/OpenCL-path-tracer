@@ -24,6 +24,10 @@ namespace OpenCL_PathTracer
                 {
                     auto from = i * _columnWidth;
                     auto to = std::min((i + 1) * _columnWidth, static_cast<int>(line.size()));
+                    if (from == to)
+                    {
+                        break;
+                    }
                     auto subLine = std::vector<uint32_t>(line.begin() + from, line.begin() + to);
                     text = text + StringHelper::GetUtf8String(subLine) + "\r\n";
                 }
@@ -33,7 +37,15 @@ namespace OpenCL_PathTracer
 
         void Console::UpdateCaretPosition()
         {
-            _caret->SetPosition(GetScreenCursor(_cursor) * _charSize);
+            _caret->SetPosition(GetScreenCursor(_cursor));
+        }
+
+        void Console::ScrollTextIfNeeded()
+        {
+            if (GetScreenCursor(_cursor).y + _charSize.y > _background->GetSize().y)
+            {
+                _text->SetPosition(_text->GetPosition() - Vector2(0.0f, _charSize.y));
+            }
         }
 
         Vector2 Console::GetBufferCursor(Vector2 const& screenCursor) const
@@ -64,7 +76,7 @@ namespace OpenCL_PathTracer
             }
             y = y + static_cast<int>(bufferCursor.x) / _columnWidth;
             float x = static_cast<int>(bufferCursor.x) % _columnWidth;
-            return { x, y };
+            return Vector2(x, y) * _charSize + _text->GetPosition();
         }
 
         Console::Console()
@@ -174,6 +186,7 @@ namespace OpenCL_PathTracer
             _buffer.push_back({ '>' });
             _cursor.x = 1;
             _cursor.y++;
+            ScrollTextIfNeeded();
             UpdateCaretPosition();
             CopyBufferToText();
             _caretAnimation.Start();
@@ -198,6 +211,7 @@ namespace OpenCL_PathTracer
                 default:
                     break;
             }
+            ScrollTextIfNeeded();
             UpdateCaretPosition();
             _caretAnimation.Start();
         }
