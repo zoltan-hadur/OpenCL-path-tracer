@@ -42,7 +42,7 @@ namespace OpenCL_PathTracer
 
         void Console::ScrollTextIfNeeded()
         {
-            if (GetScreenCursor(_cursor).y + _charSize.y > _background->GetSize().y)
+            while (GetScreenCursor(_cursor).y + _charSize.y > _background->GetSize().y)
             {
                 _text->SetPosition(_text->GetPosition() - Vector2(0.0f, _charSize.y));
             }
