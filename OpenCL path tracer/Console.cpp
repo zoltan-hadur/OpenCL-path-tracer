@@ -92,6 +92,7 @@ namespace OpenCL_PathTracer
             _columnWidth = 1;
             _caretFrequency = 1.0f;
             _hasFocus = false;
+            _isInsertTurnedOn = false;
 
             _state = ConsoleState::Closed;
             _positionAnimation = Animation<Vector2>();
@@ -152,9 +153,36 @@ namespace OpenCL_PathTracer
         void Console::TypeCharacter(uint32_t unicodeCodepoint)
         {
             auto& line = _buffer[_cursor.y];
-            line.insert(line.begin() + _cursor.x, unicodeCodepoint);
+            if (_isInsertTurnedOn && _cursor.x < line.size())
+            {
+                line[_cursor.x] = unicodeCodepoint;
+            }
+            else
+            {
+                line.insert(line.begin() + _cursor.x, unicodeCodepoint);
+            }
             MoveCursor(CursorMovement::Right);
             CopyBufferToText();
+            _caretAnimation.Start();
+        }
+
+        void Console::PressInsert()
+        {
+            _isInsertTurnedOn = !_isInsertTurnedOn;
+            if (_isInsertTurnedOn)
+            {
+                _caret->SetSize(_charSize);
+                auto color = _caret->GetColor();
+                color.A = 0.5f;
+                _caret->SetColor(color);
+            }
+            else
+            {
+                _caret->SetSize(Vector2(1, _charSize.y));
+                auto color = _caret->GetColor();
+                color.A = 1.0f;
+                _caret->SetColor(color);
+            }
             _caretAnimation.Start();
         }
 

@@ -43,6 +43,7 @@ namespace OpenCL_PathTracer
             int _columnWidth;
             float _caretFrequency;
             bool _hasFocus;
+            bool _isInsertTurnedOn;
 
             ConsoleState _state;
             Animation<Vector2> _positionAnimation;
@@ -66,6 +67,7 @@ namespace OpenCL_PathTracer
             void Close();
 
             void TypeCharacter(uint32_t unicodeCodepoint);
+            void PressInsert();
             void PressBackspace();
             void PressDelete();
             void PressEnter();
