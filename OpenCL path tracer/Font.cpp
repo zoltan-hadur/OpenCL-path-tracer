@@ -102,6 +102,7 @@ namespace OpenCL_PathTracer
                     },
                     static_cast<float>(advance)
                 ) });
+                _height = std::max(_height, size.y + yOffset);
                 _texture->UpdateTexture(
                     static_cast<GLint>(cursor.x), static_cast<GLint>(cursor.y),
                     static_cast<GLsizei>(face->glyph->bitmap.width), static_cast<GLsizei>(face->glyph->bitmap.rows),
