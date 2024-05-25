@@ -143,6 +143,7 @@ namespace OpenCL_PathTracer
             line.insert(line.begin() + _cursor.x, unicodeCodepoint);
             MoveCursor(CursorMovement::Right);
             CopyBufferToText();
+            _caretAnimation.Start();
         }
 
         void Console::PressBackspace()
@@ -154,6 +155,7 @@ namespace OpenCL_PathTracer
                 MoveCursor(CursorMovement::Left);
                 CopyBufferToText();
             }
+            _caretAnimation.Start();
         }
 
         void Console::PressDelete()
@@ -164,6 +166,7 @@ namespace OpenCL_PathTracer
                 line.erase(line.begin() + _cursor.x);
                 CopyBufferToText();
             }
+            _caretAnimation.Start();
         }
 
         void Console::PressEnter()
@@ -173,6 +176,7 @@ namespace OpenCL_PathTracer
             _cursor.y++;
             UpdateCaretPosition();
             CopyBufferToText();
+            _caretAnimation.Start();
         }
 
         void Console::MoveCursor(CursorMovement cursorMovement)
@@ -201,6 +205,7 @@ namespace OpenCL_PathTracer
         void Console::Focus()
         {
             _hasFocus = true;
+            _caretAnimation.Start();
         }
 
         void Console::ClearFocus()
