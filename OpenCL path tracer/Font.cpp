@@ -25,10 +25,11 @@ namespace OpenCL_PathTracer
                 {
                     supportedCharacters.insert(c);
                 }
-                for (uint32_t c = 160; c <= 386; ++c)
+                for (uint32_t c = 160; c <= 767; ++c)
                 {
                     supportedCharacters.insert(c);
                 }
+                supportedCharacters.insert(8364);   // Euro sign
                 return supportedCharacters;
             }();
 
