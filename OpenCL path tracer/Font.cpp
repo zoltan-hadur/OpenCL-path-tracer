@@ -131,13 +131,8 @@ namespace OpenCL_PathTracer
         {
             auto size = Vector2();
             auto cursor = Vector2();
-            if (text.length() > 0)
-            {
-                size.y = _height;
-            }
             for (auto const& c : StringHelper::GetUnicodeCharacters(text))
             {
-                auto const& character = _characters.at(c);
                 switch (c)
                 {
                     case '\r':
@@ -148,16 +143,15 @@ namespace OpenCL_PathTracer
                     case '\n':
                     {
                         cursor.y = cursor.y + _height;
-                        size.y = cursor.y + _height;
                         break;
                     }
                     default:
                     {
-                        cursor.x = cursor.x + character.GetAdvance();
-                        size.x = std::max(size.x, cursor.x);
+                        cursor.x = cursor.x + GetCharacter(c).GetAdvance();
                         break;
                     }
                 }
+                size = Vector2(std::max(cursor.x, size.x), std::max(cursor.y + _height, size.y));
             }
             return size;
         }
