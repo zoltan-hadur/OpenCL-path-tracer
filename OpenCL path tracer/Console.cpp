@@ -219,6 +219,7 @@ namespace OpenCL_PathTracer
                 color.A = 1.0f;
                 _caret->SetColor(color);
             }
+            ScrollTextIfNeeded();
             _caretAnimation.Start();
         }
 
@@ -231,6 +232,7 @@ namespace OpenCL_PathTracer
                 MoveCursor(CursorMovement::Left);
                 CopyBufferToText();
             }
+            ScrollTextIfNeeded();
             _caretAnimation.Start();
         }
 
@@ -242,6 +244,7 @@ namespace OpenCL_PathTracer
                 line.erase(line.begin() + _cursor.x);
                 CopyBufferToText();
             }
+            ScrollTextIfNeeded();
             _caretAnimation.Start();
         }
 
