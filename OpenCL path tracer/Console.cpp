@@ -44,8 +44,27 @@ namespace OpenCL_PathTracer
         {
             while (GetScreenCursor(_cursor).y + _charSize.y > _background->GetSize().y)
             {
-                _text->SetPosition(_text->GetPosition() - Vector2(0.0f, _charSize.y));
+                Scroll(ScrollDirection::Down, 1);
             }
+        }
+
+        void Console::UpdateScrollbarThumb()
+        {
+            auto textHeight = GetTextHeight();
+            auto backgroundHeight = _background->GetSize().y;
+            auto scrollbarThumbHeight = std::max(
+                std::clamp(backgroundHeight / textHeight, 0.0f, 1.0f) * backgroundHeight,
+                _minimumScrollbarThumbHeight
+            );
+
+            auto visibleTextHeight = std::floor(backgroundHeight / _charSize.y) * _charSize.y + 0.0001f;
+            auto currentPos = std::abs(_text->GetPosition().y);
+
+            _scrollbarThumb->SetPosition(Vector2(
+                _scrollbar->GetPosition().x,
+                currentPos / (textHeight - visibleTextHeight) * (backgroundHeight - scrollbarThumbHeight)
+            ));
+            _scrollbarThumb->SetSize(Vector2(_scrollbarWidth, scrollbarThumbHeight));
         }
 
         Vector2 Console::GetBufferCursor(Vector2 const& screenCursor) const
@@ -72,11 +91,16 @@ namespace OpenCL_PathTracer
             float y = 0;
             for (int i = 0; i < bufferCursor.y; ++i)
             {
-                y = y + 1 + _buffer[i].size() / (_columnWidth + 1);
+                y = y + 1 + static_cast<int>(_buffer[i].size() - 1) / _columnWidth;
             }
             y = y + static_cast<int>(bufferCursor.x) / _columnWidth;
             float x = static_cast<int>(bufferCursor.x) % _columnWidth;
             return Vector2(x, y) * _charSize + _text->GetPosition();
+        }
+
+        float Console::GetTextHeight() const
+        {
+            return _font->MeasureTextSize(_text->GetValue()).y - _charSize.y;
         }
 
         Console::Console()
@@ -85,6 +109,8 @@ namespace OpenCL_PathTracer
             _font = std::make_shared<Font>("C:/Windows/Fonts/cour.ttf", 16);
             _text = std::make_unique<Text>(_font, "", Color(1, 1, 1));
             _caret = std::make_unique<Panel>(Vector2(0, 0), Vector2(1, _font->GetHeight()), Color(1, 1, 1));
+            _scrollbar = std::make_unique<Panel>(Vector2(0, 0), Vector2(1, 1), Color(1.0f, 1.0f, 1.0f, 0.5f));
+            _scrollbarThumb = std::make_unique<Panel>(Vector2(0, 0), Vector2(1, 1), Color(0.5f, 0.5f, 0.5f, 0.5f));
 
             _buffer = { { {'>'} } };
             _cursor = { 1, 0 };
@@ -93,6 +119,9 @@ namespace OpenCL_PathTracer
             _caretFrequency = 1.0f;
             _hasFocus = false;
             _isInsertTurnedOn = false;
+            _minimumScrollbarThumbHeight = 50.0f;
+            _scrollbarWidth = 20.0f;
+            CopyBufferToText();
 
             _state = ConsoleState::Closed;
             _positionAnimation = Animation<Vector2>();
@@ -116,7 +145,6 @@ namespace OpenCL_PathTracer
                 });
 
             UpdateCaretPosition();
-            CopyBufferToText();
         }
 
         ConsoleState Console::GetState() const
@@ -126,15 +154,23 @@ namespace OpenCL_PathTracer
 
         void Console::SetWindowSize(int width, int height)
         {
+            _columnWidth = (width - _scrollbarWidth) / _charSize.x;
+            CopyBufferToText();
+
             _positionAnimation.From = Vector2(0, -height);
             _positionAnimation.To = Vector2(0, 0);
 
             _background->SetSize(Vector2(width, height));
+            _scrollbar->SetPosition(Vector2(width - _scrollbarWidth, 0));
+            _scrollbar->SetSize(Vector2(width, height));
 
-            _columnWidth = width / _charSize.x;
+            if (GetScreenCursor(_cursor).y < std::floor(_background->GetSize().y / _charSize.y) * _charSize.y)
+            {
+                Scroll(ScrollDirection::Down, 1);
+            }
 
+            UpdateScrollbarThumb();
             UpdateCaretPosition();
-            CopyBufferToText();
         }
 
         void Console::Open()
@@ -214,9 +250,9 @@ namespace OpenCL_PathTracer
             _buffer.push_back({ '>' });
             _cursor.x = 1;
             _cursor.y++;
+            CopyBufferToText();
             ScrollTextIfNeeded();
             UpdateCaretPosition();
-            CopyBufferToText();
             _caretAnimation.Start();
         }
 
@@ -255,6 +291,20 @@ namespace OpenCL_PathTracer
             _hasFocus = false;
         }
 
+        void Console::Scroll(ScrollDirection direction, int times)
+        {
+            auto position = _text->GetPosition();
+            auto additional = (_cursor.y == _buffer.size() - 1 && static_cast<int>(_cursor.x) % _columnWidth == 0) ? _charSize.y : 0;
+            auto newPosition = Vector2(
+                position.x,
+                std::clamp(position.y + _charSize.y * times * ((direction == ScrollDirection::Up) ? 1 : -1),
+                    std::min(std::floor(_background->GetSize().y / _charSize.y) * _charSize.y - GetTextHeight() - additional, 0.0f),
+                    0.0f));
+            _text->SetPosition(newPosition);
+            UpdateScrollbarThumb();
+            UpdateCaretPosition();
+        }
+
         void Console::Draw(ShaderProgram& shaderProgram) const
         {
             if (_state == ConsoleState::Closed) return;
@@ -268,6 +318,8 @@ namespace OpenCL_PathTracer
                     _caret->Draw(shaderProgram);
                 }
             }
+            _scrollbar->Draw(shaderProgram);
+            _scrollbarThumb->Draw(shaderProgram);
             shaderProgram.PopModelMatrix();
         }
 

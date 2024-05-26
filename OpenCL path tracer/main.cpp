@@ -209,6 +209,11 @@ void OnCharacterReceived(GLFWwindow* window, unsigned int codepoint)
     _console->TypeCharacter(codepoint);
 }
 
+void OnScroll(GLFWwindow* window, double xoffset, double yoffset)
+{
+    _console->Scroll(yoffset > 0 ? ScrollDirection::Up : ScrollDirection::Down, std::abs(yoffset));
+}
+
 void Draw()
 {
     glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
@@ -261,6 +266,7 @@ int main(int argc, char** argv)
     glfwSetFramebufferSizeCallback(_window, OnFramebufferSizeChanged);
     glfwSetKeyCallback(_window, OnKeyReceived);
     glfwSetCharCallback(_window, OnCharacterReceived);
+    glfwSetScrollCallback(_window, OnScroll);
 
     _shaderProgram = std::make_unique<ShaderProgram>("default.vert", "default.frag");
     if (!_shaderProgram->IsLinkingSuccessful())

@@ -29,6 +29,12 @@ namespace OpenCL_PathTracer
             End
         };
 
+        enum class ScrollDirection
+        {
+            Up,
+            Down
+        };
+
         class Console
         {
         private:
@@ -36,6 +42,8 @@ namespace OpenCL_PathTracer
             std::shared_ptr<Font> _font;
             std::unique_ptr<Text> _text;
             std::unique_ptr<Panel> _caret;
+            std::unique_ptr<Panel> _scrollbar;
+            std::unique_ptr<Panel> _scrollbarThumb;
 
             std::vector<std::vector<uint32_t>> _buffer;
             Vector2 _cursor;
@@ -44,6 +52,8 @@ namespace OpenCL_PathTracer
             float _caretFrequency;
             bool _hasFocus;
             bool _isInsertTurnedOn;
+            float _minimumScrollbarThumbHeight;
+            float _scrollbarWidth;
 
             ConsoleState _state;
             Animation<Vector2> _positionAnimation;
@@ -52,9 +62,11 @@ namespace OpenCL_PathTracer
             void CopyBufferToText();
             void UpdateCaretPosition();
             void ScrollTextIfNeeded();
+            void UpdateScrollbarThumb();
 
             Vector2 GetBufferCursor(Vector2 const& screenCursor) const;
             Vector2 GetScreenCursor(Vector2 const& bufferCursor) const;
+            float GetTextHeight() const;
 
         public:
             Console();
@@ -74,6 +86,7 @@ namespace OpenCL_PathTracer
             void MoveCursor(CursorMovement cursorMovement);
             void Focus();
             void ClearFocus();
+            void Scroll(ScrollDirection direction, int times);
 
             void Draw(ShaderProgram& shaderProgram) const;
             void Animate(float dt);
