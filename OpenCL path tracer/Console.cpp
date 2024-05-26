@@ -20,10 +20,12 @@ namespace OpenCL_PathTracer
             auto text = std::string();
             for (auto const& line : _buffer)
             {
+                // A line can be much longer than the console, so split it up into multiple lines
                 for (int i = 0; i <= line.size() / _columnWidth; ++i)
                 {
                     auto from = i * _columnWidth;
                     auto to = std::min((i + 1) * _columnWidth, static_cast<int>(line.size()));
+                    // Handle when line is as long as the console
                     if (from == to)
                     {
                         break;
@@ -42,6 +44,7 @@ namespace OpenCL_PathTracer
 
         void Console::ScrollTextIfNeeded()
         {
+            // While the cursor is outside the console
             while (GetScreenCursor(_cursor).y + _charSize.y > _background->GetSize().y)
             {
                 Scroll(ScrollDirection::Down, 1);
@@ -57,6 +60,7 @@ namespace OpenCL_PathTracer
                 _minimumScrollbarThumbHeight
             );
 
+            // Add epsilon so there will be no divide with 0
             auto visibleTextHeight = std::floor(backgroundHeight / _charSize.y) * _charSize.y + 0.0001f;
             auto currentPos = std::abs(_text->GetPosition().y);
 
@@ -89,6 +93,7 @@ namespace OpenCL_PathTracer
         Vector2 Console::GetScreenCursor(Vector2 const& bufferCursor) const
         {
             float y = 0;
+            // Increase y for every subline in lines
             for (int i = 0; i < bufferCursor.y; ++i)
             {
                 y = y + 1 + static_cast<int>(_buffer[i].size() - 1) / _columnWidth;
@@ -261,19 +266,20 @@ namespace OpenCL_PathTracer
 
         void Console::MoveCursor(CursorMovement cursorMovement)
         {
+            auto const& line = _buffer[_cursor.y];
             switch (cursorMovement)
             {
                 case CursorMovement::Left:
                     _cursor.x = std::max(_cursor.x - 1.0f, 1.0f);
                     break;
                 case CursorMovement::Right:
-                    _cursor.x = std::min(_cursor.x + 1.0f, static_cast<float>(_buffer[_cursor.y].size()));
+                    _cursor.x = std::min(_cursor.x + 1.0f, static_cast<float>(line.size()));
                     break;
                 case CursorMovement::Home:
                     _cursor = { 1.0f, _buffer.size() - 1.0f };
                     break;
                 case CursorMovement::End:
-                    _cursor.x = _buffer[_cursor.y].size();
+                    _cursor.x = line.size();
                     break;
                 default:
                     break;
@@ -297,12 +303,16 @@ namespace OpenCL_PathTracer
         void Console::Scroll(ScrollDirection direction, int times)
         {
             auto position = _text->GetPosition();
+            // Allow additional scrolling when e.g. line is full, and next char would be on next line
             auto additional = (_cursor.y == _buffer.size() - 1 && static_cast<int>(_cursor.x) % _columnWidth == 0) ? _charSize.y : 0;
             auto newPosition = Vector2(
                 position.x,
-                std::clamp(position.y + _charSize.y * times * ((direction == ScrollDirection::Up) ? 1 : -1),
+                std::clamp(
+                    position.y + _charSize.y * times * ((direction == ScrollDirection::Up) ? 1 : -1),
                     std::min(std::floor(_background->GetSize().y / _charSize.y) * _charSize.y - GetTextHeight() - additional, 0.0f),
-                    0.0f));
+                    0.0f
+                )
+            );
             _text->SetPosition(newPosition);
             UpdateScrollbarThumb();
             UpdateCaretPosition();
